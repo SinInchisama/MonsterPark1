@@ -7,8 +7,15 @@
 
 void UMonsterMoveTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
 {
-	FMonsterTargetFragment InitialData;
-	InitialData.Target = FVector(FMath::RandRange(-1000.f, 1000.f), FMath::RandRange(-1000.f, 1000.f), 0.f);
 
-	BuildContext.AddFragment<FMonsterTargetFragment>();
+	FMonsterTargetFragment& TargetFrag =
+		BuildContext.AddFragment_GetRef<FMonsterTargetFragment>();
+
+	TargetFrag.Target = FVector(-1080, 1080, 60.f);
+	/*FMonsterTargetFragment InitialData;
+	InitialData.Target = FVector(-1080,
+		1080,
+		60.f);*/
+
+	//BuildContext.AddFragment<FMonsterTargetFragment>();
 }

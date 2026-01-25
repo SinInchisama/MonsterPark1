@@ -47,12 +47,11 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                 FVector CurrentLocation = Transform.GetLocation();
 
                 auto& Move = SimpleMovementsList[i];
-                FVector Dir = Move.Target - CurrentLocation;
 
                 // SpawnTime 세팅
                 if(Move.SpawnTime < 0.f)
                 {
-                    Move.SpawnTime = CurrentTime + SpawnIndex * 1.0f;
+                    Move.SpawnTime = CurrentTime + SpawnIndex * 0.5f;
                     SpawnIndex++;
                     Transform.SetLocation(
                         FVector(0, 0, -100000.f));
@@ -77,13 +76,12 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                 }
                 else {
                     // 3 이동 처리
+                    FVector Dir = Move.Target - CurrentLocation;
 
-                    if (Dir.SizeSquared() < 20.f * 20.f)
+                    if (Dir.SizeSquared() < 10.0f)
                     {
-                        Move.Target = CurrentLocation +
-                            FVector(-1080,
-                                1080,
-                                60.f);
+                        Move.TargetIndex = (Move.TargetIndex + 1) % 4;
+                        Move.Target = MonsterTargets[Move.TargetIndex];
                         //FMath::RandRange(-1.f, 1.f) * 1000.f
                     }
                     else

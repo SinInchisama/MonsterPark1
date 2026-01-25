@@ -16,6 +16,16 @@ struct MONSTERPARK_API FMonsterTargetFragment : public FMassFragment
     GENERATED_BODY()
     FVector Target;
 
-    float SpawnTime = -1.f;
+    int TargetIndex = 0;
+
+    float SpawnTime = -1.f;     // 추후 분리 예정
     bool bSpawned = false;
+};
+
+static const FVector MonsterTargets[4] =
+{
+    FVector(-1080, -1080, 60.f),
+    FVector(-1080,  1080, 60.f),
+    FVector(1080,  1080, 60.f),
+    FVector(1080, -1080, 60.f),
 };
