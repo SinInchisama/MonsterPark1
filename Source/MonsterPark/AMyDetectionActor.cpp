@@ -1,0 +1,85 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "AMyDetectionActor.h"
+#include "MassCommonFragments.h"
+#include "MassEntitySubsystem.h"
+#include "MassEntityManager.h"
+#include "MassExecutionContext.h"
+
+// Sets default values
+AAMyDetectionActor::AAMyDetectionActor()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+}
+
+// Called when the game starts or when spawned
+void AAMyDetectionActor::BeginPlay()
+{
+	Super::BeginPlay();
+	
+    UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
+    if (EntitySubsystem)
+    {
+        FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
+        // 쿼리를 초기화합니다. (SharedPtr 형태의 매니저를 전달)
+        // 헤더에 정의된 생성자 중 TSharedPtr<FMassEntityManager>를 받는 버전을 사용하게 됩니다.
+        EnemyQuery = FMassEntityQuery(EntityManager.AsShared());
+    }
+
+    // 이제 초기화가 되었으므로 요구사항 추가가 가능합니다.
+    EnemyQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
+}
+
+// Called every frame
+void AAMyDetectionActor::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+    FindEnemiesInArea();
+
+}
+
+void AAMyDetectionActor::FindEnemiesInArea()
+{
+    UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
+    if (!EntitySubsystem) return;
+
+    // 이전에 감지된 리스트 비우기
+    DetectedEnemies.Reset();
+
+    FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
+
+    // 최신 생성자: 매니저와 델타타임을 전달
+    FMassExecutionContext ExecContext(EntityManager, 0.0f);
+
+    FVector MyLocation = GetActorLocation();
+    float RadiusSq = FMath::Square(1000.0f);
+
+    // 최신 호출 방식: 컨텍스트 하나만 인자로 전달
+    EnemyQuery.ForEachEntityChunk(ExecContext, [this, MyLocation, RadiusSq](FMassExecutionContext& Context)
+        {
+            const int32 NumEntities = Context.GetNumEntities();
+            auto Transforms = Context.GetFragmentView<FTransformFragment>();
+
+            for (int32 i = 0; i < NumEntities; ++i)
+            {
+                FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
+
+                // 제곱 거리 계산 (성능 최적화)
+                if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)
+                {
+                    DetectedEnemies.Add(Context.GetEntity(i));
+                }
+            }
+        }); // 람다 세미콜론 필수
+
+    int32 Count = DetectedEnemies.Num();
+
+    if (Count > 0 && Count < 100000)
+    {
+        // 텍스트를 직접 입력하여 보이지 않는 특수문자 제거
+        UE_LOG(LogTemp, Warning, TEXT("Detected Count: %d"), Count);
+    }
+}
