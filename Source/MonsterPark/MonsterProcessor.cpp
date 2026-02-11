@@ -35,13 +35,13 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
     const float CurrentTime = Context.GetWorld()->GetTimeSeconds();
     const float DeltaTime = Context.GetDeltaTimeSeconds();
 
-    EntityQuery.ForEachEntityChunk(Context, [this, CurrentTime, DeltaTime](FMassExecutionContext& Context)
+    EntityQuery.ForEachEntityChunk(EntityManager, Context, [this, CurrentTime, DeltaTime](FMassExecutionContext& ExecContext)
         {
-            const TArrayView<FTransformFragment> TransformList = Context.GetMutableFragmentView<FTransformFragment>();
-            const TArrayView<FMonsterTargetFragment> SimpleMovementsList = Context.GetMutableFragmentView<FMonsterTargetFragment>();
+            const TArrayView<FTransformFragment> TransformList = ExecContext.GetMutableFragmentView<FTransformFragment>();
+            const TArrayView<FMonsterTargetFragment> SimpleMovementsList = ExecContext.GetMutableFragmentView<FMonsterTargetFragment>();
            
 
-            for (int32 i = 0; i < Context.GetNumEntities(); ++i)
+            for (int32 i = 0; i < ExecContext.GetNumEntities(); ++i)
             {
                 FTransform& Transform = TransformList[i].GetMutableTransform();
                 FVector CurrentLocation = Transform.GetLocation();
@@ -49,7 +49,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                 auto& Move = SimpleMovementsList[i];
                 FVector Dir = Move.Target - CurrentLocation;
 
-                // SpawnTime 技泼
+                // SpawnTime 
                 if(Move.SpawnTime < 0.f)
                 {
                     Move.SpawnTime = CurrentTime + SpawnIndex * 1.0f;
@@ -76,7 +76,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                     }
                 }
                 else {
-                    // 3 捞悼 贸府
+                    // 3 痰 贸
 
                     if (Dir.SizeSquared() < 20.f * 20.f)
                     {

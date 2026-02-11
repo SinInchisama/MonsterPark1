@@ -8,7 +8,7 @@ public class MonsterParkEditorTarget : TargetRules
 	public MonsterParkEditorTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Editor;
-		DefaultBuildSettings = BuildSettingsVersion.V5;
+		DefaultBuildSettings = BuildSettingsVersion.V6;
 
 		ExtraModuleNames.AddRange( new string[] { "MonsterPark" } );
 	}
