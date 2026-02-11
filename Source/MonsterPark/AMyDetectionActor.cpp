@@ -30,7 +30,7 @@ void AAMyDetectionActor::BeginPlay()
     }
 
     // 이제 초기화가 되었으므로 요구사항 추가가 가능합니다.
-    EnemyQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
+    EnemyQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 }
 
 // Called every frame
@@ -55,25 +55,21 @@ void AAMyDetectionActor::FindEnemiesInArea()
     FMassExecutionContext ExecContext(EntityManager, 0.0f);
 
     FVector MyLocation = GetActorLocation();
-    float RadiusSq = FMath::Square(100.0f);
+    float RadiusSq = FMath::Square(1000.0f);
 
     // 최신 호출 방식: 컨텍스트 하나만 인자로 전달
     EnemyQuery.ForEachEntityChunk(ExecContext, [this, MyLocation, RadiusSq](FMassExecutionContext& Context)
         {
             const int32 NumEntities = Context.GetNumEntities();
-            TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
-            //auto Transforms = Context.GetFragmentView<FTransformFragment>();
+            auto Transforms = Context.GetFragmentView<FTransformFragment>();
 
             for (int32 i = 0; i < NumEntities; ++i)
             {
-                FTransform& EntityTransform = Transforms[i].GetMutableTransform();
                 FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
 
                 // 제곱 거리 계산 (성능 최적화)
                 if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)
                 {
-                    EntityTransform.SetLocation(
-                        FVector(0, 0, -100000.f));
                     DetectedEnemies.Add(Context.GetEntity(i));
                 }
             }
