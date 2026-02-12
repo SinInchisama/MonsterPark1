@@ -3,6 +3,7 @@
 
 #include "MonsterMoveTrait.h"
 #include "FMonsterTargetFragment.h"
+#include "FMonsterStatusFragment.h"
 #include "MassEntityTemplateRegistry.h"
 
 void UMonsterMoveTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
@@ -11,11 +12,12 @@ void UMonsterMoveTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildCont
 	FMonsterTargetFragment& TargetFrag =
 		BuildContext.AddFragment_GetRef<FMonsterTargetFragment>();
 
+	FMonsterStatusFragment& StatusFrag = BuildContext.AddFragment_GetRef<FMonsterStatusFragment>();
+
+	StatusFrag = MonstStatusParams;
+
 	TargetFrag.Target = FVector(-1080, 1080, 60.f);
-	/*FMonsterTargetFragment InitialData;
-	InitialData.Target = FVector(-1080,
-		1080,
-		60.f);*/
+	
 
 	//BuildContext.AddFragment<FMonsterTargetFragment>();
 }

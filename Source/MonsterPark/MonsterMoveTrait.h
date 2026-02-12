@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MassEntityTraitBase.h"
+#include "FMonsterStatusFragment.h"
 #include "MonsterMoveTrait.generated.h"
 
 /**
@@ -16,4 +17,7 @@ class MONSTERPARK_API UMonsterMoveTrait : public UMassEntityTraitBase
 
 protected:
 	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
+
+	UPROPERTY(Category = "Killed", EditAnywhere)
+	FMonsterStatusFragment MonstStatusParams;
 };
