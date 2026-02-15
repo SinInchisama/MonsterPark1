@@ -11,21 +11,16 @@ public class MonsterPark : ModuleRules
         PublicDependencyModuleNames.AddRange(new string[] {
     "Core", "CoreUObject", "Engine", "InputCore",
     "MassEntity",
-    "MassCommon",    // <--- ÀÌ ÁÙÀÌ ¹Ýµå½Ã ÀÖ¾î¾ß '¿ÜºÎ ±âÈ£' ¿¡·¯°¡ »ç¶óÁý´Ï´Ù.
+    "MassCommon",    // <--- ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ýµï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ 'ï¿½Üºï¿½ ï¿½ï¿½È£' ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
     "MassMovement",
     "MassSpawner",
     "MassRepresentation",
-    "MassNavigation"
+    "MassNavigation",
+    "GameplayAbilities",
+    "GameplayTasks",
+    "GameplayTags"
 });
 
-        PrivateDependencyModuleNames.AddRange(new string[] {  });
-
-		// Uncomment if you are using Slate UI
-		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-		
-		// Uncomment if you are using online features
-		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
-
-		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
+        PrivateDependencyModuleNames.RemoveAll(x => x == "GameplayAbilities" || x == "GameplayTasks" || x == "GameplayTags");
 	}
 }
