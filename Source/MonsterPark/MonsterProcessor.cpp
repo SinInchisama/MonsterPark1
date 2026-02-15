@@ -10,6 +10,7 @@
 
 UMonsterProcessor::UMonsterProcessor() :EntityQuery(*this)
 {
+
 	ProcessingPhase = EMassProcessingPhase::PrePhysics;
 	ExecutionOrder.ExecuteInGroup = UE::Mass::ProcessorGroupNames::Tasks;
 }
@@ -26,8 +27,6 @@ void UMonsterProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& E
 
     EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMonsterTargetFragment>(EMassFragmentAccess::ReadWrite);
-
-    EntityQuery.RegisterWithProcessor(*this);
 }
 
 void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)

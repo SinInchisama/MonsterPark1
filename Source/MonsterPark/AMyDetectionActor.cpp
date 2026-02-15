@@ -7,6 +7,8 @@
 #include "MassEntityManager.h"
 #include "MassExecutionContext.h"
 
+#include "FMonsterConditionFragment.h"
+
 // Sets default values
 AAMyDetectionActor::AAMyDetectionActor()
 {
@@ -31,13 +33,20 @@ void AAMyDetectionActor::BeginPlay()
 
     // 이제 초기화가 되었으므로 요구사항 추가가 가능합니다.
     EnemyQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
+    EnemyQuery.AddRequirement<FMonsterConditionFragment>(EMassFragmentAccess::ReadWrite);
+}
+
+void AAMyDetectionActor::OnResumeAction()
+{
+    Attacking = true;
 }
 
 // Called every frame
 void AAMyDetectionActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-    FindEnemiesInArea();
+    if(Attacking)
+        FindEnemiesInArea();
 
 }
 
@@ -62,28 +71,29 @@ void AAMyDetectionActor::FindEnemiesInArea()
         {
             const int32 NumEntities = Context.GetNumEntities();
             TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
+            TArrayView<FMonsterConditionFragment> Conditions = Context.GetMutableFragmentView<FMonsterConditionFragment>();
             //auto Transforms = Context.GetFragmentView<FTransformFragment>();
 
             for (int32 i = 0; i < NumEntities; ++i)
             {
-                FTransform& EntityTransform = Transforms[i].GetMutableTransform();
                 FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
 
                 // 제곱 거리 계산 (성능 최적화)
                 if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)
                 {
-                    EntityTransform.SetLocation(
-                        FVector(0, 0, -100000.f));
-                    DetectedEnemies.Add(Context.GetEntity(i));
+                    Conditions[i].Damage += 100;
+                    GetWorldTimerManager().SetTimer(
+                        DetectionTimerHandle,
+                        this,
+                        &AAMyDetectionActor::OnResumeAction,
+                        0.5f, // 0.5f
+                        false     // 반복 여부: false
+                    );
+                    Attacking = false;
                 }
             }
         }); // 람다 세미콜론 필수
 
-    int32 Count = DetectedEnemies.Num();
+       // UE_LOG(LogTemp, Warning, TEXT("Detected Count: %d"), Count);
 
-    if (Count > 0 && Count < 100000)
-    {
-        // 텍스트를 직접 입력하여 보이지 않는 특수문자 제거
-        UE_LOG(LogTemp, Warning, TEXT("Detected Count: %d"), Count);
-    }
 }
