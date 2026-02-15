@@ -4,17 +4,19 @@
 #include "MonsterMoveTrait.h"
 #include "FMonsterTargetFragment.h"
 #include "FMonsterStatusFragment.h"
+#include "FMonsterConditionFragment.h"
 #include "MassEntityTemplateRegistry.h"
 
 void UMonsterMoveTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
 {
 
 	FMonsterTargetFragment& TargetFrag =
-		BuildContext.AddFragment_GetRef<FMonsterTargetFragment>();
+		BuildContext.AddFragment_GetRef<FMonsterTargetFragment>();													// 현재 생성 주기와 이동 위치를 관리하는 프래그먼트
 
-	FMonsterStatusFragment& StatusFrag = BuildContext.AddFragment_GetRef<FMonsterStatusFragment>();
+	FMonsterStatusFragment& StatusFrag = BuildContext.AddFragment_GetRef<FMonsterStatusFragment>();					// 체력 및 방어력을 관리할 Fragment
+	StatusFrag = MonstStatusParams;																					// 언리얼 내부에서 관리 가능
 
-	StatusFrag = MonstStatusParams;
+	FMonsterConditionFragment& ConditionFrag = BuildContext.AddFragment_GetRef<FMonsterConditionFragment>();		// Damage 및 상태이상을 관리할 Fragment
 
 	TargetFrag.Target = FVector(-1080, 1080, 60.f);
 	

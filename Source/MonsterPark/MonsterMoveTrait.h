@@ -18,6 +18,6 @@ class MONSTERPARK_API UMonsterMoveTrait : public UMassEntityTraitBase
 protected:
 	virtual void BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const override;
 
-	UPROPERTY(Category = "Killed", EditAnywhere)
+	UPROPERTY(Category = "Status", EditAnywhere)
 	FMonsterStatusFragment MonstStatusParams;
 };
