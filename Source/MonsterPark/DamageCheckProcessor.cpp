@@ -9,6 +9,9 @@
 #include "FMonsterConditionFragment.h"
 #include "FMonsterStatusFragment.h"
 
+#include "FMonsterTag.h"
+#include "KilledTag.h"
+
 UDamageCheckProcessor::UDamageCheckProcessor() :DamageCheckQuery(*this)
 {
 	ProcessingPhase = EMassProcessingPhase::PrePhysics;
@@ -17,6 +20,9 @@ UDamageCheckProcessor::UDamageCheckProcessor() :DamageCheckQuery(*this)
 
 void UDamageCheckProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
+	DamageCheckQuery.AddTagRequirement<FMonsterTag>(EMassFragmentPresence::All);
+	DamageCheckQuery.AddTagRequirement<FKilledTag>(EMassFragmentPresence::None);
+
 	DamageCheckQuery.AddRequirement<FMonsterConditionFragment>(EMassFragmentAccess::ReadWrite);
 	DamageCheckQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
 
@@ -36,6 +42,10 @@ void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 					StatusList[i].CurrentHealth -= ConditionList[i].Damage;
 					ConditionList[i].Damage = 0;
 					UE_LOG(LogTemp, Warning, TEXT("Detected Count: %f"), StatusList[i].CurrentHealth);
+					if (StatusList[i].CurrentHealth <= 0) {
+						//Context.Defer().AddTag<FKilledTag>(Context.GetEntity(i));
+						Context.Defer().DestroyEntity(Context.GetEntity(i));
+					}
 				}
 			}
 

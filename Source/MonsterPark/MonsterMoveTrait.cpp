@@ -6,6 +6,7 @@
 #include "FMonsterStatusFragment.h"
 #include "FMonsterConditionFragment.h"
 #include "MassEntityTemplateRegistry.h"
+#include "FMonsterTag.h"
 
 void UMonsterMoveTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
 {
@@ -17,6 +18,8 @@ void UMonsterMoveTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildCont
 	StatusFrag = MonstStatusParams;																					// 언리얼 내부에서 관리 가능
 
 	FMonsterConditionFragment& ConditionFrag = BuildContext.AddFragment_GetRef<FMonsterConditionFragment>();		// Damage 및 상태이상을 관리할 Fragment
+
+	BuildContext.AddTag<FMonsterTag>();
 
 	TargetFrag.Target = FVector(-1080, 1080, 60.f);
 	
