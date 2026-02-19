@@ -29,23 +29,23 @@ void ACharacterBase::Tick(float DeltaTime)
 
 }
 
-void ACharacterBase::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->RefreshAbilityActorInfo();
-	}
-}
-
-void ACharacterBase::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->RefreshAbilityActorInfo();
-	}
-}
+//void ACharacterBase::PossessedBy(AController* NewController)
+//{
+//	Super::PossessedBy(NewController);
+//	if (AbilitySystemComponent)
+//	{
+//		AbilitySystemComponent->RefreshAbilityActorInfo();
+//	}
+//}
+//
+//void ACharacterBase::OnRep_PlayerState()
+//{
+//	Super::OnRep_PlayerState();
+//	if (AbilitySystemComponent)
+//	{
+//		AbilitySystemComponent->RefreshAbilityActorInfo();
+//	}
+//}
 
 UAbilitySystemComponent* ACharacterBase::GetAbilitySystemComponent() const
 {

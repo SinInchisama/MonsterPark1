@@ -36,13 +36,13 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
 
     EntityQuery.ForEachEntityChunk(Context, [this, CurrentTime, DeltaTime](FMassExecutionContext& Context)
         {
-            const TArrayView<FTransformFragment> TransformList = Context.GetMutableFragmentView<FTransformFragment>();
+            const TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
             const TArrayView<FMonsterTargetFragment> SimpleMovementsList = Context.GetMutableFragmentView<FMonsterTargetFragment>();
            
 
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
             {
-                FTransform& Transform = TransformList[i].GetMutableTransform();
+                FTransform& Transform = Transforms[i].GetMutableTransform();
                 FVector CurrentLocation = Transform.GetLocation();
 
                 auto& Move = SimpleMovementsList[i];

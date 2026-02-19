@@ -20,6 +20,8 @@ struct MONSTERPARK_API FMonsterTargetFragment : public FMassFragment
 
     float SpawnTime = -1.f;     // 추후 분리 예정
     bool bSpawned = false;
+
+    bool Death = false;
 };
 
 static const FVector MonsterTargets[4] =

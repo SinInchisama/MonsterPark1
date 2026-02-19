@@ -14,7 +14,7 @@ UKilledMonster::UKilledMonster() :EntityQuery(*this)
 	ObservedType = FKilledTag::StaticStruct();
 	Operation = EMassObservedOperation::Add;
 
-	ExecutionOrder.ExecuteAfter.Add(UE::Mass::ProcessorGroupNames::Movement);
+    ExecutionOrder.ExecuteBefore.Add(UE::Mass::ProcessorGroupNames::Movement);
 }
 
 void UKilledMonster::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
@@ -26,13 +26,19 @@ void UKilledMonster::ConfigureQueries(const TSharedRef<FMassEntityManager>& Enti
 void UKilledMonster::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
 	
-	/*EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
-	{
-			for (int i = 0; i < Context.GetNumEntities(); ++i)
-			{
+    EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
+        {
 
-			}
-	});*/
-	//Context.Defer().DestroyEntity(con)
-	Context.Defer().DestroyEntities(Context.GetEntities());
+            for (int32 i = 0; i < Context.GetNumEntities(); ++i)
+            {
+                
+
+               
+                Context.Defer().DestroyEntity(Context.GetEntity(i));
+                
+                UE_LOG(LogTemp, Warning, TEXT("DELETE"));
+
+            }
+        });
+
 }

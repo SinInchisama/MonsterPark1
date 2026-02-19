@@ -55,18 +55,15 @@ void AAMyDetectionActor::FindEnemiesInArea()
     UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
     if (!EntitySubsystem) return;
 
-    // 이전에 감지된 리스트 비우기
-    DetectedEnemies.Reset();
+    //DetectedEnemies.Reset();
 
     FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
 
-    // 최신 생성자: 매니저와 델타타임을 전달
     FMassExecutionContext ExecContext(EntityManager, 0.0f);
 
     FVector MyLocation = GetActorLocation();
     float RadiusSq = FMath::Square(100.0f);
 
-    // 최신 호출 방식: 컨텍스트 하나만 인자로 전달
     EnemyQuery.ForEachEntityChunk(ExecContext, [this, MyLocation, RadiusSq](FMassExecutionContext& Context)
         {
             const int32 NumEntities = Context.GetNumEntities();
@@ -78,10 +75,9 @@ void AAMyDetectionActor::FindEnemiesInArea()
             {
                 FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
 
-                // 제곱 거리 계산 (성능 최적화)
-                if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)
+                if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)     // 몬스터와 거리 계산
                 {
-                    Conditions[i].Damage += 100;
+                    Conditions[i].Damage += 100;                // if문 내부 지우고 애니메이션 시작 넣기
                     GetWorldTimerManager().SetTimer(
                         DetectionTimerHandle,
                         this,
@@ -92,7 +88,7 @@ void AAMyDetectionActor::FindEnemiesInArea()
                     Attacking = false;
                 }
             }
-        }); // 람다 세미콜론 필수
+        }); 
 
        // UE_LOG(LogTemp, Warning, TEXT("Detected Count: %d"), Count);
 
