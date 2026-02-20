@@ -26,6 +26,10 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void MoveForward(float value);
+
+	void MoveRight(float value);
+
 public:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category=Camera)
 	class USpringArmComponent* CameraBoom;

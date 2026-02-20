@@ -4,6 +4,7 @@
 #include "MyBasicCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/DefaultPawn.h"
 
 // Sets default values
 AMyBasicCharacter::AMyBasicCharacter()
@@ -40,5 +41,32 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis("MoveForward",this,&AMyBasicCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AMyBasicCharacter::MoveRight);
 }
 
+void AMyBasicCharacter::MoveForward(float Value)
+{
+    if ((Controller != nullptr) && (Value != 0.0f))
+    {
+        const FRotator Rotation = Controller->GetControlRotation();
+        const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+        AddMovementInput(Direction, Value);
+
+        UE_LOG(LogTemp, Warning, TEXT("Moving!"));
+    }
+}
+
+void AMyBasicCharacter::MoveRight(float Value)
+{
+    if ((Controller != nullptr) && (Value != 0.0f))
+    {
+        const FRotator Rotation = Controller->GetControlRotation();
+        const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+        AddMovementInput(Direction, Value);
+    }
+}
