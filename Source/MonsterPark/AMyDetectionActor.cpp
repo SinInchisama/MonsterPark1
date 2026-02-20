@@ -84,9 +84,10 @@ void AAMyDetectionActor::FindEnemiesInArea()
                     {
                         if (UAnimInstance* AnimInstance = SkeletalMesh->GetAnimInstance())
                         {
-                            if (BlackCatAnimMontage)
+                            UAnimMontage* TargetMontage = KnightAnimMontage ? KnightAnimMontage : BlackCatAnimMontage;
+                            if (TargetMontage && !AnimInstance->Montage_IsPlaying(TargetMontage))
                             {
-                                AnimInstance->Montage_Play(BlackCatAnimMontage);
+                                AnimInstance->Montage_Play(TargetMontage);
                             }
                         }
                     }

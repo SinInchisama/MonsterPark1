@@ -38,6 +38,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimMontage* BlackCatAnimMontage = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	UAnimMontage* KnightAnimMontage = nullptr;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
 	int32 HeroPrice;
 
