@@ -70,3 +70,13 @@ void AMyBasicCharacter::MoveRight(float Value)
         AddMovementInput(Direction, Value);
     }
 }
+
+void AMyBasicCharacter::Set_PlayerMoney(int32 value)
+{
+    PlayerMoney += value;
+}
+
+int32 AMyBasicCharacter::Get_PlayerMoney()
+{
+    return PlayerMoney;
+}

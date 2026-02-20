@@ -27,14 +27,21 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void MoveForward(float value);
-
 	void MoveRight(float value);
 
+	void Set_PlayerMoney(int32 value);
+	int32 Get_PlayerMoney();
+
 public:
+	// 이하 카메라 부분
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category=Camera)
 	class USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	class UCameraComponent* FollowCamera;
 		
+protected:
+	// 이하 플레이어 돈, 경험치, 레벨업, 가지고 있는 영웅들의 정보
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
+	int32 PlayerMoney = 20;
 };

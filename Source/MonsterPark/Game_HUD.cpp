@@ -19,7 +19,7 @@ void AGame_HUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UE_LOG(LogTemp, Warning, TEXT("HUD BeginPlay Started!"));
+	//UE_LOG(LogTemp, Warning, TEXT("HUD BeginPlay Started!"));
 
 	if (uiBPClass)
 	{
