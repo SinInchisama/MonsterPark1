@@ -59,8 +59,6 @@ void UMyUserWidget::Btn_LevelUp_Clicked()
 		AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
 		if(MyPlayer){
 			MyPlayer->Set_PlayerMoney(-2);
-
-			UE_LOG(LogTemp, Warning, TEXT("Level Up, %i"), MyPlayer->Get_PlayerMoney());
 		}
 	}
 }
@@ -72,9 +70,8 @@ void UMyUserWidget::Btn_Reload_Clicked()
 	{
 		AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
 		if (MyPlayer) {
-			MyPlayer->Set_PlayerMoney(-4);
-
-			UE_LOG(LogTemp, Warning, TEXT("Reload, %i"), MyPlayer->Get_PlayerMoney());
+			MyPlayer->Set_PlayerMoney(-2);
+			ReFreshStore();
 		}
 	}
 }
@@ -93,7 +90,22 @@ void UMyUserWidget::Btn_BuyHero_Clicked()
 
 void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Selected Hero Index: %d"), Btn_Num);
+	TSubclassOf<AAMyDetectionActor> SelectedClass = CurrentSlotClasses[Btn_Num];
+
+	if (SelectedClass)
+	{
+		AAMyDetectionActor* DefaultHero = SelectedClass->GetDefaultObject<AAMyDetectionActor>();
+		if (DefaultHero && CachedGM)
+		{
+			// 가격/이름 확인
+			int32 Cost = DefaultHero->HeroPrice;
+
+			// 구매 및 스폰 진행
+			ACharacter* PC = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+			CachedGM->SpawnHeroFromShop(SelectedClass, PC);
+
+		}
+	}
 }
 
 void UMyUserWidget::ReFreshStore()
@@ -101,12 +113,17 @@ void UMyUserWidget::ReFreshStore()
 	for (int32 i = 0; i < Text_HeroName_Array.Num(); i++)
 	{
 		int32 RandomIdx = FMath::RandRange(0, CachedGM->MonsterClasses.Num() - 1);
-		TSubclassOf<AActor> HeroClass = CachedGM->MonsterClasses[RandomIdx];
-		AAMyDetectionActor* DefaultHero = Cast<AAMyDetectionActor>(HeroClass->GetDefaultObject());
-		if (DefaultHero && Text_HeroName_Array.IsValidIndex(i))
+		TSubclassOf<AActor> RandomClass = CachedGM->MonsterClasses[RandomIdx];
+
+		// 부모 클래스(AMyHeroBase)로 캐스팅 가능토록 변환하여 저장
+		TSubclassOf<AAMyDetectionActor> HeroBaseClass = *RandomClass;
+		CurrentSlotClasses.Add(HeroBaseClass);
+
+		AAMyDetectionActor* CDO = HeroBaseClass->GetDefaultObject<AAMyDetectionActor>();
+		if (CDO && Text_HeroName_Array.IsValidIndex(i))
 		{
-			Text_HeroName_Array[i]->SetText(DefaultHero->HeroDisplayName);
-			int32 Price = DefaultHero->HeroPrice;
+			Text_HeroName_Array[i]->SetText(CDO->HeroDisplayName);
+			int32 Price = CDO->HeroPrice;
 			Text_HeroPrice_Array[i]->SetText(FText::AsNumber(Price));
 		}
 	}

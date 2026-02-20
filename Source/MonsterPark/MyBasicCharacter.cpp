@@ -54,8 +54,6 @@ void AMyBasicCharacter::MoveForward(float Value)
 
         const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
         AddMovementInput(Direction, Value);
-
-        UE_LOG(LogTemp, Warning, TEXT("Moving!"));
     }
 }
 
@@ -79,4 +77,12 @@ void AMyBasicCharacter::Set_PlayerMoney(int32 value)
 int32 AMyBasicCharacter::Get_PlayerMoney()
 {
     return PlayerMoney;
+}
+
+void AMyBasicCharacter::SetSummonedActor(AActor* InActor)
+{
+    if (InActor)
+    {
+        MySummonedActor = Cast<AAMyDetectionActor>(InActor);
+    }
 }

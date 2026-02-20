@@ -17,6 +17,9 @@ class MONSTERPARK_API ABasicGameMode : public AGameModeBase
 public:
 	void AMyGameModeBase();
 
+	UFUNCTION(BlueprintCallable)
+	void SpawnHeroFromShop(TSubclassOf<AActor> HeroClass, ACharacter* PlayerChar);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MonsterSetup")
 	TArray<TSubclassOf<AActor>> MonsterClasses;
 };

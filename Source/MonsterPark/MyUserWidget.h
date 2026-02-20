@@ -36,6 +36,9 @@ protected:
 	UPROPERTY()
 	class ABasicGameMode* CachedGM;
 
+	UPROPERTY()
+	TArray<TSubclassOf<class AAMyDetectionActor>> CurrentSlotClasses;
+
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	UButton* Btn_LevelUp = nullptr;
 

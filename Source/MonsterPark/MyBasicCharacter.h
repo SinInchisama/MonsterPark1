@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AMyDetectionActor.h"
 #include "MyBasicCharacter.generated.h"
 
 UCLASS()
@@ -32,6 +33,8 @@ public:
 	void Set_PlayerMoney(int32 value);
 	int32 Get_PlayerMoney();
 
+	void SetSummonedActor(AActor* InActor);
+
 public:
 	// 이하 카메라 부분
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category=Camera)
@@ -44,4 +47,7 @@ protected:
 	// 이하 플레이어 돈, 경험치, 레벨업, 가지고 있는 영웅들의 정보
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerMoney = 20;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	AAMyDetectionActor* MySummonedActor;
 };
