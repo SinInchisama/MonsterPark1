@@ -14,4 +14,6 @@ class MONSTERPARK_API ABasicGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	void AMyGameModeBase();
 };

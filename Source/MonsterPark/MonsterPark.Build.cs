@@ -18,7 +18,8 @@ public class MonsterPark : ModuleRules
     "MassNavigation",
     "GameplayAbilities",
     "GameplayTasks",
-    "GameplayTags"
+    "GameplayTags",
+    "UMG"
 });
 
         PrivateDependencyModuleNames.RemoveAll(x => x == "GameplayAbilities" || x == "GameplayTasks" || x == "GameplayTags");
