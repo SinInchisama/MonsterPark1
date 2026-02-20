@@ -35,8 +35,14 @@ public:
 
 	void SetSummonedActor(AActor* InActor);
 
+	void Attack_Melee();
+	void Attack_End();
+
+protected:
+	FTimerHandle TH_Attack_End;
+
 public:
-	// ÀÌÇÏ Ä«¸Þ¶ó ºÎºÐ
+	// ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½Þ¶ï¿½ ï¿½Îºï¿½
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category=Camera)
 	class USpringArmComponent* CameraBoom;
 
@@ -44,7 +50,7 @@ public:
 	class UCameraComponent* FollowCamera;
 		
 protected:
-	// ÀÌÇÏ ÇÃ·¹ÀÌ¾î µ·, °æÇèÄ¡, ·¹º§¾÷, °¡Áö°í ÀÖ´Â ¿µ¿õµéÀÇ Á¤º¸
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½Ä¡, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerMoney = 20;
 

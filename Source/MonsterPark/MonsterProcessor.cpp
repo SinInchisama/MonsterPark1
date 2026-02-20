@@ -47,7 +47,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
 
                 auto& Move = SimpleMovementsList[i];
 
-                // SpawnTime ¼¼ÆÃ
+                // SpawnTime ï¿½ï¿½ï¿½ï¿½
                 if(Move.SpawnTime < 0.f)
                 {
                     Move.SpawnTime = CurrentTime + SpawnIndex * 0.5f;
@@ -74,7 +74,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                     }
                 }
                 else {
-                    // 3 ÀÌµ¿ Ã³¸®
+                    // 3 ï¿½Ìµï¿½ Ã³ï¿½ï¿½
                     FVector Dir = Move.Target - CurrentLocation;
 
                     if (Dir.SizeSquared() < 10.0f)

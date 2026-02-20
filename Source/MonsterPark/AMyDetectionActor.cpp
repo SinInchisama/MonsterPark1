@@ -5,6 +5,9 @@
 #include "MassCommonFragments.h"
 #include "MassEntitySubsystem.h"
 #include "MassEntityManager.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "MassExecutionContext.h"
 
 #include "FMonsterConditionFragment.h"
@@ -26,12 +29,12 @@ void AAMyDetectionActor::BeginPlay()
     if (EntitySubsystem)
     {
         FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
-        // Äõ¸®¸¦ ÃÊ±âÈ­ÇÕ´Ï´Ù. (SharedPtr ÇüÅÂÀÇ ¸Å´ÏÀú¸¦ Àü´Þ)
-        // Çì´õ¿¡ Á¤ÀÇµÈ »ý¼ºÀÚ Áß TSharedPtr<FMassEntityManager>¸¦ ¹Þ´Â ¹öÀüÀ» »ç¿ëÇÏ°Ô µË´Ï´Ù.
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ï¿½Õ´Ï´ï¿½. (SharedPtr ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Çµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ TSharedPtr<FMassEntityManager>ï¿½ï¿½ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ë´Ï´ï¿½.
         EnemyQuery = FMassEntityQuery(EntityManager.AsShared());
     }
 
-    // ÀÌÁ¦ ÃÊ±âÈ­°¡ µÇ¾úÀ¸¹Ç·Î ¿ä±¸»çÇ× Ãß°¡°¡ °¡´ÉÇÕ´Ï´Ù.
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ä±¸ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
     EnemyQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
     EnemyQuery.AddRequirement<FMonsterConditionFragment>(EMassFragmentAccess::ReadWrite);
 }
@@ -49,6 +52,7 @@ void AAMyDetectionActor::Tick(float DeltaTime)
         FindEnemiesInArea();
 
 }
+
 
 void AAMyDetectionActor::FindEnemiesInArea()
 {
@@ -68,24 +72,24 @@ void AAMyDetectionActor::FindEnemiesInArea()
         {
             const int32 NumEntities = Context.GetNumEntities();
             TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
-            TArrayView<FMonsterConditionFragment> Conditions = Context.GetMutableFragmentView<FMonsterConditionFragment>();
             //auto Transforms = Context.GetFragmentView<FTransformFragment>();
 
             for (int32 i = 0; i < NumEntities; ++i)
             {
                 FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
 
-                if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)     // ¸ó½ºÅÍ¿Í °Å¸® °è»ê
+                if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)     // ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½
                 {
-                    Conditions[i].Damage += 100;                // if¹® ³»ºÎ Áö¿ì°í ¾Ö´Ï¸ÞÀÌ¼Ç ½ÃÀÛ ³Ö±â
-                    GetWorldTimerManager().SetTimer(
-                        DetectionTimerHandle,
-                        this,
-                        &AAMyDetectionActor::OnResumeAction,
-                        0.5f, // 0.5f
-                        false     // ¹Ýº¹ ¿©ºÎ: false
-                    );
-                    Attacking = false;
+                    if (USkeletalMeshComponent* SkeletalMesh = FindComponentByClass<USkeletalMeshComponent>())
+                    {
+                        if (UAnimInstance* AnimInstance = SkeletalMesh->GetAnimInstance())
+                        {
+                            if (BlackCatAnimMontage)
+                            {
+                                AnimInstance->Montage_Play(BlackCatAnimMontage);
+                            }
+                        }
+                    }
                 }
             }
         }); 

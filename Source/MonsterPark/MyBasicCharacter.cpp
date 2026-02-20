@@ -43,6 +43,9 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAxis("MoveForward",this,&AMyBasicCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMyBasicCharacter::MoveRight);
+
+	// "Attack" 액션을 바인딩합니다. 언리얼 에디터의 Project Settings -> Input에서 "Attack" 액션을 설정해야 합니다.
+	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AMyBasicCharacter::Attack_Melee);
 }
 
 void AMyBasicCharacter::MoveForward(float Value)
@@ -85,4 +88,16 @@ void AMyBasicCharacter::SetSummonedActor(AActor* InActor)
     {
         MySummonedActor = Cast<AAMyDetectionActor>(InActor);
     }
+}
+
+void AMyBasicCharacter::Attack_Melee()
+{
+    UE_LOG(LogTemp, Warning, TEXT("Attack_Melee Called!"));
+    GetWorldTimerManager().SetTimer(TH_Attack_End, this, &AMyBasicCharacter::Attack_End, 1.0f, false);
+}
+
+void AMyBasicCharacter::Attack_End()
+{
+    UE_LOG(LogTemp, Warning, TEXT("Attack_End Called!"));
+    // Implement animation ending logic here
 }

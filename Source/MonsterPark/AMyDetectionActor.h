@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "MassEntityQuery.h"
+class UAnimMontage;
 #include "AMyDetectionActor.generated.h"
 
 UCLASS()
@@ -33,6 +34,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void FindEnemiesInArea();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	UAnimMontage* BlackCatAnimMontage = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
 	int32 HeroPrice;

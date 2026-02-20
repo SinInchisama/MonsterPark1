@@ -9,7 +9,7 @@
 #include "CharacterBase.generated.h"
 
 UCLASS()
-class MONSTERPARK_API ACharacterBase : public AActor, public IAbilitySystemInterface
+class MONSTERPARK_API ACharacterBase : public APawn, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 	
