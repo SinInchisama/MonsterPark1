@@ -16,4 +16,7 @@ class MONSTERPARK_API ABasicGameMode : public AGameModeBase
 	
 public:
 	void AMyGameModeBase();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MonsterSetup")
+	TArray<TSubclassOf<AActor>> MonsterClasses;
 };

@@ -34,4 +34,9 @@ public:
 
 	void FindEnemiesInArea();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
+	int32 HeroPrice;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
+	FText HeroDisplayName;
 };
