@@ -98,3 +98,21 @@ void AAMyDetectionActor::FindEnemiesInArea()
        // UE_LOG(LogTemp, Warning, TEXT("Detected Count: %d"), Count);
 
 }
+
+void AAMyDetectionActor::MoveForward(int val)
+{
+    FVector Forward = GetActorForwardVector();
+
+    FVector NewLocation = GetActorLocation() + (Forward * (float)val *  GetWorld()->GetDeltaSeconds());
+
+    SetActorLocation(NewLocation, true);
+}
+
+void AAMyDetectionActor::MoveRight(int val)
+{
+    FVector RightVector = GetActorRightVector();
+
+    FVector NewLocation = GetActorLocation() + (RightVector * (float)val  * GetWorld()->GetDeltaSeconds());
+
+    SetActorLocation(NewLocation, true);
+}

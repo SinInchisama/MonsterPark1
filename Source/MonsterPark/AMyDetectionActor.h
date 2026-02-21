@@ -35,6 +35,11 @@ public:
 
 	void FindEnemiesInArea();
 
+	void MoveForward(int val);
+
+	void MoveRight(int val);
+public:
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimMontage* BlackCatAnimMontage = nullptr;
 
