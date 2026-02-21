@@ -80,23 +80,78 @@ void AAMyDetectionActor::FindEnemiesInArea()
 
                 if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)     // ���Ϳ� �Ÿ� ���
                 {
-                    if (USkeletalMeshComponent* SkeletalMesh = FindComponentByClass<USkeletalMeshComponent>())
-                    {
-                        if (UAnimInstance* AnimInstance = SkeletalMesh->GetAnimInstance())
-                        {
-                            UAnimMontage* TargetMontage = KnightAnimMontage ? KnightAnimMontage : BlackCatAnimMontage;
-                            if (TargetMontage && !AnimInstance->Montage_IsPlaying(TargetMontage))
-                            {
-                                AnimInstance->Montage_Play(TargetMontage);
-                            }
-                        }
-                    }
+                    bEnemyDetected = true;
+                    break;
                 }
             }
         }); 
 
        // UE_LOG(LogTemp, Warning, TEXT("Detected Count: %d"), Count);
 
+}
+
+void AAMyDetectionActor::PlayDetectedMontageIfNeeded()
+{
+    // 적 감지 상태일 때 공격 몽타주 재생
+    if (!bEnemyDetected)
+    {
+        return;
+    }
+
+    if (USkeletalMeshComponent* SkeletalMesh = FindComponentByClass<USkeletalMeshComponent>())
+    {
+        if (UAnimInstance* AnimInstance = SkeletalMesh->GetAnimInstance())
+        {
+            UAnimMontage* TargetMontage = GetDetectedMontage();
+            if (TargetMontage && !AnimInstance->Montage_IsPlaying(TargetMontage))
+            {
+                AnimInstance->Montage_Play(TargetMontage);
+            }
+        }
+    }
+}
+
+void AAMyDetectionActor::SetMoveAnimClassIfNeeded()
+{
+    // 이동 시 유닛 타입에 맞는 AnimBP 적용
+    if (USkeletalMeshComponent* SkeletalMesh = FindComponentByClass<USkeletalMeshComponent>())
+    {
+        TSubclassOf<UAnimInstance> MoveAnimClass = GetMoveAnimClass();
+        if (MoveAnimClass && SkeletalMesh->GetAnimClass() != MoveAnimClass)
+        {
+            SkeletalMesh->SetAnimInstanceClass(MoveAnimClass);
+        }
+    }
+}
+
+UAnimMontage* AAMyDetectionActor::GetDetectedMontage() const
+{
+    // 유닛 타입에 맞는 몽타주 
+    switch (UnitType)
+    {
+    case EDetectionUnitType::Knight:
+        return KnightAnimMontage;
+    case EDetectionUnitType::Thief:
+        return ThiefAnimMontage;
+    case EDetectionUnitType::BlackCat:
+    default:
+        return BlackCatAnimMontage;
+    }
+}
+
+TSubclassOf<UAnimInstance> AAMyDetectionActor::GetMoveAnimClass() const
+{
+    // 유닛 타입에 맞는 AnimBP
+    switch (UnitType)
+    {
+    case EDetectionUnitType::Knight:
+        return KnightMoveAnimClass;
+    case EDetectionUnitType::Thief:
+        return ThiefMoveAnimClass;
+    case EDetectionUnitType::BlackCat:
+    default:
+        return BlackCatMoveAnimClass;
+    }
 }
 
 void AAMyDetectionActor::MoveForward(int val)
@@ -106,6 +161,9 @@ void AAMyDetectionActor::MoveForward(int val)
     FVector NewLocation = GetActorLocation() + (Forward * (float)val *  GetWorld()->GetDeltaSeconds());
 
     SetActorLocation(NewLocation, true);
+    // 이동 시 애니메이션
+    SetMoveAnimClassIfNeeded();
+    PlayDetectedMontageIfNeeded();
 }
 
 void AAMyDetectionActor::MoveRight(int val)
@@ -115,4 +173,7 @@ void AAMyDetectionActor::MoveRight(int val)
     FVector NewLocation = GetActorLocation() + (RightVector * (float)val  * GetWorld()->GetDeltaSeconds());
 
     SetActorLocation(NewLocation, true);
+    // 이동 시 애니메이션
+    SetMoveAnimClassIfNeeded();
+    PlayDetectedMontageIfNeeded();
 }

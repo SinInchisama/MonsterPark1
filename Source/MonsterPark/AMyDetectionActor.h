@@ -6,7 +6,16 @@
 #include "GameFramework/Actor.h"
 #include "MassEntityQuery.h"
 class UAnimMontage;
+class UAnimInstance;
 #include "AMyDetectionActor.generated.h"
+
+UENUM(BlueprintType)
+enum class EDetectionUnitType : uint8
+{
+	BlackCat,
+	Knight,
+	Thief
+};
 
 UCLASS()
 class MONSTERPARK_API AAMyDetectionActor : public AActor
@@ -28,6 +37,12 @@ protected:
 	FTimerHandle DetectionTimerHandle;
 
 	bool Attacking = true;
+	bool bEnemyDetected = false;
+
+	void PlayDetectedMontageIfNeeded();
+	void SetMoveAnimClassIfNeeded();
+	UAnimMontage* GetDetectedMontage() const;
+	TSubclassOf<UAnimInstance> GetMoveAnimClass() const;
 
 public:	
 	// Called every frame
@@ -36,15 +51,28 @@ public:
 	void FindEnemiesInArea();
 
 	void MoveForward(int val);
-
 	void MoveRight(int val);
-public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	EDetectionUnitType UnitType = EDetectionUnitType::BlackCat;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	TSubclassOf<UAnimInstance> BlackCatMoveAnimClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	TSubclassOf<UAnimInstance> KnightMoveAnimClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	TSubclassOf<UAnimInstance> ThiefMoveAnimClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimMontage* BlackCatAnimMontage = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimMontage* KnightAnimMontage = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	UAnimMontage* ThiefAnimMontage = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
 	int32 HeroPrice;

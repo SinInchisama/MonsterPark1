@@ -35,9 +35,6 @@ public:
 
 	void SetSummonedActor(AActor* InActor);
 
-	void Attack_Melee();
-	void Attack_End();
-
 protected:
 	FTimerHandle TH_Attack_End;
 

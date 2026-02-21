@@ -37,6 +37,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	void Attack_Melee();
+	void Attack_End();
+	
+protected:
+	FTimerHandle TH_Attack_End;
 
 };

@@ -2,6 +2,8 @@
 
 
 #include "CharacterBase.h"
+#include "GameFramework/PlayerController.h"
+#include "TimerManager.h"
 
 // Sets default values
 ACharacterBase::ACharacterBase()
@@ -29,25 +31,24 @@ void ACharacterBase::Tick(float DeltaTime)
 
 }
 
-//void ACharacterBase::PossessedBy(AController* NewController)
-//{
-//	Super::PossessedBy(NewController);
-//	if (AbilitySystemComponent)
-//	{
-//		AbilitySystemComponent->RefreshAbilityActorInfo();
-//	}
-//}
-//
-//void ACharacterBase::OnRep_PlayerState()
-//{
-//	Super::OnRep_PlayerState();
-//	if (AbilitySystemComponent)
-//	{
-//		AbilitySystemComponent->RefreshAbilityActorInfo();
-//	}
-//}
+void ACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &ACharacterBase::Attack_Melee);
+}
 
 UAbilitySystemComponent* ACharacterBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+void ACharacterBase::Attack_Melee()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Attack_Melee Called!"));
+	GetWorldTimerManager().SetTimer(TH_Attack_End, this, &ACharacterBase::Attack_End, 1.0f, false);
+}
+
+void ACharacterBase::Attack_End()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Attack_End Called!"));
 }
