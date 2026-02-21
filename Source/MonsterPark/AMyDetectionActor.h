@@ -74,9 +74,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimMontage* ThiefAnimMontage = nullptr;
 
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
+	class UBoxComponent* SelectionBox;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
 	int32 HeroPrice;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
 	FText HeroDisplayName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
+	float Range;
 };

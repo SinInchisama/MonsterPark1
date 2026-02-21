@@ -9,6 +9,7 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "MassExecutionContext.h"
+#include "Components/BoxComponent.h"
 
 #include "FMonsterConditionFragment.h"
 
@@ -18,6 +19,18 @@ AAMyDetectionActor::AAMyDetectionActor()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+    USceneComponent* DummyRoot = CreateDefaultSubobject<USceneComponent>(TEXT("DummyRoot"));
+    RootComponent = DummyRoot;
+
+    SelectionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("SelectionBox"));
+    SelectionBox->SetupAttachment(RootComponent);
+
+    SelectionBox->SetBoxExtent(FVector(50.0f, 50.0f, 100.0f));
+
+    SelectionBox->SetCollisionProfileName(TEXT("Custom"));
+    SelectionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    SelectionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
+    SelectionBox->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 }
 
 // Called when the game starts or when spawned
@@ -63,10 +76,10 @@ void AAMyDetectionActor::FindEnemiesInArea()
 
     FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
 
-    FMassExecutionContext ExecContext(EntityManager, 0.0f);
+    FMassExecutionContext ExecContext(EntityManager, 0.0f); 
 
     FVector MyLocation = GetActorLocation();
-    float RadiusSq = FMath::Square(100.0f);
+    float RadiusSq = FMath::Square(Range);
 
     EnemyQuery.ForEachEntityChunk(ExecContext, [this, MyLocation, RadiusSq](FMassExecutionContext& Context)
         {
@@ -81,6 +94,7 @@ void AAMyDetectionActor::FindEnemiesInArea()
                 if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)     // ���Ϳ� �Ÿ� ���
                 {
                     bEnemyDetected = true;
+                    UE_LOG(LogTemp, Warning, TEXT("Detected Count: %s"), *HeroDisplayName.ToString());
                     break;
                 }
             }

@@ -35,6 +35,7 @@ public:
 
 	void SetSummonedActor(AActor* InActor);
 
+	void OnMouseLeftClick();
 protected:
 	FTimerHandle TH_Attack_End;
 

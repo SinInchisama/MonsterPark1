@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/DefaultPawn.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AMyBasicCharacter::AMyBasicCharacter()
@@ -47,6 +48,8 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAxis("MoveForward",this,&AMyBasicCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMyBasicCharacter::MoveRight);
+
+    PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AMyBasicCharacter::OnMouseLeftClick);
 }
 
 void AMyBasicCharacter::MoveForward(float Value)
@@ -88,5 +91,26 @@ void AMyBasicCharacter::SetSummonedActor(AActor* InActor)
     if (InActor)
     {
         MySummonedHero.Add ( Cast<AAMyDetectionActor>(InActor));
+    } 
+}
+
+void AMyBasicCharacter::OnMouseLeftClick()
+{
+    APlayerController* PC = Cast<APlayerController>(GetController());
+    if (PC)
+    {
+        FHitResult HitResult;
+        // 우리가 만든 SelectionSphere가 Visibility 채널을 Block 하도록 설정되어 있어야 합니다.
+        if (PC->GetHitResultUnderCursor(ECC_Visibility, false, HitResult))
+        {
+            // 부딪힌 대상이 영웅 액터인지 확인
+            AAMyDetectionActor* TouchedHero = Cast<AAMyDetectionActor>(HitResult.GetActor());
+
+            if (TouchedHero)
+            {
+                SelectHero = TouchedHero;
+                UE_LOG(LogTemp, Warning, TEXT("Hero Selected: %s"), *SelectHero->GetName());
+            }
+        }
     }
 }
