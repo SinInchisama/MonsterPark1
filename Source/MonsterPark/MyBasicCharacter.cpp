@@ -20,6 +20,10 @@ AMyBasicCharacter::AMyBasicCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = true;
+
+    FVector CurrentLocation = GetActorLocation();
+    CurrentLocation.Z = 1000.0f;
+    SetActorLocation(CurrentLocation);
 }
 
 // Called when the game starts or when spawned
@@ -86,7 +90,7 @@ void AMyBasicCharacter::SetSummonedActor(AActor* InActor)
 {
     if (InActor)
     {
-        MySummonedActor = Cast<AAMyDetectionActor>(InActor);
+        MySummonedHero.Add ( Cast<AAMyDetectionActor>(InActor));
     }
 }
 

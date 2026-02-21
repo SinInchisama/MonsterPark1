@@ -55,5 +55,7 @@ protected:
 	int32 PlayerMoney = 20;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
-	AAMyDetectionActor* MySummonedActor;
+	TArray< AAMyDetectionActor*> MySummonedHero;
+
+	AAMyDetectionActor* SelectHero;
 };
