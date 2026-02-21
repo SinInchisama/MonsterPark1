@@ -110,6 +110,8 @@ void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 
 void UMyUserWidget::ReFreshStore()
 {
+	CurrentSlotClasses.Reset();
+
 	for (int32 i = 0; i < Text_HeroName_Array.Num(); i++)
 	{
 		int32 RandomIdx = FMath::RandRange(0, CachedGM->MonsterClasses.Num() - 1);
