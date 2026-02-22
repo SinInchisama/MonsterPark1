@@ -10,7 +10,7 @@
 void UMyUserWidget::NativeConstruct()
 {
 	
-	Btn_BuyHero_Array.Empty();		// BuyHero ¹öÆ° ¹è¿­ Ã¤¿ì´Â ºÎºÐ
+	Btn_BuyHero_Array.Empty();		// BuyHero ï¿½ï¿½Æ° ï¿½è¿­ Ã¤ï¿½ï¿½ï¿½ ï¿½Îºï¿½
 
 	if (Btn_BuyHero0) Btn_BuyHero_Array.Add(Btn_BuyHero0);
 	if (Btn_BuyHero1) Btn_BuyHero_Array.Add(Btn_BuyHero1);
@@ -107,7 +107,7 @@ void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 			AAMyDetectionActor* DefaultHero = SelectedClass->GetDefaultObject<AAMyDetectionActor>();
 			if (DefaultHero && CachedGM)
 			{
-				// ±¸¸Å ¹× ½ºÆù ÁøÇà
+				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				CachedGM->SpawnHeroFromShop(SelectedClass, MyPlayer);
 				MyPlayer->Set_PlayerMoney(-PriceInt);
 				Btn_BuyHero_Array[Btn_Num]->SetIsEnabled(false);
@@ -127,7 +127,7 @@ void UMyUserWidget::ReFreshStore()
 		int32 RandomIdx = FMath::RandRange(0, CachedGM->MonsterClasses.Num() - 1);
 		TSubclassOf<AActor> RandomClass = CachedGM->MonsterClasses[RandomIdx];
 
-		// ºÎ¸ð Å¬·¡½º(AMyHeroBase)·Î Ä³½ºÆÃ °¡´ÉÅä·Ï º¯È¯ÇÏ¿© ÀúÀå
+		// ï¿½Î¸ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½(AMyHeroBase)ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 		TSubclassOf<AAMyDetectionActor> HeroBaseClass = *RandomClass;
 		CurrentSlotClasses.Add(HeroBaseClass);
 

@@ -15,7 +15,8 @@ enum class EDetectionUnitType : uint8
 {
 	BlackCat,
 	Knight,
-	Thief
+	Thief,
+	Archer,
 };
 
 UCLASS()
@@ -69,6 +70,9 @@ public:
 	TSubclassOf<UMyAnimInstance> ThiefMoveAnimClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	TSubclassOf<UMyAnimInstance> ArcherMoveAnimClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimMontage* BlackCatAnimMontage = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
@@ -76,6 +80,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimMontage* ThiefAnimMontage = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	UAnimMontage* ArcherAnimMontage = nullptr;
 
 
 
