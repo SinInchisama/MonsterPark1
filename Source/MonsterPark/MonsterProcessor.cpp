@@ -50,7 +50,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                 // SpawnTime ����
                 if(Move.SpawnTime < 0.f)
                 {
-                    Move.SpawnTime = CurrentTime + SpawnIndex * 0.5f;
+                    Move.SpawnTime = CurrentTime + SpawnIndex * 0.5f + 20;
                     SpawnIndex++;
                     Transform.SetLocation(
                         FVector(0, 0, -100000.f));

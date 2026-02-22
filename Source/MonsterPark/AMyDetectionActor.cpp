@@ -64,7 +64,7 @@ void AAMyDetectionActor::Tick(float DeltaTime)
 
     FVector MoveDirection = FVector(CurrentForwardInput, CurrentRightInput, 0.0f);
     
-    if (!MoveDirection.IsNearlyZero() && SelectionBox)
+    if (!MoveDirection.IsNearlyZero() && SelectionBox&&Attacking)
     {
         MoveDirection = MoveDirection.GetSafeNormal();
 
@@ -101,13 +101,14 @@ void AAMyDetectionActor::Tick(float DeltaTime)
     else {
         if (Attacking)
             FindEnemiesInArea();
-        if (bEnemyDetected)
-            PlayDetectedMontageIfNeeded();
+        if (bEnemyDetected) {
+            Attack();
+        }
         UpdateAnimBPSpeed(0);
     }
     CurrentForwardInput = 0.0f;
     CurrentRightInput = 0.0f;
-    bEnemyDetected = false;
+    //bEnemyDetected = false;
 }
 
 
@@ -140,6 +141,7 @@ void AAMyDetectionActor::FindEnemiesInArea()
                 {
                     bEnemyDetected = true;
                     Condtions[i].Damage += Damage;
+                    Attacking = false;
                     //UE_LOG(LogTemp, Warning, TEXT("Detected Count: %s"), *HeroDisplayName.ToString());
                     break;
                 }
@@ -179,6 +181,21 @@ void AAMyDetectionActor::SetMoveAnimClassIfNeeded()
             SkeletalMesh->SetAnimInstanceClass(MoveAnimClass);
         }
     }
+}
+
+void AAMyDetectionActor::Attack()
+{
+    PlayDetectedMontageIfNeeded();
+    bEnemyDetected =false;
+
+    float AttackInterval = 1.0f / AttackSpeed;
+
+    GetWorldTimerManager().SetTimer(AttackDelayTimerHandle, this, &AAMyDetectionActor::ResetAttack, AttackInterval, false);
+}
+
+void AAMyDetectionActor::ResetAttack()
+{
+    Attacking = true;
 }
 
 UAnimMontage* AAMyDetectionActor::GetDetectedMontage() const

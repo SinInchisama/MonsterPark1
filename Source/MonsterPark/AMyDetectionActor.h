@@ -36,13 +36,15 @@ protected:
 
 	void OnResumeAction();
 
-	FTimerHandle DetectionTimerHandle;
+	FTimerHandle AttackDelayTimerHandle;
 
 	bool Attacking = true;
 	bool bEnemyDetected = false;
 
 	void PlayDetectedMontageIfNeeded();
 	void SetMoveAnimClassIfNeeded();
+	void Attack();
+	void ResetAttack();
 	UAnimMontage* GetDetectedMontage() const;
 	TSubclassOf<UAnimInstance> GetMoveAnimClass() const;
 
