@@ -28,7 +28,7 @@ void UDamageCheckProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager
 	DamageCheckQuery.AddRequirement<FMonsterConditionFragment>(EMassFragmentAccess::ReadWrite);
 	DamageCheckQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
 
-	DamageCheckQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite); // static mesh¸¦ Áö¿ì´Â ¹æ¹ýÀ» ¸ô¶ó¼­ ÀÏ´Ü À§Ä¡ º¯°æÀ¸·Î ¾È º¸ÀÌ°Ô ¸¸µë
+	DamageCheckQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite); // static meshï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½
 	DamageCheckQuery.AddRequirement<FMonsterTargetFragment>(EMassFragmentAccess::ReadWrite);
 }
 
@@ -52,7 +52,7 @@ void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 					
 				}
 				if (StatusList[i].CurrentHealth <= 0) {
-					if (!SimpleMovementsList[i].Death) {                // ÀÓ½Ã·Î À§Ä¡ º¯°æ ½ÃÄÑ¹ö¸², ÃßÈÄ static mesh ¾ø¾Ö´Â ¹æ¹ý ¾Ë°Ô µÇ¸é ¼öÁ¤ ¿¹Á¤
+					if (!SimpleMovementsList[i].Death) {                // ï¿½Ó½Ã·ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ static mesh ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ ï¿½Ë°ï¿½ ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 						FTransform& Transform = Transforms[i].GetMutableTransform();
 						Transform.SetLocation(
 							FVector(0, 0, -10000.f));

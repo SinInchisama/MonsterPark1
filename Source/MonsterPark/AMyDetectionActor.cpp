@@ -66,6 +66,7 @@ void AAMyDetectionActor::Tick(float DeltaTime)
     if(bEnemyDetected)
         PlayDetectedMontageIfNeeded();
     UpdateAnimBPSpeed(0);
+    bEnemyDetected = false;
 }
 
 
@@ -87,6 +88,7 @@ void AAMyDetectionActor::FindEnemiesInArea()
         {
             const int32 NumEntities = Context.GetNumEntities();
             TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
+            TArrayView<FMonsterConditionFragment> Condtions = Context.GetMutableFragmentView<FMonsterConditionFragment>();
             //auto Transforms = Context.GetFragmentView<FTransformFragment>();
 
             for (int32 i = 0; i < NumEntities; ++i)
@@ -96,6 +98,7 @@ void AAMyDetectionActor::FindEnemiesInArea()
                 if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)     // ���Ϳ� �Ÿ� ���
                 {
                     bEnemyDetected = true;
+                    Condtions[i].Damage += 100;
                     //UE_LOG(LogTemp, Warning, TEXT("Detected Count: %s"), *HeroDisplayName.ToString());
                     break;
                 }
@@ -148,6 +151,8 @@ UAnimMontage* AAMyDetectionActor::GetDetectedMontage() const
         return KnightAnimMontage;
     case EDetectionUnitType::Thief:
         return ThiefAnimMontage;
+    case EDetectionUnitType::Archer:
+        return ArcherAnimMontage;
     case EDetectionUnitType::BlackCat:
     default:
         return BlackCatAnimMontage;
@@ -163,6 +168,8 @@ TSubclassOf<UAnimInstance> AAMyDetectionActor::GetMoveAnimClass() const
         return KnightMoveAnimClass;
     case EDetectionUnitType::Thief:
         return ThiefMoveAnimClass;
+    case EDetectionUnitType::Archer:
+        return ArcherMoveAnimClass;
     case EDetectionUnitType::BlackCat:
     default:
         return BlackCatMoveAnimClass;
@@ -257,7 +264,7 @@ void AAMyDetectionActor::UpdateAnimBPSpeed(int val)
 
     // 3. 현재 인스턴스가 우리가 지정한 'BlackCatMoveAnimClass'의 자식인지 확인
     // 이렇게 하면 직접적인 클래스 이름(UMyAnimInstance)을 하드코딩하지 않아도 됩니다.
-    if (CurrentInst->IsA(BlackCatMoveAnimClass))
+    if (CurrentInst->IsA(GetMoveAnimClass()))
     {
         // 부모 타입인 UMyAnimInstance로 형변환하여 speed에 접근
         if (UMyAnimInstance* MyInst = Cast<UMyAnimInstance>(CurrentInst))

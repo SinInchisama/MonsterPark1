@@ -14,10 +14,10 @@ class MONSTERPARK_API UMyAnimInstance : public UAnimInstance
 {
 	GENERATED_BODY()
 public:
-    // ºí·çÇÁ¸°Æ®¿¡¼­ 'speed' º¯¼ö¸¦ »ç¿ëÇÒ ¼ö ÀÖ°Ô ³ëÃâÇÕ´Ï´Ù.
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ 'speed' ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
     float speed;
 
-    // ¸Å ÇÁ·¹ÀÓ ¾÷µ¥ÀÌÆ®°¡ ÇÊ¿äÇÏ´Ù¸é ¾Æ·¡ ÇÔ¼ö¸¦ ¿À¹ö¶óÀÌµåÇÏ¿© »ç¿ëÇÒ ¼ö ÀÖ½À´Ï´Ù.
+    // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½Ï´Ù¸ï¿½ ï¿½Æ·ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
     // virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 };

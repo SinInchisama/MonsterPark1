@@ -122,10 +122,10 @@ void AMyBasicCharacter::OnMouseLeftClick()
     if (PC)
     {
         FHitResult HitResult;
-        // ©Л╦╝╟║ ╦╦╣Г SelectionSphere╟║ Visibility ц╓Ёню╩ Block го╣╣╥о ╪Ёа╓╣г╬Н юж╬Н╬ъ гу╢о╢ы.
+        // О©╫Л╦╝О©╫О©╫ О©╫О©╫О©╫О©╫ SelectionSphereО©╫О©╫ Visibility ц╓О©╫О©╫О©╫О©╫ Block О©╫о╣О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫г╬О©╫ О©╫ж╬О©╫О©╫ О©╫у╢о╢О©╫.
         if (PC->GetHitResultUnderCursor(ECC_Visibility, false, HitResult))
         {
-            // ╨н╣ЗхЫ ╢К╩Сюл ©╣©У ╬вемюнаЖ х╝юн
+            // О©╫н╣О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ х╝О©╫О©╫
             AAMyDetectionActor* TouchedHero = Cast<AAMyDetectionActor>(HitResult.GetActor());
 
             if (TouchedHero)
