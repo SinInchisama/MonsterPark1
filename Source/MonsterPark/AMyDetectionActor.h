@@ -103,4 +103,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
 	float AttackSpeed;
+
+	float CurrentForwardInput = 0;
+	float CurrentRightInput = 0;
 };
