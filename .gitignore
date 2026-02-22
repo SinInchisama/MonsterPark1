@@ -1,14 +1,23 @@
-Binaries
-DerivedDataCache
-Intermediate
-Saved
-.vscode
-.vs
+# 복사해서 .gitignore에 붙여넣으세요
+# 임시 파일 및 빌드 결과물
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+
+# 소스 코드 관련 (VS, VSCode)
+.vs/
+.vscode/
+*.sln
+*.suo
 *.VC.db
 *.opensdf
 *.opendb
 *.sdf
-*.sln
-*.suo
-*.xcodeproj
 *.xcworkspace
+*.xcodeproj
+
+# 기타
+*.tmp
+*.log
