@@ -46,33 +46,55 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("MoveForward",this,&AMyBasicCharacter::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &AMyBasicCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("GameraMoveForward",this,&AMyBasicCharacter::GameraMoveForward);
+	PlayerInputComponent->BindAxis("GameraMoveRight", this, &AMyBasicCharacter::GameraMoveRight);
+
+    PlayerInputComponent->BindAxis("HeroMoveForward", this, &AMyBasicCharacter::HeroMoveForward);
+    PlayerInputComponent->BindAxis("HeroMoveRight", this, &AMyBasicCharacter::HeroMoveRight);
 
     PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AMyBasicCharacter::OnMouseLeftClick);
 }
 
-void AMyBasicCharacter::MoveForward(float Value)
+void AMyBasicCharacter::GameraMoveForward(float value)
 {
-    if ((Controller != nullptr) && (Value != 0.0f))
+    if ((Controller != nullptr) && (value != 0.0f))
     {
         const FRotator Rotation = Controller->GetControlRotation();
         const FRotator YawRotation(0, Rotation.Yaw, 0);
 
         const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-        AddMovementInput(Direction, Value);
+        AddMovementInput(Direction, value);
     }
 }
 
-void AMyBasicCharacter::MoveRight(float Value)
+void AMyBasicCharacter::GameraMoveRight(float value)
 {
-    if ((Controller != nullptr) && (Value != 0.0f))
+    if ((Controller != nullptr) && (value != 0.0f))
     {
         const FRotator Rotation = Controller->GetControlRotation();
         const FRotator YawRotation(0, Rotation.Yaw, 0);
 
         const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-        AddMovementInput(Direction, Value);
+        AddMovementInput(Direction, value);
+    }
+}
+
+void AMyBasicCharacter::HeroMoveForward(float value)
+{
+    if ((Controller != nullptr) && (value != 0.0f))
+    {
+        if (SelectHero) {
+            SelectHero->MoveForward(value);
+        }
+    }
+}
+
+void AMyBasicCharacter::HeroMoveRight(float value)
+{
+    if ((Controller != nullptr) && (value != 0.0f))
+    {
+        if (SelectHero)
+            SelectHero->MoveRight(value);
     }
 }
 
@@ -109,7 +131,7 @@ void AMyBasicCharacter::OnMouseLeftClick()
             if (TouchedHero)
             {
                 SelectHero = TouchedHero;
-                UE_LOG(LogTemp, Warning, TEXT("Hero Selected: %s"), *SelectHero->GetName());
+                //UE_LOG(LogTemp, Warning, TEXT("Hero Selected: %s"), *SelectHero->GetName());
             }
         }
     }

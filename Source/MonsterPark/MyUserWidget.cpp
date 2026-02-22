@@ -58,7 +58,9 @@ void UMyUserWidget::Btn_LevelUp_Clicked()
 	{
 		AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
 		if(MyPlayer){
-			MyPlayer->Set_PlayerMoney(-2);
+			if (MyPlayer->Get_PlayerMoney() >= 2) {
+				MyPlayer->Set_PlayerMoney(-2);
+			}
 		}
 	}
 }
@@ -70,8 +72,10 @@ void UMyUserWidget::Btn_Reload_Clicked()
 	{
 		AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
 		if (MyPlayer) {
-			MyPlayer->Set_PlayerMoney(-2);
-			ReFreshStore();
+			if (MyPlayer->Get_PlayerMoney() >= 2) {
+				MyPlayer->Set_PlayerMoney(-2);
+				ReFreshStore();
+			}
 		}
 	}
 }
@@ -90,20 +94,26 @@ void UMyUserWidget::Btn_BuyHero_Clicked()
 
 void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 {
-	TSubclassOf<AAMyDetectionActor> SelectedClass = CurrentSlotClasses[Btn_Num];
+	APlayerController* PC = GetOwningPlayer();
+	AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
+	
+	int32 PriceInt = FCString::Atoi(*(Text_HeroPrice_Array[Btn_Num]->GetText().ToString()));
 
-	if (SelectedClass)
+	if (MyPlayer->Get_PlayerMoney() >= PriceInt)
 	{
-		AAMyDetectionActor* DefaultHero = SelectedClass->GetDefaultObject<AAMyDetectionActor>();
-		if (DefaultHero && CachedGM)
+		TSubclassOf<AAMyDetectionActor> SelectedClass = CurrentSlotClasses[Btn_Num];
+		if (SelectedClass)
 		{
-			// 가격/이름 확인
-			int32 Cost = DefaultHero->HeroPrice;
-
-			// 구매 및 스폰 진행
-			ACharacter* PC = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-			CachedGM->SpawnHeroFromShop(SelectedClass, PC);
-
+			AAMyDetectionActor* DefaultHero = SelectedClass->GetDefaultObject<AAMyDetectionActor>();
+			if (DefaultHero && CachedGM)
+			{
+				// 구매 및 스폰 진행
+				CachedGM->SpawnHeroFromShop(SelectedClass, MyPlayer);
+				MyPlayer->Set_PlayerMoney(-PriceInt);
+				Btn_BuyHero_Array[Btn_Num]->SetIsEnabled(false);
+				Text_HeroName_Array[Btn_Num]->SetText(FText::GetEmpty());
+				Text_HeroPrice_Array[Btn_Num]->SetText(FText::GetEmpty());
+			}
 		}
 	}
 }
@@ -124,6 +134,7 @@ void UMyUserWidget::ReFreshStore()
 		AAMyDetectionActor* CDO = HeroBaseClass->GetDefaultObject<AAMyDetectionActor>();
 		if (CDO && Text_HeroName_Array.IsValidIndex(i))
 		{
+			Btn_BuyHero_Array[i]->SetIsEnabled(true);
 			Text_HeroName_Array[i]->SetText(CDO->HeroDisplayName);
 			int32 Price = CDO->HeroPrice;
 			Text_HeroPrice_Array[i]->SetText(FText::AsNumber(Price));

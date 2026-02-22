@@ -63,7 +63,8 @@ void AAMyDetectionActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
     if(Attacking)
         FindEnemiesInArea();
-
+    if(bEnemyDetected)
+        PlayDetectedMontageIfNeeded();
 }
 
 
@@ -94,14 +95,13 @@ void AAMyDetectionActor::FindEnemiesInArea()
                 if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)     // ���Ϳ� �Ÿ� ���
                 {
                     bEnemyDetected = true;
-                    UE_LOG(LogTemp, Warning, TEXT("Detected Count: %s"), *HeroDisplayName.ToString());
+                    //UE_LOG(LogTemp, Warning, TEXT("Detected Count: %s"), *HeroDisplayName.ToString());
                     break;
                 }
             }
         }); 
 
        // UE_LOG(LogTemp, Warning, TEXT("Detected Count: %d"), Count);
-
 }
 
 void AAMyDetectionActor::PlayDetectedMontageIfNeeded()
@@ -172,22 +172,23 @@ void AAMyDetectionActor::MoveForward(int val)
 {
     FVector Forward = GetActorForwardVector();
 
-    FVector NewLocation = GetActorLocation() + (Forward * (float)val *  GetWorld()->GetDeltaSeconds());
+    FVector NewLocation = GetActorLocation() + (Forward * (float)val *200*  GetWorld()->GetDeltaSeconds());
 
     SetActorLocation(NewLocation, true);
+
     // 이동 시 애니메이션
     SetMoveAnimClassIfNeeded();
-    PlayDetectedMontageIfNeeded();
+    //PlayDetectedMontageIfNeeded();
 }
 
 void AAMyDetectionActor::MoveRight(int val)
 {
     FVector RightVector = GetActorRightVector();
 
-    FVector NewLocation = GetActorLocation() + (RightVector * (float)val  * GetWorld()->GetDeltaSeconds());
+    FVector NewLocation = GetActorLocation() + (RightVector * (float)val * 200 * GetWorld()->GetDeltaSeconds());
 
     SetActorLocation(NewLocation, true);
     // 이동 시 애니메이션
     SetMoveAnimClassIfNeeded();
-    PlayDetectedMontageIfNeeded();
+    //PlayDetectedMontageIfNeeded();
 }

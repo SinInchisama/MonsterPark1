@@ -27,8 +27,11 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void MoveForward(float value);
-	void MoveRight(float value);
+	void GameraMoveForward(float value);
+	void GameraMoveRight(float value);
+
+	void HeroMoveForward(float value);
+	void HeroMoveRight(float value);
 
 	void Set_PlayerMoney(int32 value);
 	int32 Get_PlayerMoney();
