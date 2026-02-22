@@ -59,9 +59,6 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
 
                 if (!Move.bSpawned)
                 {
-                    /*UE_LOG(LogTemp, Warning,
-                        TEXT("[Processor] Now=%.2f SpawnTime=%.2f"),
-                        CurrentTime, Move.SpawnTime);*/
                     if (CurrentTime >= Move.SpawnTime)
                     {
                         Move.bSpawned = true;
@@ -85,6 +82,14 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                     }
                     else
                     {
+                        
+                        FVector NormalDir = Dir.GetSafeNormal();
+
+                        FRotator CurrentRot = NormalDir.Rotation();
+                        CurrentRot.Pitch = 0.f;
+                        CurrentRot.Roll = 0.f;
+                        Transform.SetRotation(CurrentRot.Quaternion());
+
                         Transform.SetLocation(
                             CurrentLocation +
                             Dir.GetSafeNormal() * 400.f * DeltaTime);
