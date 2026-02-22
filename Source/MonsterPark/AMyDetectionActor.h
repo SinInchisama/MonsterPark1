@@ -97,4 +97,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
 	float Range;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
+	int32 Damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HeroStats")
+	float AttackSpeed;
 };

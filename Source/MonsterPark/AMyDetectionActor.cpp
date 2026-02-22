@@ -98,14 +98,12 @@ void AAMyDetectionActor::FindEnemiesInArea()
                 if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)     // ���Ϳ� �Ÿ� ���
                 {
                     bEnemyDetected = true;
-                    Condtions[i].Damage += 100;
+                    Condtions[i].Damage += Damage;
                     //UE_LOG(LogTemp, Warning, TEXT("Detected Count: %s"), *HeroDisplayName.ToString());
                     break;
                 }
             }
         }); 
-
-       // UE_LOG(LogTemp, Warning, TEXT("Detected Count: %d"), Count);
 }
 
 void AAMyDetectionActor::PlayDetectedMontageIfNeeded()
