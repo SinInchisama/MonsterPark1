@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "MassEntityQuery.h"
+#include "MyAnimInstance.h"
 class UAnimMontage;
 class UAnimInstance;
 #include "AMyDetectionActor.generated.h"
@@ -53,17 +54,19 @@ public:
 	void MoveForward(int val);
 	void MoveRight(int val);
 
+	void UpdateAnimBPSpeed(int val);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	EDetectionUnitType UnitType = EDetectionUnitType::BlackCat;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	TSubclassOf<UAnimInstance> BlackCatMoveAnimClass;
+	TSubclassOf<UMyAnimInstance> BlackCatMoveAnimClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	TSubclassOf<UAnimInstance> KnightMoveAnimClass;
+	TSubclassOf<UMyAnimInstance> KnightMoveAnimClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	TSubclassOf<UAnimInstance> ThiefMoveAnimClass;
+	TSubclassOf<UMyAnimInstance> ThiefMoveAnimClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	UAnimMontage* BlackCatAnimMontage = nullptr;

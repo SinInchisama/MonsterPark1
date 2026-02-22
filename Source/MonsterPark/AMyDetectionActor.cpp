@@ -65,6 +65,7 @@ void AAMyDetectionActor::Tick(float DeltaTime)
         FindEnemiesInArea();
     if(bEnemyDetected)
         PlayDetectedMontageIfNeeded();
+    UpdateAnimBPSpeed(0);
 }
 
 
@@ -170,25 +171,98 @@ TSubclassOf<UAnimInstance> AAMyDetectionActor::GetMoveAnimClass() const
 
 void AAMyDetectionActor::MoveForward(int val)
 {
+    if (val == 0 || !SelectionBox) return;
+
     FVector Forward = GetActorForwardVector();
+    FVector Delta = Forward * (float)val * 200.0f * GetWorld()->GetDeltaSeconds();
 
-    FVector NewLocation = GetActorLocation() + (Forward * (float)val *200*  GetWorld()->GetDeltaSeconds());
+    FHitResult Hit;
+    // 1. 박스를 먼저 이동시킵니다. (이 시점에서 박스만 Delta만큼 이동함)
+    bool bBlocked = SelectionBox->MoveComponent(Delta, GetActorRotation(), true, &Hit);
 
-    SetActorLocation(NewLocation, true);
+    if (bBlocked && Hit.bBlockingHit)
+    {
+        // 벽에 부딪혔다면 액터 이동을 취소하고 종료
+        UE_LOG(LogTemp, Warning, TEXT("Blocked by: %s"), *Hit.GetActor()->GetName());
+        return;
+    }
 
-    // 이동 시 애니메이션
+    // 2. [핵심] 박스가 이동한 후의 '상대 위치'를 다시 0으로 리셋하면서 
+    // 그만큼 액터(부모) 전체를 옮겨줍니다.
+    FVector BoxRelativeLoc = SelectionBox->GetRelativeLocation();
+    if (!BoxRelativeLoc.IsNearlyZero())
+    {
+        // 박스가 이동한 만큼 액터를 이동시키고
+        AddActorWorldOffset(BoxRelativeLoc);
+        // 박스는 다시 부모(DummyRoot) 위치인 0,0,0으로 되돌립니다.
+        SelectionBox->SetRelativeLocation(FVector::ZeroVector);
+    }
+
+    UpdateAnimBPSpeed(1);
     SetMoveAnimClassIfNeeded();
-    //PlayDetectedMontageIfNeeded();
 }
 
 void AAMyDetectionActor::MoveRight(int val)
 {
+    // 1. 유효성 검사
+    if (val == 0 || !SelectionBox) return;
+
+    // 2. 방향 및 이동량 계산
     FVector RightVector = GetActorRightVector();
+    FVector Delta = RightVector * (float)val * 200.0f * GetWorld()->GetDeltaSeconds();
 
-    FVector NewLocation = GetActorLocation() + (RightVector * (float)val * 200 * GetWorld()->GetDeltaSeconds());
+    FHitResult Hit;
 
-    SetActorLocation(NewLocation, true);
-    // 이동 시 애니메이션
+    // 3. SelectionBox만 물리 체크하며 이동 시도
+    // 이 시점에서 SelectionBox의 RelativeLocation(상대 위치)이 변하게 됩니다.
+    bool bBlocked = SelectionBox->MoveComponent(Delta, GetActorRotation(), true, &Hit);
+
+    // 4. 충돌 판정
+    if (bBlocked && Hit.bBlockingHit)
+    {
+
+        // 부딪혔을 때는 자식(박스)이 이동한 거리를 무시하고 제자리로 되돌립니다.
+        SelectionBox->SetRelativeLocation(FVector::ZeroVector);
+        return;
+    }
+
+    // 5. 이동 거리 동기화 (핵심)
+    // 박스가 이동한 거리(RelativeLocation)를 가져옵니다.
+    FVector BoxRelativeLoc = SelectionBox->GetRelativeLocation();
+
+    // 박스가 이동한 만큼 액터 전체를 월드 좌표에서 이동시킵니다.
+    if (!BoxRelativeLoc.IsNearlyZero())
+    {
+        AddActorWorldOffset(BoxRelativeLoc);
+
+        // [중요] 액터를 옮겼으므로 자식인 박스는 다시 원점(0,0,0)으로 리셋합니다.
+        // 이렇게 해야 다음 프레임에서 박스가 또 앞서나가는 현상이 생기지 않습니다.
+        SelectionBox->SetRelativeLocation(FVector::ZeroVector);
+    }
+
+    UpdateAnimBPSpeed(1);
     SetMoveAnimClassIfNeeded();
-    //PlayDetectedMontageIfNeeded();
+}
+
+
+void AAMyDetectionActor::UpdateAnimBPSpeed(int val)
+{
+    // 1. 메쉬 컴포넌트 가져오기
+    USkeletalMeshComponent* Mesh = FindComponentByClass<USkeletalMeshComponent>();
+    if (!Mesh) return;
+
+    // 2. 현재 메쉬가 돌리고 있는 애니메이션 인스턴스 가져오기
+    UAnimInstance* CurrentInst = Mesh->GetAnimInstance();
+    if (!CurrentInst) return;
+
+    // 3. 현재 인스턴스가 우리가 지정한 'BlackCatMoveAnimClass'의 자식인지 확인
+    // 이렇게 하면 직접적인 클래스 이름(UMyAnimInstance)을 하드코딩하지 않아도 됩니다.
+    if (CurrentInst->IsA(BlackCatMoveAnimClass))
+    {
+        // 부모 타입인 UMyAnimInstance로 형변환하여 speed에 접근
+        if (UMyAnimInstance* MyInst = Cast<UMyAnimInstance>(CurrentInst))
+        {
+            MyInst->speed = (val != 0) ? 200.0f : 0.0f;
+        }
+    }
 }
