@@ -32,6 +32,7 @@ protected:
 
 	void ReFreshStore();
 
+	void ReFreshMoney();
 protected:
 	UPROPERTY()
 	class ABasicGameMode* CachedGM;
@@ -88,4 +89,7 @@ protected:
 	class UTextBlock* Text_HeroPrice3;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_HeroPrice4;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Money;
 };
