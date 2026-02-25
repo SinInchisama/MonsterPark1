@@ -21,6 +21,24 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability System")
 	class UAbilitySystemComponent* AbilitySystemComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability System")
+	class UMonsterAttributeSet* AttributeSet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit")
+	FText UnitName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit|Stats")
+	float DefaultAttackPower = 10.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit|Stats")
+	float DefaultAttackSpeed = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit|Stats")
+	float DefaultRange = 200.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit|Stats")
+	float DefaultCost = 1.0f;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability System")
 	EGameplayEffectReplicationMode AscReplicationMode = EGameplayEffectReplicationMode::Mixed;
