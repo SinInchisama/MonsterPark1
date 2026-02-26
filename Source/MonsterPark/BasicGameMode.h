@@ -22,4 +22,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MonsterSetup")
 	TArray<TSubclassOf<AActor>> MonsterClasses;
+
+protected:
+	virtual void BeginPlay() override;
+
 };

@@ -49,6 +49,7 @@ void UMyUserWidget::NativeConstruct()
 	CachedGM = Cast<ABasicGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 
 	ReFreshStore();
+	ReFreshMoney();
 }
 
 void UMyUserWidget::Btn_LevelUp_Clicked()
@@ -60,6 +61,7 @@ void UMyUserWidget::Btn_LevelUp_Clicked()
 		if(MyPlayer){
 			if (MyPlayer->Get_PlayerMoney() >= 2) {
 				MyPlayer->Set_PlayerMoney(-2);
+				ReFreshMoney();
 			}
 		}
 	}
@@ -75,6 +77,7 @@ void UMyUserWidget::Btn_Reload_Clicked()
 			if (MyPlayer->Get_PlayerMoney() >= 2) {
 				MyPlayer->Set_PlayerMoney(-2);
 				ReFreshStore();
+				ReFreshMoney();
 			}
 		}
 	}
@@ -87,6 +90,7 @@ void UMyUserWidget::Btn_BuyHero_Clicked()
 		if (Btn_BuyHero_Array[i] && Btn_BuyHero_Array[i]->HasUserFocus(GetOwningPlayer()))
 		{
 			ProcessHeroPurchase(i);
+			ReFreshMoney();
 			break;
 		}
 	}
@@ -138,6 +142,18 @@ void UMyUserWidget::ReFreshStore()
 			Text_HeroName_Array[i]->SetText(CDO->HeroDisplayName);
 			int32 Price = CDO->HeroPrice;
 			Text_HeroPrice_Array[i]->SetText(FText::AsNumber(Price));
+		}
+	}
+}
+
+void UMyUserWidget::ReFreshMoney()
+{
+	APlayerController* PC = GetOwningPlayer();
+	if (PC)
+	{
+		AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
+		if (MyPlayer) {
+			Money->SetText(FText::AsNumber(MyPlayer->Get_PlayerMoney()));
 		}
 	}
 }

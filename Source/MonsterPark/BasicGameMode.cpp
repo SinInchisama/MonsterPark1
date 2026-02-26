@@ -4,6 +4,7 @@
 #include "BasicGameMode.h"
 #include  "Game_HUD.h"
 #include "MyBasicCharacter.h"
+#include "PlaySubSystem.h"
 
 void ABasicGameMode::AMyGameModeBase()
 {
@@ -24,5 +25,21 @@ void ABasicGameMode::SpawnHeroFromShop(TSubclassOf<AActor> HeroClass, ACharacter
 	if (MyChar)
 	{
 		MyChar->SetSummonedActor(NewHero);
+	}
+}
+
+void ABasicGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+
+	UPlaySubSystem* MonsterSubsystem = GetWorld()->GetSubsystem<UPlaySubSystem>();
+
+	if (MonsterSubsystem)
+	{
+		if (MonsterSubsystem->MainSpawner)
+		{
+			UE_LOG(LogTemp, Log, TEXT("start spawn!"));
+			MonsterSubsystem->StartRound(400);
+		}
 	}
 }
