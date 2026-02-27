@@ -7,6 +7,7 @@
 #include "FMonsterTargetFragment.h"
 #include "MassCommonFragments.h"
 #include "MassCommonTypes.h"
+#include "MassMovementFragments.h"
 
 UMonsterProcessor::UMonsterProcessor() :EntityQuery(*this)
 {
@@ -17,16 +18,11 @@ UMonsterProcessor::UMonsterProcessor() :EntityQuery(*this)
 
 void UMonsterProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
-    /* Super::ConfigureQueries();
-
-     EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
-     EntityQuery.AddRequirement<FSimpleMovementFragment>(EMassFragmentAccess::ReadWrite);*/
-     //Super::ConfigureQueries(EntityManager);
-
-    // Super::ConfigureQueries(EntityManager);
 
     EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMonsterTargetFragment>(EMassFragmentAccess::ReadWrite);
+    EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
+    
 }
 
 void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -37,6 +33,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
     EntityQuery.ForEachEntityChunk(Context, [this, CurrentTime, DeltaTime](FMassExecutionContext& Context)
         {
             const TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
+            auto Velocities = Context.GetMutableFragmentView<FMassVelocityFragment>();
             const TArrayView<FMonsterTargetFragment> SimpleMovementsList = Context.GetMutableFragmentView<FMonsterTargetFragment>();
            
 
@@ -50,7 +47,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                 // SpawnTime ����
                 if(Move.SpawnTime < 0.f)
                 {
-                    Move.SpawnTime = CurrentTime + SpawnIndex * 0.5f + 20;
+                    Move.SpawnTime = CurrentTime + SpawnIndex * 0.5f ;
                     SpawnIndex++;
                     Transform.SetLocation(
                         FVector(0, 0, -100000.f));
@@ -86,13 +83,16 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                         FVector NormalDir = Dir.GetSafeNormal();
 
                         FRotator CurrentRot = NormalDir.Rotation();
+
                         CurrentRot.Pitch = 0.f;
                         CurrentRot.Roll = 0.f;
                         Transform.SetRotation(CurrentRot.Quaternion());
 
-                        Transform.SetLocation(
-                            CurrentLocation +
-                            Dir.GetSafeNormal() * 400.f * DeltaTime);
+                        //Transform.SetLocation(
+                        //    CurrentLocation +
+                         //   Dir.GetSafeNormal() * 400.f * DeltaTime);
+
+                        Velocities[i].Value = Dir.GetSafeNormal() * 400.f;
                     }
                 }
             }
