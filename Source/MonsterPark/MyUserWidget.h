@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Runtime/UMG/Public/Components/Button.h"
 #include "Runtime/UMG/Public/Components/TextBlock.h"
+#include "CharacterBase.h"
 #include "MyUserWidget.generated.h"
 
 /**
@@ -38,7 +39,7 @@ protected:
 	class ABasicGameMode* CachedGM;
 
 	UPROPERTY()
-	TArray<TSubclassOf<class AAMyDetectionActor>> CurrentSlotClasses;
+	TArray<TSubclassOf<ACharacterBase>> CurrentSlotClasses;
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	UButton* Btn_LevelUp = nullptr;
@@ -48,7 +49,7 @@ protected:
 
 
 	UPROPERTY()
-	TArray<UButton*> Btn_BuyHero_Array;			// ÀÌÇÏ BuyHero¸¦ °ü¸®ÇÏ±â À§ÇÑ ¹è¿­
+	TArray<UButton*> Btn_BuyHero_Array;			// ï¿½ï¿½ï¿½ï¿½ BuyHeroï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½è¿­
 
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	UButton* Btn_BuyHero0 = nullptr;
@@ -63,7 +64,7 @@ protected:
 
 
 	UPROPERTY()
-	TArray<class UTextBlock*> Text_HeroName_Array;	// ÀÌÇÏ HeroNameÀ» °ü¸®ÇÏ±â À§ÇÑ ¹è¿­
+	TArray<class UTextBlock*> Text_HeroName_Array;	// ï¿½ï¿½ï¿½ï¿½ HeroNameï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½è¿­
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_HeroName0;
@@ -77,7 +78,7 @@ protected:
 	class UTextBlock* Text_HeroName4;
 
 	UPROPERTY()
-	TArray<class UTextBlock*> Text_HeroPrice_Array;	// ÀÌÇÏ HeroPrice¸¦ °ü¸®ÇÏ±â À§ÇÑ ¹è¿­
+	TArray<class UTextBlock*> Text_HeroPrice_Array;	// ï¿½ï¿½ï¿½ï¿½ HeroPriceï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½è¿­
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_HeroPrice0;

@@ -6,18 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "MassEntityQuery.h"
 #include "MyAnimInstance.h"
+#include "DetectionUnitTypes.h"
 class UAnimMontage;
 class UAnimInstance;
 #include "AMyDetectionActor.generated.h"
-
-UENUM(BlueprintType)
-enum class EDetectionUnitType : uint8
-{
-	BlackCat,
-	Knight,
-	Thief,
-	Archer,
-};
 
 UCLASS()
 class MONSTERPARK_API AAMyDetectionActor : public AActor

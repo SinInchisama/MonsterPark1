@@ -110,10 +110,10 @@ int32 AMyBasicCharacter::Get_PlayerMoney()
 
 void AMyBasicCharacter::SetSummonedActor(AActor* InActor)
 {
-    if (InActor)
-    {
-        MySummonedHero.Add ( Cast<AAMyDetectionActor>(InActor));
-    } 
+	if (ACharacterBase* Character = Cast<ACharacterBase>(InActor))
+	{
+		MySummonedHero.Add(Character);
+	}
 }
 
 void AMyBasicCharacter::OnMouseLeftClick()
@@ -122,16 +122,13 @@ void AMyBasicCharacter::OnMouseLeftClick()
     if (PC)
     {
         FHitResult HitResult;
-        // �츮�� ���� SelectionSphere�� Visibility ä���� Block �ϵ��� �����Ǿ� �־�� �մϴ�.
         if (PC->GetHitResultUnderCursor(ECC_Visibility, false, HitResult))
         {
-            // �ε��� ����� ���� �������� Ȯ��
-            AAMyDetectionActor* TouchedHero = Cast<AAMyDetectionActor>(HitResult.GetActor());
+            ACharacterBase* TouchedHero = Cast<ACharacterBase>(HitResult.GetActor());
 
             if (TouchedHero)
             {
                 SelectHero = TouchedHero;
-                //UE_LOG(LogTemp, Warning, TEXT("Hero Selected: %s"), *SelectHero->GetName());
             }
         }
     }

@@ -5,7 +5,6 @@
 #include "MyBasicCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "BasicGameMode.h"
-#include "AMyDetectionActor.h"
 
 void UMyUserWidget::NativeConstruct()
 {
@@ -48,7 +47,10 @@ void UMyUserWidget::NativeConstruct()
 
 	CachedGM = Cast<ABasicGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 
-	ReFreshStore();
+	if (CachedGM)
+	{
+		ReFreshStore();
+	}
 	ReFreshMoney();
 }
 
@@ -99,23 +101,42 @@ void UMyUserWidget::Btn_BuyHero_Clicked()
 void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 {
 	APlayerController* PC = GetOwningPlayer();
+	if (!PC || !Text_HeroPrice_Array.IsValidIndex(Btn_Num) || !CurrentSlotClasses.IsValidIndex(Btn_Num))
+	{
+		return;
+	}
+
+	if (!Text_HeroPrice_Array[Btn_Num])
+	{
+		return;
+	}
+
 	AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
-	
+	if (!MyPlayer)
+	{
+		return;
+	}
+
 	int32 PriceInt = FCString::Atoi(*(Text_HeroPrice_Array[Btn_Num]->GetText().ToString()));
 
 	if (MyPlayer->Get_PlayerMoney() >= PriceInt)
 	{
-		TSubclassOf<AAMyDetectionActor> SelectedClass = CurrentSlotClasses[Btn_Num];
+		TSubclassOf<ACharacterBase> SelectedClass = CurrentSlotClasses[Btn_Num];
 		if (SelectedClass)
 		{
-			AAMyDetectionActor* DefaultHero = SelectedClass->GetDefaultObject<AAMyDetectionActor>();
+			ACharacterBase* DefaultHero = SelectedClass->GetDefaultObject<ACharacterBase>();
 			if (DefaultHero && CachedGM)
 			{
-				// ���� �� ���� ����
 				CachedGM->SpawnHeroFromShop(SelectedClass, MyPlayer);
 				MyPlayer->Set_PlayerMoney(-PriceInt);
-				Btn_BuyHero_Array[Btn_Num]->SetIsEnabled(false);
-				Text_HeroName_Array[Btn_Num]->SetText(FText::GetEmpty());
+				if (Btn_BuyHero_Array.IsValidIndex(Btn_Num) && Btn_BuyHero_Array[Btn_Num])
+				{
+					Btn_BuyHero_Array[Btn_Num]->SetIsEnabled(false);
+				}
+				if (Text_HeroName_Array.IsValidIndex(Btn_Num) && Text_HeroName_Array[Btn_Num])
+				{
+					Text_HeroName_Array[Btn_Num]->SetText(FText::GetEmpty());
+				}
 				Text_HeroPrice_Array[Btn_Num]->SetText(FText::GetEmpty());
 			}
 		}
@@ -124,23 +145,39 @@ void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 
 void UMyUserWidget::ReFreshStore()
 {
+	if (!CachedGM || CachedGM->MonsterClasses.Num() == 0)
+	{
+		return;
+	}
+
 	CurrentSlotClasses.Reset();
 
-	for (int32 i = 0; i < Text_HeroName_Array.Num(); i++)
+	const int32 SlotCount = Text_HeroName_Array.Num();
+	for (int32 i = 0; i < SlotCount; i++)
 	{
-		int32 RandomIdx = FMath::RandRange(0, CachedGM->MonsterClasses.Num() - 1);
-		TSubclassOf<AActor> RandomClass = CachedGM->MonsterClasses[RandomIdx];
+		if (!Text_HeroName_Array.IsValidIndex(i) || !Text_HeroPrice_Array.IsValidIndex(i) || !Btn_BuyHero_Array.IsValidIndex(i))
+		{
+			continue;
+		}
 
-		// �θ� Ŭ����(AMyHeroBase)�� ĳ���� ������� ��ȯ�Ͽ� ����
-		TSubclassOf<AAMyDetectionActor> HeroBaseClass = *RandomClass;
+		int32 RandomIdx = FMath::RandRange(0, CachedGM->MonsterClasses.Num() - 1);
+		TSubclassOf<ACharacterBase> HeroBaseClass = CachedGM->MonsterClasses[RandomIdx];
 		CurrentSlotClasses.Add(HeroBaseClass);
 
-		AAMyDetectionActor* CDO = HeroBaseClass->GetDefaultObject<AAMyDetectionActor>();
-		if (CDO && Text_HeroName_Array.IsValidIndex(i))
+		if (!HeroBaseClass)
 		{
-			Btn_BuyHero_Array[i]->SetIsEnabled(true);
-			Text_HeroName_Array[i]->SetText(CDO->HeroDisplayName);
-			int32 Price = CDO->HeroPrice;
+			continue;
+		}
+
+		ACharacterBase* CDO = HeroBaseClass->GetDefaultObject<ACharacterBase>();
+		if (CDO)
+		{
+			if (Btn_BuyHero_Array[i])
+			{
+				Btn_BuyHero_Array[i]->SetIsEnabled(true);
+			}
+			Text_HeroName_Array[i]->SetText(CDO->UnitName);
+			int32 Price = static_cast<int32>(CDO->DefaultCost);
 			Text_HeroPrice_Array[i]->SetText(FText::AsNumber(Price));
 		}
 	}
@@ -152,7 +189,8 @@ void UMyUserWidget::ReFreshMoney()
 	if (PC)
 	{
 		AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
-		if (MyPlayer) {
+		if (MyPlayer && Money)
+		{
 			Money->SetText(FText::AsNumber(MyPlayer->Get_PlayerMoney()));
 		}
 	}

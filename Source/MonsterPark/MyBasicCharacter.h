@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "AMyDetectionActor.h"
+#include "CharacterBase.h"
 #include "MyBasicCharacter.generated.h"
 
 UCLASS()
@@ -56,7 +56,7 @@ protected:
 	int32 PlayerMoney = 20;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
-	TArray< AAMyDetectionActor*> MySummonedHero;
+	TArray<ACharacterBase*> MySummonedHero;
 
-	AAMyDetectionActor* SelectHero;
+	ACharacterBase* SelectHero;
 };
