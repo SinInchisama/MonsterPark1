@@ -18,13 +18,6 @@ UMonsterProcessor::UMonsterProcessor() :EntityQuery(*this)
 
 void UMonsterProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
-    /* Super::ConfigureQueries();
-
-     EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
-     EntityQuery.AddRequirement<FSimpleMovementFragment>(EMassFragmentAccess::ReadWrite);*/
-     //Super::ConfigureQueries(EntityManager);
-
-    // Super::ConfigureQueries(EntityManager);
 
     EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMonsterTargetFragment>(EMassFragmentAccess::ReadWrite);

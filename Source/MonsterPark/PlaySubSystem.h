@@ -20,7 +20,7 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	void StartRound(int32 Round);
+	void StartRound(float Scale);
 protected:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 

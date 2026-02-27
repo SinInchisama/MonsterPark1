@@ -25,10 +25,10 @@ void UPlaySubSystem::OnWorldBeginPlay(UWorld& InWorld)
 	}
 }
 
-void UPlaySubSystem::StartRound(int32 Round)
+void UPlaySubSystem::StartRound(float Scale)
 {
 	if (!MainSpawner) return;
 
-	MainSpawner->ScaleSpawningCount(40.f); 
-
+	MainSpawner->ScaleSpawningCount(Scale);
+	MainSpawner->DoSpawning();
 }
