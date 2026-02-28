@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
 #include "PlaySubSystem.h"
+#include "CharacterBase.h"
 #include "BasicGameMode.generated.h"
 
 /**
@@ -27,10 +28,10 @@ public:
 	ABasicGameMode();
 
 	UFUNCTION(BlueprintCallable)
-	void SpawnHeroFromShop(TSubclassOf<AActor> HeroClass, ACharacter* PlayerChar);
+	void SpawnHeroFromShop(TSubclassOf<ACharacterBase> HeroClass, ACharacter* PlayerChar);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MonsterSetup")
-	TArray<TSubclassOf<AActor>> MonsterClasses;
+	TArray<TSubclassOf<ACharacterBase>> MonsterClasses;
 
 protected:
 	virtual void BeginPlay() override;

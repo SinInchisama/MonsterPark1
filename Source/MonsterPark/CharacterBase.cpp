@@ -139,7 +139,7 @@ UAbilitySystemComponent* ACharacterBase::GetAbilitySystemComponent() const
 void ACharacterBase::Attack_Melee()
 {
     UE_LOG(LogTemp, Warning, TEXT("Attack_Melee Called!"));
-    GetWorldTimerManager().SetTimer(TH_Attack_End, this, &ACharacterBase::Attack_End, 1.0f, false);
+    //GetWorldTimerManager().SetTimer(TH_Attack_End, this, &ACharacterBase::Attack_End, 1.0f, false);
 }
 
 void ACharacterBase::Attack_End()

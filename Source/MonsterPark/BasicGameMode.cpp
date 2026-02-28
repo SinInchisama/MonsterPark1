@@ -14,7 +14,7 @@ ABasicGameMode::ABasicGameMode()
 	//PrimaryActorTick.bStartWithTickEnabled = true;
 }
 
-void ABasicGameMode::SpawnHeroFromShop(TSubclassOf<AActor> HeroClass, ACharacter* PlayerChar)
+void ABasicGameMode::SpawnHeroFromShop(TSubclassOf<ACharacterBase> HeroClass, ACharacter* PlayerChar)
 {
 	if (!HeroClass) return;
 
@@ -22,7 +22,7 @@ void ABasicGameMode::SpawnHeroFromShop(TSubclassOf<AActor> HeroClass, ACharacter
 	FRotator SpawnRotation = FRotator::ZeroRotator;
 	FActorSpawnParameters SpawnParams;
 
-	AActor* NewHero = GetWorld()->SpawnActor<AActor>(HeroClass, SpawnLocation, SpawnRotation, SpawnParams);
+	ACharacterBase* NewHero = GetWorld()->SpawnActor<ACharacterBase>(HeroClass, SpawnLocation, SpawnRotation, SpawnParams);
 
 	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(PlayerChar);
 	if (MyChar)
