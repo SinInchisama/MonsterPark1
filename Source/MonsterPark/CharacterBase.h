@@ -115,6 +115,7 @@ protected:
 	void OnResumeAction();
 
 	FTimerHandle AttackDelayTimerHandle;
+	FTimerHandle TH_Attack_End;
 
 	bool Attacking = true;
 	bool bEnemyDetected = false;
