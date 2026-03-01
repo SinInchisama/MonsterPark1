@@ -19,26 +19,18 @@ UKilledMonster::UKilledMonster() :EntityQuery(*this)
 
 void UKilledMonster::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	EntityQuery.AddTagRequirement<FMonsterTag>(EMassFragmentPresence::All);
 	EntityQuery.AddTagRequirement<FKilledTag>(EMassFragmentPresence::All);
 }
 
 void UKilledMonster::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
-	
     EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
         {
 
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
             {
-                
-
-               
                 Context.Defer().DestroyEntity(Context.GetEntity(i));
-                
-                UE_LOG(LogTemp, Warning, TEXT("DELETE"));
 
             }
         });
-
 }

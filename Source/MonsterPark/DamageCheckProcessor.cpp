@@ -52,15 +52,16 @@ void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 					
 				}
 				if (StatusList[i].CurrentHealth <= 0) {
-					if (!SimpleMovementsList[i].Death) {                // �ӽ÷� ��ġ ���� ���ѹ���, ���� static mesh ���ִ� ��� �˰� �Ǹ� ���� ����
-						FTransform& Transform = Transforms[i].GetMutableTransform();
-						Transform.SetLocation(
-							FVector(0, 0, -10000.f));
-						SimpleMovementsList[i].Death = true;
-					}
-					else {
+					//if (!SimpleMovementsList[i].Death) {                // �ӽ÷� ��ġ ���� ���ѹ���, ���� static mesh ���ִ� ��� �˰� �Ǹ� ���� ����
+					//	FTransform& Transform = Transforms[i].GetMutableTransform();
+					//	Transform.SetLocation(
+					//		FVector(0, 0, -10000.f));
+					//	SimpleMovementsList[i].Death = true;
+					//}
+					/*else {
 						Context.Defer().AddTag<FKilledTag>(Context.GetEntity(i));
-					}
+					}*/
+					Context.Defer().AddTag<FKilledTag>(Context.GetEntity(i));
 				}
 			}
 
