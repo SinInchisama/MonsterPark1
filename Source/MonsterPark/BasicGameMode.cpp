@@ -11,6 +11,7 @@ ABasicGameMode::ABasicGameMode()
 	HUDClass = AGame_HUD::StaticClass();
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PostPhysics;
+	CurrentRound = 0;
 	//PrimaryActorTick.bStartWithTickEnabled = true;
 }
 
@@ -67,16 +68,17 @@ void ABasicGameMode::UpdateMatchState(EMatchState NewState)
 	if (CurrentState == EMatchState::Waiting)
 	{
 		// 1. 다음 라운드 데이터 준비 (서브시스템 활용)
-		RoundTimer = 20.0f;
+		RoundTimer = 5.0f;
 		MonsterSubsystem->MainSpawner->DoDespawning();
+		++CurrentRound;
 	}
 	else if (CurrentState == EMatchState::Playing)
 	{
 		// 2. 대기 중인 몬스터들 깨우기
 		if (MonsterSubsystem->MainSpawner)
 		{
-			MonsterSubsystem->StartRound(40);
+			MonsterSubsystem->StartRound(CurrentRound,1);
 		}
-		RoundTimer = 10.0f;
+		RoundTimer = 5.0f;
 	}
 }

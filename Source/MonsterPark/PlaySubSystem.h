@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
-#include "MassSpawner.h"
+#include "MyMassSpawner.h"
 #include "PlaySubSystem.generated.h"
 
 
@@ -20,11 +20,11 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	void StartRound(float Scale);
+	void StartRound(int Round,int Scale);
 protected:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
 public:
 	UPROPERTY()
-	AMassSpawner* MainSpawner;
+	AMyMassSpawner* MainSpawner;
 };
