@@ -10,4 +10,8 @@ enum class EDetectionUnitType : uint8
     Knight,
     Thief,
     Archer,
+	Wizard,
+    Shielder,
+	Berserker,
+	Fighter,
 };

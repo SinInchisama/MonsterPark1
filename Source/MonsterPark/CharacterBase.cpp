@@ -245,6 +245,8 @@ UAnimMontage* ACharacterBase::GetDetectedMontage() const
 {
     switch (UnitType)
     {
+    case EDetectionUnitType::Wizard:
+		return WizardAnimMontage;
     case EDetectionUnitType::Knight:
         return KnightAnimMontage;
     case EDetectionUnitType::Thief:
@@ -261,6 +263,8 @@ TSubclassOf<UAnimInstance> ACharacterBase::GetMoveAnimClass() const
 {
     switch (UnitType)
     {
+	case EDetectionUnitType::Wizard:
+		return WizardMoveAnimClass;
     case EDetectionUnitType::Knight:
         return KnightMoveAnimClass;
     case EDetectionUnitType::Thief:

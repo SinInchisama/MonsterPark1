@@ -23,7 +23,7 @@ void AMyMassSpawner::SpawnEntityByIndex(int32 Index, int32 Amount)
 
 	FTransform SpawnerTransform = GetActorTransform();
 
-	// À§Ä¡ µ¥ÀÌÅÍ ¼³Á¤
+	// ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	FMassTransformsSpawnData TransformData;
 	for (int32 i = 0; i < Amount; ++i)
 	{
