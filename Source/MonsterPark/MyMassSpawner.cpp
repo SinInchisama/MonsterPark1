@@ -4,6 +4,7 @@
 #include "MyMassSpawner.h"
 #include "MassCommonTypes.h"
 #include "MassSpawnLocationProcessor.h"
+#include "MassEntitySubsystem.h"
 
 void AMyMassSpawner::SpawnEntityByIndex(int32 Index, int32 Amount)
 {
@@ -34,4 +35,28 @@ void AMyMassSpawner::SpawnEntityByIndex(int32 Index, int32 Amount)
 
 
 	SpawnGeneratedEntities({ CustomResult });
+}
+
+int32 AMyMassSpawner::GetAliveCount() const
+{
+	UWorld* World = GetWorld();
+
+	UMassEntitySubsystem* EntitySubsystem = World ? World->GetSubsystem<UMassEntitySubsystem>() : nullptr;
+	if (!EntitySubsystem) return 0;
+
+	FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
+	int32 TotalAlive = 0;
+
+	for (const FSpawnedEntities& SpawnedGroup : AllSpawnedEntities)
+	{
+		for (const FMassEntityHandle& Handle : SpawnedGroup.Entities)
+		{
+			if (EntityManager.IsEntityValid(Handle))
+			{
+				TotalAlive++;
+			}
+		}
+	}
+
+	return TotalAlive;
 }

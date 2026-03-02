@@ -69,6 +69,7 @@ void ABasicGameMode::UpdateMatchState(EMatchState NewState)
 	{
 		// 1. 다음 라운드 데이터 준비 (서브시스템 활용)
 		RoundTimer = 5.0f;
+		UE_LOG(LogTemp, Log, TEXT("Now Alive mass %i"), MonsterSubsystem->MainSpawner->GetAliveCount());
 		MonsterSubsystem->MainSpawner->DoDespawning();
 		++CurrentRound;
 	}
@@ -77,7 +78,7 @@ void ABasicGameMode::UpdateMatchState(EMatchState NewState)
 		// 2. 대기 중인 몬스터들 깨우기
 		if (MonsterSubsystem->MainSpawner)
 		{
-			MonsterSubsystem->StartRound(CurrentRound,1);
+			MonsterSubsystem->StartRound(CurrentRound,40);
 		}
 		RoundTimer = 5.0f;
 	}
