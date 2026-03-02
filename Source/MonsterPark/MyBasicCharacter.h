@@ -2,10 +2,13 @@
 
 #pragma once
 
+
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "CharacterBase.h"
 #include "MyBasicCharacter.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLifeChanged, int32, NewLife);
 
 UCLASS()
 class MONSTERPARK_API AMyBasicCharacter : public ACharacter
@@ -36,6 +39,9 @@ public:
 	void Set_PlayerMoney(int32 value);
 	int32 Get_PlayerMoney();
 
+	int32 Get_PlayerLife ();
+	void Miu_PlayerLife(int32 value);
+
 	void SetSummonedActor(AActor* InActor);
 
 	void OnMouseLeftClick();
@@ -49,14 +55,21 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnLifeChanged OnLifeChanged;
 		
 protected:
 	// ���� �÷��̾� ��, ����ġ, ������, ������ �ִ� �������� ����
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerMoney = 20;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
+	int32 PlayerLife = 20;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TArray<ACharacterBase*> MySummonedHero;
 
 	ACharacterBase* SelectHero;
+
 };

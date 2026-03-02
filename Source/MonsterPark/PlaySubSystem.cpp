@@ -2,6 +2,7 @@
 
 
 #include "PlaySubSystem.h"
+#include "MyBasicCharacter.h"
 #include "Kismet/GameplayStatics.h"
 
 void UPlaySubSystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -30,5 +31,27 @@ void UPlaySubSystem::StartRound(int Round,int Scale)
 	if (!MainSpawner) return;
 
 	MainSpawner->SpawnEntityByIndex(Round,Scale);
+
+}
+
+void UPlaySubSystem::EndRound()
+{
+	if (!MainSpawner) return;
+
+	int32 RemainingMonsters = MainSpawner->GetAliveCount();
+    if (RemainingMonsters > 0)
+    {
+        APlayerController* PC = GetWorld()->GetFirstPlayerController();
+        if (PC)
+        {
+            AMyBasicCharacter* PlayerChar = Cast<AMyBasicCharacter>(PC->GetPawn());
+            if (PlayerChar)
+            {
+                PlayerChar->Miu_PlayerLife(RemainingMonsters);
+            }
+        }
+    }
+
+	MainSpawner->DoDespawning();
 
 }

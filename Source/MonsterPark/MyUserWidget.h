@@ -34,6 +34,12 @@ protected:
 	void ReFreshStore();
 
 	void ReFreshMoney();
+
+	UFUNCTION()
+	void UpdateLife(int32 CurrentLife);
+
+	UFUNCTION()
+	void UpdateTimer(float Timer);
 protected:
 	UPROPERTY()
 	class ABasicGameMode* CachedGM;
@@ -93,4 +99,11 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Money;
+
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* RemainTime;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* RemainLife;
 };

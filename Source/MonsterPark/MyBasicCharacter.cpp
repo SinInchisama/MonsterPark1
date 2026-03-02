@@ -108,6 +108,18 @@ int32 AMyBasicCharacter::Get_PlayerMoney()
     return PlayerMoney;
 }
 
+int32 AMyBasicCharacter::Get_PlayerLife()
+{
+    return PlayerLife;
+}
+
+void AMyBasicCharacter::Miu_PlayerLife(int32 value)
+{
+    PlayerLife -= value;
+    UE_LOG(LogTemp, Log, TEXT("Reduceeeeeeeeeeeeeeeeee"));
+    OnLifeChanged.Broadcast(PlayerLife);
+}
+
 void AMyBasicCharacter::SetSummonedActor(AActor* InActor)
 {
 	if (ACharacterBase* Character = Cast<ACharacterBase>(InActor))

@@ -47,6 +47,23 @@ void UMyUserWidget::NativeConstruct()
 
 	CachedGM = Cast<ABasicGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 
+	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(GetOwningPlayerPawn());
+	if (MyChar)
+	{
+		// 캐릭터의 델리게이트에 내 함수(UpdateLifeUI)를 연결!
+		MyChar->OnLifeChanged.AddDynamic(this, &UMyUserWidget::UpdateLife);
+
+		// 초기값 설정을 위해 한 번 호출
+		UpdateLife(MyChar->Get_PlayerLife());
+	}
+
+	if (ABasicGameMode* GM = Cast<ABasicGameMode>(GetWorld()->GetAuthGameMode()))
+	{
+		GM->OnTimerUpdated.AddDynamic(this, &UMyUserWidget::UpdateTimer);
+
+		UpdateTimer(20.f);
+	}
+
 	if (CachedGM)
 	{
 		ReFreshStore();
@@ -145,7 +162,7 @@ void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 
 void UMyUserWidget::ReFreshStore()
 {
-	if (!CachedGM || CachedGM->MonsterClasses.Num() == 0)
+	if (!CachedGM || CachedGM->MonsterOneCoinClasses.Num() == 0)
 	{
 		return;
 	}
@@ -160,8 +177,8 @@ void UMyUserWidget::ReFreshStore()
 			continue;
 		}
 
-		int32 RandomIdx = FMath::RandRange(0, CachedGM->MonsterClasses.Num() - 1);
-		TSubclassOf<ACharacterBase> HeroBaseClass = CachedGM->MonsterClasses[RandomIdx];
+		int32 RandomIdx = FMath::RandRange(0, CachedGM->MonsterOneCoinClasses.Num() - 1);
+		TSubclassOf<ACharacterBase> HeroBaseClass = CachedGM->MonsterOneCoinClasses[RandomIdx];
 		CurrentSlotClasses.Add(HeroBaseClass);
 
 		if (!HeroBaseClass)
@@ -195,3 +212,15 @@ void UMyUserWidget::ReFreshMoney()
 		}
 	}
 }
+
+void UMyUserWidget::UpdateLife(int32 CurrentLife)
+{
+	RemainLife->SetText(FText::AsNumber(CurrentLife));
+}
+
+void UMyUserWidget::UpdateTimer(float Timer)
+{
+	int32 Seconds = FMath::FloorToInt(Timer);
+	RemainTime-> SetText(FText::AsNumber(Seconds));
+}
+

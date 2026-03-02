@@ -21,6 +21,7 @@ public:
 	virtual void Deinitialize() override;
 
 	void StartRound(int Round,int Scale);
+	void EndRound();
 protected:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 

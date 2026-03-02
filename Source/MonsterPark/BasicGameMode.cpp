@@ -42,8 +42,10 @@ void ABasicGameMode::BeginPlay()
 	{
 		if (MonsterSubsystem->MainSpawner)
 		{
-			UE_LOG(LogTemp, Log, TEXT("start spawn!"));
-			RoundTimer = 5.f;
+			RoundTimer = StayTime;
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &ABasicGameMode::UpdateTimerEverySecond, 1.0f, true);
+
+			OnTimerUpdated.Broadcast(RoundTimer);
 		}
 	}
 	CurrentState = EMatchState::Waiting;
@@ -52,13 +54,6 @@ void ABasicGameMode::BeginPlay()
 void ABasicGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	RoundTimer -= DeltaTime;
-
-	if (RoundTimer <= 0.0f)
-	{
-		if (CurrentState == EMatchState::Waiting) UpdateMatchState(EMatchState::Playing);
-		else UpdateMatchState(EMatchState::Waiting);
-	}
 }
 
 void ABasicGameMode::UpdateMatchState(EMatchState NewState)
@@ -68,9 +63,8 @@ void ABasicGameMode::UpdateMatchState(EMatchState NewState)
 	if (CurrentState == EMatchState::Waiting)
 	{
 		// 1. 다음 라운드 데이터 준비 (서브시스템 활용)
-		RoundTimer = 5.0f;
-		UE_LOG(LogTemp, Log, TEXT("Now Alive mass %i"), MonsterSubsystem->MainSpawner->GetAliveCount());
-		MonsterSubsystem->MainSpawner->DoDespawning();
+		RoundTimer = StayTime;
+		MonsterSubsystem->EndRound();
 		++CurrentRound;
 	}
 	else if (CurrentState == EMatchState::Playing)
@@ -80,6 +74,18 @@ void ABasicGameMode::UpdateMatchState(EMatchState NewState)
 		{
 			MonsterSubsystem->StartRound(CurrentRound,40);
 		}
-		RoundTimer = 5.0f;
+		RoundTimer = PlayTime;
 	}
+}
+
+void ABasicGameMode::UpdateTimerEverySecond()
+{
+	RoundTimer -= 1.0f;
+
+	if (RoundTimer <= 0.0f)
+	{
+		if (CurrentState == EMatchState::Waiting) UpdateMatchState(EMatchState::Playing);
+		else UpdateMatchState(EMatchState::Waiting);
+	}
+	OnTimerUpdated.Broadcast(RoundTimer);
 }
