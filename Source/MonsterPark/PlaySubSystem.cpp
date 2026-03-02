@@ -18,17 +18,17 @@ void UPlaySubSystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 
-	MainSpawner = Cast<AMassSpawner>(UGameplayStatics::GetActorOfClass(&InWorld, AMassSpawner::StaticClass()));
+	MainSpawner = Cast<AMyMassSpawner>(UGameplayStatics::GetActorOfClass(&InWorld, AMyMassSpawner::StaticClass()));
 	if (MainSpawner)
 	{
 		UE_LOG(LogTemp, Log, TEXT("MainSpawner!"));
 	}
 }
 
-void UPlaySubSystem::StartRound(float Scale)
+void UPlaySubSystem::StartRound(int Round,int Scale)
 {
 	if (!MainSpawner) return;
 
-	MainSpawner->ScaleSpawningCount(Scale);
-	MainSpawner->DoSpawning();
+	MainSpawner->SpawnEntityByIndex(Round,Scale);
+
 }

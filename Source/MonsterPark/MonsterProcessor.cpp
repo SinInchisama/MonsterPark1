@@ -8,6 +8,7 @@
 #include "MassCommonFragments.h"
 #include "MassCommonTypes.h"
 #include "MassMovementFragments.h"
+#include "FMonsterTag.h"
 
 UMonsterProcessor::UMonsterProcessor() :EntityQuery(*this)
 {
@@ -18,6 +19,7 @@ UMonsterProcessor::UMonsterProcessor() :EntityQuery(*this)
 
 void UMonsterProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
+    EntityQuery.AddTagRequirement<FMonsterTag>(EMassFragmentPresence::All);
 
     EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMonsterTargetFragment>(EMassFragmentAccess::ReadWrite);
@@ -28,9 +30,8 @@ void UMonsterProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& E
 void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
     const float CurrentTime = Context.GetWorld()->GetTimeSeconds();
-    const float DeltaTime = Context.GetDeltaTimeSeconds();
 
-    EntityQuery.ForEachEntityChunk(Context, [this, CurrentTime, DeltaTime](FMassExecutionContext& Context)
+    EntityQuery.ForEachEntityChunk(Context, [this, CurrentTime](FMassExecutionContext& Context)
         {
             const TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
             auto Velocities = Context.GetMutableFragmentView<FMassVelocityFragment>();
@@ -43,58 +44,28 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                 FVector CurrentLocation = Transform.GetLocation();
 
                 auto& Move = SimpleMovementsList[i];
+      
+               FVector Dir = Move.Target - CurrentLocation;
 
-                // SpawnTime ����
-                if(Move.SpawnTime < 0.f)
-                {
-                    Move.SpawnTime = CurrentTime + SpawnIndex * 0.5f ;
-                    SpawnIndex++;
-                    Transform.SetLocation(
-                        FVector(0, 0, -100000.f));
-                    continue;
-                }
+               if (Dir.SizeSquared() < 10.0f)
+               {
+                   Move.TargetIndex = (Move.TargetIndex + 1) % 4;
+                   Move.Target = MonsterTargets[Move.TargetIndex];
+               }
+               else
+               {
 
-                if (!Move.bSpawned)
-                {
-                    if (CurrentTime >= Move.SpawnTime)
-                    {
-                        Move.bSpawned = true;
-                        Transform.SetLocation(
-                            FVector(-1080, -1080, 60.f));
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
-                else {
-                    // 3 �̵� ó��
-                    FVector Dir = Move.Target - CurrentLocation;
+                   FVector NormalDir = Dir.GetSafeNormal();
 
-                    if (Dir.SizeSquared() < 10.0f)
-                    {
-                        Move.TargetIndex = (Move.TargetIndex + 1) % 4;
-                        Move.Target = MonsterTargets[Move.TargetIndex];
-                        //FMath::RandRange(-1.f, 1.f) * 1000.f
-                    }
-                    else
-                    {
-                        
-                        FVector NormalDir = Dir.GetSafeNormal();
+                   FRotator CurrentRot = NormalDir.Rotation();
 
-                        FRotator CurrentRot = NormalDir.Rotation();
+                   CurrentRot.Pitch = 0.f;
+                   CurrentRot.Roll = 0.f;
+                   Transform.SetRotation(CurrentRot.Quaternion());
 
-                        CurrentRot.Pitch = 0.f;
-                        CurrentRot.Roll = 0.f;
-                        Transform.SetRotation(CurrentRot.Quaternion());
-
-                        //Transform.SetLocation(
-                        //    CurrentLocation +
-                         //   Dir.GetSafeNormal() * 400.f * DeltaTime);
-
-                        Velocities[i].Value = Dir.GetSafeNormal() * 400.f;
-                    }
-                }
+                   Velocities[i].Value = Dir.GetSafeNormal() * 400.f;
+               }
+               
             }
         });
 }
