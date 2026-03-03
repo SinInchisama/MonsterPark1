@@ -48,6 +48,14 @@ void ABasicGameMode::BeginPlay()
 			OnTimerUpdated.Broadcast(RoundTimer);
 		}
 	}
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(PC->GetPawn());
+	if (MyChar)
+	{
+		MyChar->Mixtured.AddDynamic(this, &ABasicGameMode::Mixture);
+	}
+
 	CurrentState = EMatchState::Waiting;
 }
 
@@ -88,4 +96,17 @@ void ABasicGameMode::UpdateTimerEverySecond()
 		else UpdateMatchState(EMatchState::Waiting);
 	}
 	OnTimerUpdated.Broadcast(RoundTimer);
+}
+
+void ABasicGameMode::Mixture(int32 cost)
+{
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(PC->GetPawn());
+
+	UE_LOG(LogTemp, Log, TEXT("MainSpawner!@@@@@@@@@@@@@@@@@@"));
+
+	int32 RandomIdx = FMath::RandRange(0, MonsterTwoCoinClasses.Num() - 1);
+	TSubclassOf<ACharacterBase> HeroBaseClass = MonsterTwoCoinClasses[RandomIdx];
+
+	SpawnHeroFromShop(HeroBaseClass, MyChar);
 }

@@ -50,22 +50,16 @@ void UMyUserWidget::NativeConstruct()
 	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(GetOwningPlayerPawn());
 	if (MyChar)
 	{
-		// 캐릭터의 델리게이트에 내 함수(UpdateLifeUI)를 연결!
 		MyChar->OnLifeChanged.AddDynamic(this, &UMyUserWidget::UpdateLife);
 
-		// 초기값 설정을 위해 한 번 호출
 		UpdateLife(MyChar->Get_PlayerLife());
-	}
-
-	if (ABasicGameMode* GM = Cast<ABasicGameMode>(GetWorld()->GetAuthGameMode()))
-	{
-		GM->OnTimerUpdated.AddDynamic(this, &UMyUserWidget::UpdateTimer);
-
-		UpdateTimer(20.f);
 	}
 
 	if (CachedGM)
 	{
+		CachedGM->OnTimerUpdated.AddDynamic(this, &UMyUserWidget::UpdateTimer);
+
+		UpdateTimer(20.f);
 		ReFreshStore();
 	}
 	ReFreshMoney();

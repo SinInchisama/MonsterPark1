@@ -9,6 +9,7 @@
 #include "MyBasicCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLifeChanged, int32, NewLife);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMixtureHero, int32, HeroCost);
 
 UCLASS()
 class MONSTERPARK_API AMyBasicCharacter : public ACharacter
@@ -45,6 +46,7 @@ public:
 	void SetSummonedActor(AActor* InActor);
 
 	void OnMouseLeftClick();
+	void HeroMixture();
 protected:
 	FTimerHandle TH_Attack_End;
 
@@ -58,6 +60,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnLifeChanged OnLifeChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FMixtureHero Mixtured;
 		
 protected:
 	// ���� �÷��̾� ��, ����ġ, ������, ������ �ִ� �������� ����

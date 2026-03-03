@@ -6,6 +6,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/DefaultPawn.h"
 #include "Kismet/GameplayStatics.h"
+#include "BasicGameMode.h"
 
 // Sets default values
 AMyBasicCharacter::AMyBasicCharacter()
@@ -53,6 +54,7 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAxis("HeroMoveRight", this, &AMyBasicCharacter::HeroMoveRight);
 
     PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AMyBasicCharacter::OnMouseLeftClick);
+    PlayerInputComponent->BindAction("HeroMixture", IE_Pressed, this, &AMyBasicCharacter::HeroMixture);
 }
 
 void AMyBasicCharacter::GameraMoveForward(float value)
@@ -116,7 +118,6 @@ int32 AMyBasicCharacter::Get_PlayerLife()
 void AMyBasicCharacter::Miu_PlayerLife(int32 value)
 {
     PlayerLife -= value;
-    UE_LOG(LogTemp, Log, TEXT("Reduceeeeeeeeeeeeeeeeee"));
     OnLifeChanged.Broadcast(PlayerLife);
 }
 
@@ -142,6 +143,39 @@ void AMyBasicCharacter::OnMouseLeftClick()
             {
                 SelectHero = TouchedHero;
             }
+        }
+    }
+}
+
+void AMyBasicCharacter::HeroMixture()
+{
+    if (SelectHero)
+    {
+        FString Name = SelectHero->UnitName.ToString();
+        TArray<ACharacterBase*> Mixture;
+        for (auto Hero : MySummonedHero)
+        {
+            if (Name == Hero->UnitName.ToString())
+            {
+                Mixture.Add(Hero);
+            }
+        }
+        if (Mixture.Num() >= 3)
+        {
+            for (int32 i = 0; i < 3; ++i)
+            {
+                ACharacterBase* TargetHero = Mixture[i];
+
+                if (IsValid(TargetHero))
+                {
+                    MySummonedHero.Remove(TargetHero);
+
+                    TargetHero->Destroy();
+                }
+
+                SelectHero = nullptr;
+            }
+            Mixtured.Broadcast(1);
         }
     }
 }

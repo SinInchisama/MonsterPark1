@@ -49,6 +49,9 @@ protected:
 	UFUNCTION()
 	void UpdateTimerEverySecond();
 
+	UFUNCTION()
+	void Mixture(int32 cost);
+
 	UPlaySubSystem* MonsterSubsystem;
 
 	UPROPERTY()
