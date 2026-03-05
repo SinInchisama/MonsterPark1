@@ -117,11 +117,13 @@ void ABasicGameMode::TryStartTimer()
 	if (!MonsterSubsystem)
 	{
 		MonsterSubsystem = GetWorld()->GetSubsystem<UPlaySubSystem>();
-		return;
+		GetWorldTimerManager().SetTimer(SpawnerCheckHandle, this, &ABasicGameMode::TryStartTimer, 0.1f, false);
+		return; 
 	}
 
 	if (MonsterSubsystem && MonsterSubsystem->MainSpawner)
 	{
+		UE_LOG(LogTemp, Log, TEXT("MainSpawner!@@@@@@@@@@@@@@@@@@"));
 		RoundTimer = StayTime;
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &ABasicGameMode::UpdateTimerEverySecond, 1.0f, true);
 		OnTimerUpdated.Broadcast(RoundTimer);
