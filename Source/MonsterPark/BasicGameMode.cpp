@@ -5,6 +5,7 @@
 #include  "Game_HUD.h"
 #include "MyBasicCharacter.h"
 #include "PlaySubSystem.h"
+#include "Engine/Engine.h"
 
 ABasicGameMode::ABasicGameMode()
 {
@@ -36,9 +37,9 @@ void ABasicGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	MonsterSubsystem = GetWorld()->GetSubsystem<UPlaySubSystem>();
+	TryStartTimer();
 
-	if (MonsterSubsystem)
+	/*if (MonsterSubsystem)
 	{
 		if (MonsterSubsystem->MainSpawner)
 		{
@@ -47,7 +48,7 @@ void ABasicGameMode::BeginPlay()
 
 			OnTimerUpdated.Broadcast(RoundTimer);
 		}
-	}
+	}*/
 
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(PC->GetPawn());
@@ -109,4 +110,43 @@ void ABasicGameMode::Mixture(int32 cost)
 	TSubclassOf<ACharacterBase> HeroBaseClass = MonsterTwoCoinClasses[RandomIdx];
 
 	SpawnHeroFromShop(HeroBaseClass, MyChar);
+}
+
+void ABasicGameMode::TryStartTimer()
+{
+	if (!MonsterSubsystem)
+	{
+		MonsterSubsystem = GetWorld()->GetSubsystem<UPlaySubSystem>();
+		return;
+	}
+
+	if (MonsterSubsystem && MonsterSubsystem->MainSpawner)
+	{
+		RoundTimer = StayTime;
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ABasicGameMode::UpdateTimerEverySecond, 1.0f, true);
+		OnTimerUpdated.Broadcast(RoundTimer);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,                 // 고유 키 (Key)
+				5.f,                // 지속 시간 (Seconds)
+				FColor::Cyan,       // 색상 (Color)
+				TEXT("spspspspspspspsp") // 내용 (Text)
+			);
+		}
+
+	}
+	else
+	{
+		GetWorldTimerManager().SetTimer(SpawnerCheckHandle, this, &ABasicGameMode::TryStartTimer, 0.1f, false);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1,                 // 고유 키 (Key)
+				5.f,                // 지속 시간 (Seconds)
+				FColor::Cyan,       // 색상 (Color)
+				TEXT("asmaksmakw") // 내용 (Text)
+			);
+		}
+	}
 }

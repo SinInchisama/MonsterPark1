@@ -52,11 +52,15 @@ protected:
 	UFUNCTION()
 	void Mixture(int32 cost);
 
+	UFUNCTION()
+	void TryStartTimer();
+
 	UPlaySubSystem* MonsterSubsystem;
 
 	UPROPERTY()
 	float RoundTimer = 5;
 	FTimerHandle TimerHandle; 
+	FTimerHandle SpawnerCheckHandle;
 
 	UPROPERTY()
 	int32 CurrentRound;
