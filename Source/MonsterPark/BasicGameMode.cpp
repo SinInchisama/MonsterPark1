@@ -2,7 +2,7 @@
 
 
 #include "BasicGameMode.h"
-#include "Game_HUD.h"
+#include  "Game_HUD.h"
 #include "MyBasicCharacter.h"
 #include "PlaySubSystem.h"
 #include "Engine/Engine.h"
@@ -71,14 +71,14 @@ void ABasicGameMode::UpdateMatchState(EMatchState NewState)
 
 	if (CurrentState == EMatchState::Waiting)
 	{
-		// 1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½ (ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½ È°ï¿½ï¿½)
+		// 1. ´ÙÀ½ ¶ó¿îµå µ¥ÀÌÅÍ ÁØºñ (¼­ºê½Ã½ºÅÛ È°¿ë)
 		RoundTimer = StayTime;
 		MonsterSubsystem->EndRound();
 		++CurrentRound;
 	}
 	else if (CurrentState == EMatchState::Playing)
 	{
-		// 2. ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+		// 2. ´ë±â ÁßÀÎ ¸ó½ºÅÍµé ±ú¿ì±â
 		if (MonsterSubsystem->MainSpawner)
 		{
 			MonsterSubsystem->StartRound(CurrentRound,40);

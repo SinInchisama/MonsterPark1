@@ -245,12 +245,6 @@ UAnimMontage* ACharacterBase::GetDetectedMontage() const
 {
     switch (UnitType)
     {
-	case EDetectionUnitType::Shielder:
-		return ShielderAnimMontage;
-	case EDetectionUnitType::Fighter:
-		return FighterAnimMontage;
-    case EDetectionUnitType::Berserker:
-		return BerserkerAnimMontage;
     case EDetectionUnitType::Wizard:
 		return WizardAnimMontage;
     case EDetectionUnitType::Knight:
@@ -269,12 +263,6 @@ TSubclassOf<UAnimInstance> ACharacterBase::GetMoveAnimClass() const
 {
     switch (UnitType)
     {
-	case EDetectionUnitType::Berserker:
-		return BerserkerMoveAnimClass;
-	case EDetectionUnitType::Fighter:
-		return FighterMoveAnimClass;
-	case EDetectionUnitType::Shielder:
-		return ShielderMoveAnimClass;
 	case EDetectionUnitType::Wizard:
 		return WizardMoveAnimClass;
     case EDetectionUnitType::Knight:
