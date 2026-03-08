@@ -1,5 +1,5 @@
-// ╩Себюл╩С ╧в ╣╔╧лаЖ╦╕ ╟Э╦╝го╢б га╥║╠в╦уф╝
-// ╩Себюл╩Сю╨ bool╥н ╦╦╣И ©╧а╓
+// О©╫О©╫О©╫О©╫О©╫л╩О©╫ О©╫О©╫ О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫О©╫о╢О©╫ О©╫О©╫О©╫О©╫О©╫в╦О©╫ф╝
+// О©╫О©╫О©╫О©╫О©╫л╩О©╫О©╫О©╫ boolО©╫О©╫ О©╫О©╫О©╫О©╫ О©╫О©╫О©╫О©╫
 
 #pragma once
 
@@ -18,5 +18,6 @@ struct MONSTERPARK_API FMonsterConditionFragment : public FMassFragment
 public:
 	float Damage = 0;
 
-					
+	UPROPERTY(EditAnywhere, Category = "Stats")
+	float SpeedMultiplier = 1.0f;
 };

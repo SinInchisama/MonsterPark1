@@ -15,9 +15,9 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimerUpdated, float, RemainingTim
 UENUM(BlueprintType)
 enum class EMatchState : uint8
 {
-	Waiting,    // ´ë±â ¶ó¿îµå (¸ó½ºÅÍ »ý¼º ¹× ´ë±â) 
-	Playing,    // ÇÃ·¹ÀÌ ¶ó¿îµå (ÀüÅõ ½ÃÀÛ)
-	GameOver    // °ÔÀÓ Á¾·á
+	Waiting,    // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½) 
+	Playing,    // ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+	GameOver    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 };
 
 UCLASS()

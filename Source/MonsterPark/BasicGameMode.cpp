@@ -71,14 +71,14 @@ void ABasicGameMode::UpdateMatchState(EMatchState NewState)
 
 	if (CurrentState == EMatchState::Waiting)
 	{
-		// 1. ´ÙÀ½ ¶ó¿îµå µ¥ÀÌÅÍ ÁØºñ (¼­ºê½Ã½ºÅÛ È°¿ë)
+		// 1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½ (ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ï¿½ï¿½ È°ï¿½ï¿½)
 		RoundTimer = StayTime;
 		MonsterSubsystem->EndRound();
 		++CurrentRound;
 	}
 	else if (CurrentState == EMatchState::Playing)
 	{
-		// 2. ´ë±â ÁßÀÎ ¸ó½ºÅÍµé ±ú¿ì±â
+		// 2. ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 		if (MonsterSubsystem->MainSpawner)
 		{
 			MonsterSubsystem->StartRound(CurrentRound,40);
@@ -117,6 +117,7 @@ void ABasicGameMode::TryStartTimer()
 	if (!MonsterSubsystem)
 	{
 		MonsterSubsystem = GetWorld()->GetSubsystem<UPlaySubSystem>();
+		GetWorldTimerManager().SetTimer(SpawnerCheckHandle, this, &ABasicGameMode::TryStartTimer, 0.1f, false);
 		return;
 	}
 
@@ -128,10 +129,10 @@ void ABasicGameMode::TryStartTimer()
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
-				-1,                 // °íÀ¯ Å° (Key)
-				5.f,                // Áö¼Ó ½Ã°£ (Seconds)
-				FColor::Cyan,       // »ö»ó (Color)
-				TEXT("spspspspspspspsp") // ³»¿ë (Text)
+				-1,                 // ï¿½ï¿½ï¿½ï¿½ Å° (Key)
+				5.f,                // ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ (Seconds)
+				FColor::Cyan,       // ï¿½ï¿½ï¿½ï¿½ (Color)
+				TEXT("spspspspspspspsp") // ï¿½ï¿½ï¿½ï¿½ (Text)
 			);
 		}
 
@@ -142,10 +143,10 @@ void ABasicGameMode::TryStartTimer()
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
-				-1,                 // °íÀ¯ Å° (Key)
-				5.f,                // Áö¼Ó ½Ã°£ (Seconds)
-				FColor::Cyan,       // »ö»ó (Color)
-				TEXT("asmaksmakw") // ³»¿ë (Text)
+				-1,                 // ï¿½ï¿½ï¿½ï¿½ Å° (Key)
+				5.f,                // ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ (Seconds)
+				FColor::Cyan,       // ï¿½ï¿½ï¿½ï¿½ (Color)
+				TEXT("asmaksmakw") // ï¿½ï¿½ï¿½ï¿½ (Text)
 			);
 		}
 	}
