@@ -52,32 +52,10 @@ public:
 	void UpdateAnimBPSpeed(int val);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	EDetectionUnitType UnitType = EDetectionUnitType::BlackCat;
+	TSubclassOf<UMyAnimInstance> AnimClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	TSubclassOf<UMyAnimInstance> BlackCatMoveAnimClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	TSubclassOf<UMyAnimInstance> KnightMoveAnimClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	TSubclassOf<UMyAnimInstance> ThiefMoveAnimClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	TSubclassOf<UMyAnimInstance> ArcherMoveAnimClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	UAnimMontage* BlackCatAnimMontage = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	UAnimMontage* KnightAnimMontage = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	UAnimMontage* ThiefAnimMontage = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-	UAnimMontage* ArcherAnimMontage = nullptr;
-
+	UAnimMontage* AnimMontage = nullptr;
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")

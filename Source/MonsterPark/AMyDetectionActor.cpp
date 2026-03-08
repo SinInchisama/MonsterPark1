@@ -200,36 +200,12 @@ void AAMyDetectionActor::ResetAttack()
 
 UAnimMontage* AAMyDetectionActor::GetDetectedMontage() const
 {
-    // 유닛 타입에 맞는 몽타주 
-    switch (UnitType)
-    {
-    case EDetectionUnitType::Knight:
-        return KnightAnimMontage;
-    case EDetectionUnitType::Thief:
-        return ThiefAnimMontage;
-    case EDetectionUnitType::Archer:
-        return ArcherAnimMontage;
-    case EDetectionUnitType::BlackCat:
-    default:
-        return BlackCatAnimMontage;
-    }
+    return nullptr;
 }
 
 TSubclassOf<UAnimInstance> AAMyDetectionActor::GetMoveAnimClass() const
 {
-    // 유닛 타입에 맞는 AnimBP
-    switch (UnitType)
-    {
-    case EDetectionUnitType::Knight:
-        return KnightMoveAnimClass;
-    case EDetectionUnitType::Thief:
-        return ThiefMoveAnimClass;
-    case EDetectionUnitType::Archer:
-        return ArcherMoveAnimClass;
-    case EDetectionUnitType::BlackCat:
-    default:
-        return BlackCatMoveAnimClass;
-    }
+    return nullptr;
 }
 
 void AAMyDetectionActor::MoveForward(int val)

@@ -243,38 +243,12 @@ void ACharacterBase::ResetAttack()
 
 UAnimMontage* ACharacterBase::GetDetectedMontage() const
 {
-    switch (UnitType)
-    {
-    case EDetectionUnitType::Wizard:
-		return WizardAnimMontage;
-    case EDetectionUnitType::Knight:
-        return KnightAnimMontage;
-    case EDetectionUnitType::Thief:
-        return ThiefAnimMontage;
-    case EDetectionUnitType::Archer:
-        return ArcherAnimMontage;
-    case EDetectionUnitType::BlackCat:
-    default:
-        return BlackCatAnimMontage;
-    }
+    return AnimMontage;
 }
 
 TSubclassOf<UAnimInstance> ACharacterBase::GetMoveAnimClass() const
 {
-    switch (UnitType)
-    {
-	case EDetectionUnitType::Wizard:
-		return WizardMoveAnimClass;
-    case EDetectionUnitType::Knight:
-        return KnightMoveAnimClass;
-    case EDetectionUnitType::Thief:
-        return ThiefMoveAnimClass;
-    case EDetectionUnitType::Archer:
-        return ArcherMoveAnimClass;
-    case EDetectionUnitType::BlackCat:
-    default:
-        return BlackCatMoveAnimClass;
-    }
+    return AnimClass;
 }
 
 void ACharacterBase::MoveForward(int val)
