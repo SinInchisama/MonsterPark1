@@ -71,7 +71,7 @@ public:
 	void Attack_Melee();
 	void Attack_End();
 	
-	void FindEnemiesInArea();
+	virtual void FindEnemiesInArea();
 
 	void MoveForward(int val);
 	void MoveRight(int val);
@@ -100,11 +100,11 @@ protected:
 	bool Attacking = true;
 	bool bEnemyDetected = false;
 
-	void PlayDetectedMontageIfNeeded();
+	virtual void PlayDetectedMontageIfNeeded();
 	void SetMoveAnimClassIfNeeded();
 	void Attack();
 	void ResetAttack();
-	UAnimMontage* GetDetectedMontage() const;
+	virtual UAnimMontage* GetDetectedMontage() const;
 	TSubclassOf<UAnimInstance> GetMoveAnimClass() const;
 
 	float CurrentForwardInput = 0;
