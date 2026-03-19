@@ -216,5 +216,7 @@ void UMyUserWidget::UpdateTimer(float Timer)
 {
 	int32 Seconds = FMath::FloorToInt(Timer);
 	RemainTime-> SetText(FText::AsNumber(Seconds));
+
+	ReFreshMoney();
 }
 

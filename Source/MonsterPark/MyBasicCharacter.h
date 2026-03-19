@@ -76,5 +76,4 @@ protected:
 	TArray<ACharacterBase*> MySummonedHero;
 
 	ACharacterBase* SelectHero;
-
 };

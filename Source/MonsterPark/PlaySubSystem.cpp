@@ -20,10 +20,6 @@ void UPlaySubSystem::OnWorldBeginPlay(UWorld& InWorld)
 	Super::OnWorldBeginPlay(InWorld);
 
 	MainSpawner = Cast<AMyMassSpawner>(UGameplayStatics::GetActorOfClass(&InWorld, AMyMassSpawner::StaticClass()));
-	if (MainSpawner)
-	{
-		UE_LOG(LogTemp, Log, TEXT("MainSpawner!"));
-	}
 }
 
 void UPlaySubSystem::StartRound(int Round,int Scale)
@@ -48,6 +44,7 @@ void UPlaySubSystem::EndRound()
             if (PlayerChar)
             {
                 PlayerChar->Miu_PlayerLife(RemainingMonsters);
+				PlayerChar->Set_PlayerMoney(20);
             }
         }
     }
