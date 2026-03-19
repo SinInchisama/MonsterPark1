@@ -121,6 +121,29 @@ void AMyBasicCharacter::Miu_PlayerLife(int32 value)
     OnLifeChanged.Broadcast(PlayerLife);
 }
 
+int32 AMyBasicCharacter::Get_PlayerExp()
+{
+    return PlayerExp;
+}
+
+void AMyBasicCharacter::Set_PlayerExp(int32 value)
+{
+    PlayerExp += value;
+}
+
+bool AMyBasicCharacter::CheckLevelUp()
+{
+    return  (PlayerExp+2) == PlayerMaxExp;
+}
+
+bool AMyBasicCharacter::PlayerLevelUp()
+{
+    PlayerExp = 0;
+    PlayerLevel += 1;
+
+    return PlayerLevel == 3;
+}
+
 void AMyBasicCharacter::SetSummonedActor(AActor* InActor)
 {
 	if (ACharacterBase* Character = Cast<ACharacterBase>(InActor))

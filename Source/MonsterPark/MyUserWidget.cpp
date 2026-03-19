@@ -75,6 +75,17 @@ void UMyUserWidget::Btn_LevelUp_Clicked()
 			if (MyPlayer->Get_PlayerMoney() >= 2) {
 				MyPlayer->Set_PlayerMoney(-2);
 				ReFreshMoney();
+				if (MyPlayer->CheckLevelUp())
+				{
+					if (MyPlayer->PlayerLevelUp())
+					{
+						Btn_LevelUp->SetIsEnabled(false);
+					}
+				}
+				else
+				{
+					MyPlayer->Set_PlayerExp(2);
+				}
 			}
 		}
 	}

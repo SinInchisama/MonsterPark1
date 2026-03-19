@@ -43,6 +43,12 @@ public:
 	int32 Get_PlayerLife ();
 	void Miu_PlayerLife(int32 value);
 
+	int32 Get_PlayerExp();
+	void Set_PlayerExp(int32 value);
+	bool CheckLevelUp();
+
+	bool PlayerLevelUp();
+
 	void SetSummonedActor(AActor* InActor);
 
 	void OnMouseLeftClick();
@@ -71,6 +77,15 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerLife = 20;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
+	int32 PlayerExp = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
+	int32 PlayerMaxExp = 2;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
+	int32 PlayerLevel = 1;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TArray<ACharacterBase*> MySummonedHero;
