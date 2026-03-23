@@ -26,6 +26,8 @@ AMyBasicCharacter::AMyBasicCharacter()
     FVector CurrentLocation = GetActorLocation();
     CurrentLocation.Z = 1000.0f;
     SetActorLocation(CurrentLocation);
+
+    CurrentLevelChance.Cost1 = 100.0f;
 }
 
 // Called when the game starts or when spawned
@@ -141,6 +143,12 @@ bool AMyBasicCharacter::PlayerLevelUp()
     PlayerExp = 0;
     PlayerLevel += 1;
 
+    ABasicGameMode* GM = Cast<ABasicGameMode>(GetWorld()->GetAuthGameMode());
+    if(GM)
+    {
+        GM->OnLevelUp(CurrentLevelChance, PlayerLevel);
+    }
+
     return PlayerLevel == 3;
 }
 
@@ -202,3 +210,4 @@ void AMyBasicCharacter::HeroMixture()
         }
     }
 }
+

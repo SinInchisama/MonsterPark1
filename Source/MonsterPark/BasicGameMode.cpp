@@ -13,7 +13,6 @@ ABasicGameMode::ABasicGameMode()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PostPhysics;
 	CurrentRound = 0;
-	//PrimaryActorTick.bStartWithTickEnabled = true;
 }
 
 void ABasicGameMode::SpawnHeroFromShop(TSubclassOf<ACharacterBase> HeroClass, ACharacter* PlayerChar)
@@ -33,22 +32,51 @@ void ABasicGameMode::SpawnHeroFromShop(TSubclassOf<ACharacterBase> HeroClass, AC
 	}
 }
 
+void ABasicGameMode::OnLevelUp(FHeroChanceRow& CurrentChane,int Level)
+{
+
+	if (!HeroChanceTable)
+	{
+		return;
+	}
+
+	FHeroChanceRow* FoundRow = HeroChanceTable->FindRow<FHeroChanceRow>(FName(*FString::FromInt(Level)), "");
+
+	if (HeroChanceTable)
+	{
+		CurrentChane =  *FoundRow;
+	}
+}
+
+TSubclassOf<ACharacterBase> ABasicGameMode::GetRandomHeroByChance(const FHeroChanceRow& ChanceData)
+{
+	float RandVal = FMath::FRandRange(0.0f, 100.0f);
+
+	if (RandVal <= ChanceData.Cost1)
+	{
+		if (MonsterOneCoinClasses.Num() > 0)
+			return MonsterOneCoinClasses[FMath::RandRange(0, MonsterOneCoinClasses.Num() - 1)];
+	}
+	else if (RandVal <= (ChanceData.Cost1 + ChanceData.Cost2))
+	{
+		if (MonsterTwoCoinClasses.Num() > 0)
+			return MonsterTwoCoinClasses[FMath::RandRange(0, MonsterTwoCoinClasses.Num() - 1)];
+	}
+	else
+	{
+		if (MonsterThreeCoinClasses.Num() > 0)
+			return MonsterThreeCoinClasses[FMath::RandRange(0, MonsterThreeCoinClasses.Num() - 1)];
+	}
+
+	return (MonsterOneCoinClasses.Num() > 0) ? MonsterOneCoinClasses[0] : nullptr;
+}
+
+
 void ABasicGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
 	TryStartTimer();
-
-	/*if (MonsterSubsystem)
-	{
-		if (MonsterSubsystem->MainSpawner)
-		{
-			RoundTimer = StayTime;
-			GetWorldTimerManager().SetTimer(TimerHandle, this, &ABasicGameMode::UpdateTimerEverySecond, 1.0f, true);
-
-			OnTimerUpdated.Broadcast(RoundTimer);
-		}
-	}*/
 
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(PC->GetPawn());
@@ -104,8 +132,6 @@ void ABasicGameMode::Mixture(int32 cost)
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(PC->GetPawn());
 
-	UE_LOG(LogTemp, Log, TEXT("MainSpawner!@@@@@@@@@@@@@@@@@@"));
-
 	int32 RandomIdx = FMath::RandRange(0, MonsterTwoCoinClasses.Num() - 1);
 	TSubclassOf<ACharacterBase> HeroBaseClass = MonsterTwoCoinClasses[RandomIdx];
 
@@ -126,28 +152,9 @@ void ABasicGameMode::TryStartTimer()
 		RoundTimer = StayTime;
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &ABasicGameMode::UpdateTimerEverySecond, 1.0f, true);
 		OnTimerUpdated.Broadcast(RoundTimer);
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,                 // ���� Ű (Key)
-				5.f,                // ���� �ð� (Seconds)
-				FColor::Cyan,       // ���� (Color)
-				TEXT("spspspspspspspsp") // ���� (Text)
-			);
-		}
-
 	}
 	else
 	{
 		GetWorldTimerManager().SetTimer(SpawnerCheckHandle, this, &ABasicGameMode::TryStartTimer, 0.1f, false);
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1,                 // ���� Ű (Key)
-				5.f,                // ���� �ð� (Seconds)
-				FColor::Cyan,       // ���� (Color)
-				TEXT("asmaksmakw") // ���� (Text)
-			);
-		}
 	}
 }

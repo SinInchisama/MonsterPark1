@@ -167,7 +167,8 @@ void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 
 void UMyUserWidget::ReFreshStore()
 {
-	if (!CachedGM || CachedGM->MonsterOneCoinClasses.Num() == 0)
+	AMyBasicCharacter* PC = Cast<AMyBasicCharacter>(GetOwningPlayerPawn());
+	if (!CachedGM || !PC)
 	{
 		return;
 	}
@@ -182,8 +183,7 @@ void UMyUserWidget::ReFreshStore()
 			continue;
 		}
 
-		int32 RandomIdx = FMath::RandRange(0, CachedGM->MonsterOneCoinClasses.Num() - 1);
-		TSubclassOf<ACharacterBase> HeroBaseClass = CachedGM->MonsterOneCoinClasses[RandomIdx];
+		TSubclassOf<ACharacterBase> HeroBaseClass = CachedGM->GetRandomHeroByChance(PC->CurrentLevelChance);
 		CurrentSlotClasses.Add(HeroBaseClass);
 
 		if (!HeroBaseClass)

@@ -6,6 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "PlaySubSystem.h"
 #include "CharacterBase.h"
+#include "HeroChanceRow.h"
 #include "BasicGameMode.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTimerUpdated, float, RemainingTime);
@@ -31,11 +32,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SpawnHeroFromShop(TSubclassOf<ACharacterBase> HeroClass, ACharacter* PlayerChar);
 
+	UFUNCTION(BlueprintCallable)
+	void OnLevelUp(FHeroChanceRow& CurrentChane, int Level);
+
+	UFUNCTION(BlueprintCallable)
+	TSubclassOf<ACharacterBase>GetRandomHeroByChance(const FHeroChanceRow& ChanceData);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MonsterSetup")
 	TArray<TSubclassOf<ACharacterBase>> MonsterOneCoinClasses;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MonsterSetup")
 	TArray<TSubclassOf<ACharacterBase>> MonsterTwoCoinClasses;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MonsterSetup")
+	TArray<TSubclassOf<ACharacterBase>> MonsterThreeCoinClasses;
 
 	UPROPERTY(BlueprintAssignable, Category = "GameRules")
 	FOnTimerUpdated OnTimerUpdated;
@@ -73,4 +83,7 @@ protected:
 
 	UPROPERTY()
 	EMatchState CurrentState;
+
+	UPROPERTY(EditAnywhere, Category = "Data")
+	UDataTable* HeroChanceTable;
 };

@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "CharacterBase.h"
+#include "HeroChanceRow.h"
 #include "MyBasicCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLifeChanged, int32, NewLife);
@@ -69,6 +70,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FMixtureHero Mixtured;
+
+	FHeroChanceRow CurrentLevelChance;
 		
 protected:
 	// ���� �÷��̾� ��, ����ġ, ������, ������ �ִ� �������� ����
