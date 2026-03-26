@@ -61,7 +61,7 @@ void UMonsterSpawnProcessor::Execute(FMassEntityManager& EntityManager, FMassExe
                     {
                         Move.bSpawned = true;
                         Transform.SetLocation(
-                            FVector(-1080, -1080, 60.f));
+                            FVector(-2600, 400, 60.f));
                         Context.Defer().AddTag<FMonsterTag>(Context.GetEntity(i));
                         Context.Defer().RemoveTag<FMonsterSpawnTag>(Context.GetEntity(i));
                     }

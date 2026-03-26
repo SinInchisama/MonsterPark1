@@ -27,8 +27,8 @@ struct MONSTERPARK_API FMonsterTargetFragment : public FMassFragment
 
 static const FVector MonsterTargets[4] =
 {
-    FVector(-1080, -1080, 60.f),
-    FVector(-1080,  1080, 60.f),
-    FVector(1080,  1080, 60.f),
-    FVector(1080, -1080, 60.f),
+    FVector(-2600, 400, 60.f),
+    FVector(-2600,  2600, 60.f),
+    FVector(-400,  2600, 60.f),
+    FVector(-400, 400, 60.f),
 };

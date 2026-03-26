@@ -25,7 +25,7 @@ void UMonsterMoveTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildCont
 	FMonsterRoundSharedFragment RoundSharedData;
 	BuildContext.AddSharedFragment(FSharedStruct::Make(RoundSharedData));
 
-	TargetFrag.Target = FVector(-1080, 1080, 60.f);
+	TargetFrag.Target = FVector(-2600, 400, 60.f);
 	
 
 	//BuildContext.AddFragment<FMonsterTargetFragment>();
