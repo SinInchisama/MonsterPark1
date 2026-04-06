@@ -72,6 +72,9 @@ public:
 	FMixtureHero Mixtured;
 
 	FHeroChanceRow CurrentLevelChance;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	TArray<ACharacterBase*> MySummonedHero;
 		
 protected:
 	// ���� �÷��̾� ��, ����ġ, ������, ������ �ִ� �������� ����
@@ -89,9 +92,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerLevel = 1;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
-	TArray<ACharacterBase*> MySummonedHero;
 
 	ACharacterBase* SelectHero;
 };

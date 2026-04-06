@@ -14,6 +14,8 @@
 #include "Engine/World.h"
 #include "Math/UnrealMathUtility.h"
 
+#include "MonsterPark/CharacterBase.h"
+
 UExternalMonsterMove::UExternalMonsterMove() : EntityQuery(*this)
 {
 	// DamageCheckProcessor와 동일하게 페이즈와 그룹 설정
@@ -90,10 +92,18 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     FVector EndTrace = NextLocation - FVector(0, 0, 1000.0f);
 
                     FCollisionQueryParams QueryParams;
-                    if (World->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_Visibility, QueryParams))
+
+                    if (World->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_WorldStatic, QueryParams))
                     {
                         // 바닥 높이 적용
-                        NextLocation.Z = HitResult.ImpactPoint.Z;
+                        AActor* HitActor = HitResult.GetActor();
+                        if (HitActor && HitActor->IsA(ACharacterBase::StaticClass()))
+                        {
+                            // 캐릭터를 맞췄다면 위치를 업데이트하지 않거나, 
+                            // 다시 레이를 쏴서 바닥을 찾게 해야 합니다. (복잡해짐)
+                        }
+                        else
+                            NextLocation.Z = HitResult.ImpactPoint.Z;
 
                         if (!Direction.IsNearlyZero())
                         {
