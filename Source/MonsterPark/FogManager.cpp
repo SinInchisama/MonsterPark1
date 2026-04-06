@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "CharacterBase.h"
 #include "CanvasItem.h"
+#include "Engine/EngineTypes.h"
 #include "MyBasicCharacter.h"
 
 // Sets default values
@@ -42,7 +43,7 @@ void AFogManager::UpdateFog(UCanvas* Canvas, int32 Width, int32 Height)
 {
     if (!Canvas || !BrushMaterial) return;
 
-    
+    Canvas->K2_DrawBox(FVector2D(0, 0), FVector2D(Width, Height), 0.0f, FLinearColor::Black);
 
     AMyBasicCharacter* PlayerChar = Cast<AMyBasicCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 
@@ -56,21 +57,26 @@ void AFogManager::UpdateFog(UCanvas* Canvas, int32 Width, int32 Height)
             {
                 FVector Pos = Hero->GetActorLocation();
 
-
-                // 맵 좌표 변환 (10000x10000 기준)
+                // 1. 좌표 변환 (기존과 동일)
                 float CanvasX = ((Pos.X / 25200.0f) + 0.5f) * Width;
                 float CanvasY = ((Pos.Y / 25200.0f) + 0.5f) * Height;
 
-                float SightRadius = 300.0f;
+                float SightRadius = 100.0f;
 
-                // 3. 현재 소환된 영웅의 위치에 시야 그리기
-                Canvas->K2_DrawMaterial(
-                    BrushMaterial,
-                    FVector2D(CanvasX - (SightRadius * 0.5f), CanvasY - (SightRadius * 0.5f)),
-                    FVector2D(SightRadius, SightRadius),
-                    FVector2D(0.f, 0.f),
-                    FVector2D(1.f, 1.f)
-                );
+                // 2. TileItem 생성 (K2_DrawMaterial 대신 직접 아이템 생성)
+                // 위치는 좌상단 기준이므로 중심점 보정을 위해 (SightRadius * 0.5f)를 뺍니다.
+                FVector2D ItemPos(CanvasX - (SightRadius * 0.5f), CanvasY - (SightRadius * 0.5f));
+                FVector2D ItemSize(SightRadius, SightRadius);
+
+                // 3. 캔버스 타일 아이템 설정
+                FCanvasTileItem TileItem(ItemPos, BrushMaterial->GetRenderProxy(), ItemSize);
+
+                // [핵심] 블렌드 모드를 Max(최댓값)로 설정
+                // 이렇게 하면 픽셀 값이 더해지지 않고, 기존 값과 새 값 중 더 큰 값(밝은 값)만 남습니다.
+                TileItem.BlendMode = ESimpleElementBlendMode::SE_BLEND_AlphaBlend;
+
+                // 4. 그리기 실행
+                Canvas->DrawItem(TileItem);
             }
         }
     }
