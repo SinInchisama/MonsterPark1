@@ -11,7 +11,7 @@
 #include "MassExecutionContext.h"
 #include "Components/BoxComponent.h"
 
-#include "FMonsterConditionFragment.h"
+#include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h"
 
 // Sets default values
 AAMyDetectionActor::AAMyDetectionActor()

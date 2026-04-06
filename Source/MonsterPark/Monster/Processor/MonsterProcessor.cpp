@@ -4,11 +4,11 @@
 #include "MonsterProcessor.h"
 #include "MassEntityManager.h"
 #include "MassExecutionContext.h"
-#include "FMonsterTargetFragment.h"
+#include "MonsterPark/Monster/Fragment/FMonsterTargetFragment.h"
 #include "MassCommonFragments.h"
 #include "MassCommonTypes.h"
 #include "MassMovementFragments.h"
-#include "FMonsterTag.h"
+#include "MonsterPark/Monster/Tag/FMonsterTag.h"
 
 UMonsterProcessor::UMonsterProcessor() :EntityQuery(*this)
 {

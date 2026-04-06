@@ -6,13 +6,13 @@
 #include "MassExecutionContext.h"
 #include "MassCommonTypes.h"
 
-#include "FMonsterConditionFragment.h"
-#include "FMonsterStatusFragment.h"
+#include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h"
+#include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MassCommonFragments.h"
-#include "FMonsterTargetFragment.h"
+#include "MonsterPark/Monster/Fragment/FMonsterTargetFragment.h"
 
-#include "FMonsterTag.h"
-#include "KilledTag.h"
+#include "MonsterPark/Monster/Tag/FMonsterTag.h"
+#include "MonsterPark/Monster/Tag/KilledTag.h"
 
 UDamageCheckProcessor::UDamageCheckProcessor() :DamageCheckQuery(*this)
 {
@@ -48,19 +48,9 @@ void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 				{
 					StatusList[i].CurrentHealth -= ConditionList[i].Damage;
 					ConditionList[i].Damage = 0;
-					// UE_LOG(LogTemp, Warning, TEXT("Detected Count: %f"), StatusList[i].CurrentHealth);
 					
 				}
 				if (StatusList[i].CurrentHealth <= 0) {
-					//if (!SimpleMovementsList[i].Death) {                // �ӽ÷� ��ġ ���� ���ѹ���, ���� static mesh ���ִ� ��� �˰� �Ǹ� ���� ����
-					//	FTransform& Transform = Transforms[i].GetMutableTransform();
-					//	Transform.SetLocation(
-					//		FVector(0, 0, -10000.f));
-					//	SimpleMovementsList[i].Death = true;
-					//}
-					/*else {
-						Context.Defer().AddTag<FKilledTag>(Context.GetEntity(i));
-					}*/
 					Context.Defer().AddTag<FKilledTag>(Context.GetEntity(i));
 				}
 			}

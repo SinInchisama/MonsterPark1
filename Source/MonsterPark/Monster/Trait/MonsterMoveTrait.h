@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MassEntityTraitBase.h"
-#include "FMonsterStatusFragment.h"
+#include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MonsterMoveTrait.generated.h"
 
 /**

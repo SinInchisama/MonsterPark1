@@ -14,7 +14,7 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "MyAnimInstance.h"
-#include "FMonsterConditionFragment.h"
+#include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h"
 #include "MyBasicCharacter.h"
 
 // Sets default values
