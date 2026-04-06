@@ -12,7 +12,6 @@ void AMyMassSpawner::SpawnEntityByIndex(int32 Index, int32 Amount)
 
 	if (SpawnDataGenerators.Num() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("SpawnDataGenerators is empty! Please add at least one Generator in Blueprints."));
 		return;
 	}
 
@@ -24,7 +23,6 @@ void AMyMassSpawner::SpawnEntityByIndex(int32 Index, int32 Amount)
 
 	FTransform SpawnerTransform = GetActorTransform();
 
-	// ��ġ ������ ����
 	FMassTransformsSpawnData TransformData;
 	for (int32 i = 0; i < Amount; ++i)
 	{
