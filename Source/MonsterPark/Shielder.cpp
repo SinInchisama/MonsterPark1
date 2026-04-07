@@ -6,7 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "MassEntitySubsystem.h"
 #include "MassExecutionContext.h"
-#include "FMonsterConditionFragment.h" // 엔티티 상태 조각
+#include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h" // 엔티티 상태 조각
 #include "MassCommonFragments.h"      // Transform 등 공통 조각
 
 void AShielder::Tick(float DeltaTime)

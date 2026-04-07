@@ -6,8 +6,8 @@
 #include "MassExecutionContext.h"
 #include "MassCommonTypes.h"
 #include "MassObserverProcessor.h"
-#include "KilledTag.h"
-#include "FMonsterTag.h"
+#include "MonsterPark/Monster/Tag/KilledTag.h"
+#include "MonsterPark/Monster/Tag/FMonsterTag.h"
 
 UKilledMonster::UKilledMonster() :EntityQuery(*this)
 {

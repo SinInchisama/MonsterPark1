@@ -5,11 +5,11 @@
 #include "MassEntityManager.h"
 #include "MassExecutionContext.h"
 #include "MassCommonTypes.h"
-#include "FMonsterTag.h"
-#include "MonsterSpawnTag.h"
-#include "FMonsterTargetFragment.h"
+#include "MonsterPark/Monster/Tag/FMonsterTag.h"
+#include "MonsterPark/Monster/Tag/MonsterSpawnTag.h"
+#include "MonsterPark/Monster/Fragment/FMonsterTargetFragment.h"
 #include "MassCommonFragments.h"
-#include "FMonsterSharedFragment.h"
+#include "MonsterPark/Monster/Fragment/FMonsterSharedFragment.h"
 
 UMonsterSpawnProcessor::UMonsterSpawnProcessor() :EntityQuery(*this)
 {
