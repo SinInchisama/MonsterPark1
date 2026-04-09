@@ -12,22 +12,17 @@
 UCLASS()
 class MONSTERPARK_API AWizard : public ACharacterBase
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
 public:
-	virtual void Tick(float DeltaTime) override;
+    virtual void Tick(float DeltaTime) override;
 
 protected:
-	virtual UAnimMontage* GetDetectedMontage() const override;
+    virtual UAnimMontage* GetDetectedMontage() const override;
+    virtual void PlayDetectedMontageIfNeeded() override;
 
-	UPROPERTY(EditAnywhere, Category = "Animation")
-	UAnimMontage* WizardFullMontage;
+    UPROPERTY(EditAnywhere, Category = "Animation")
+    UAnimMontage* WizardFullMontage;
 
-	// 광역스킬
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float AoESkill = 0.f;
-
-	virtual void PlayDetectedMontageIfNeeded() override;
-
-	bool bHasPlayedPassive = false;
+    bool bHasPlayedPassive = false;
 };

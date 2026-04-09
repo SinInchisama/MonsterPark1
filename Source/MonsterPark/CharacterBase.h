@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Pawn.h"
+#include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemComponent.h"
 #include "MassEntityQuery.h"
@@ -17,7 +17,7 @@ class UAnimInstance;
 class UMyAnimInstance;
 
 UCLASS(Blueprintable, BlueprintType, ShowCategories=("Animation", "Collision"))
-class MONSTERPARK_API ACharacterBase : public APawn, public IAbilitySystemInterface
+class MONSTERPARK_API ACharacterBase : public ACharacter, public IAbilitySystemInterface
 {
     GENERATED_BODY()
     
@@ -73,8 +73,8 @@ public:
 	
 	virtual void FindEnemiesInArea();
 
-	void MoveForward(int val);
-	void MoveRight(int val);
+	void MoveForward(float val);
+	void MoveRight(float val);
 
 	void UpdateAnimBPSpeed(int val);
 

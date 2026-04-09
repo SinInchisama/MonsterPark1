@@ -63,9 +63,9 @@ void AShielder::PlayDetectedMontageIfNeeded()
 {
     if (!bEnemyDetected) return;
 
-    if (USkeletalMeshComponent* Mesh = FindComponentByClass<USkeletalMeshComponent>())
+    if (USkeletalMeshComponent* CharacterMesh = FindComponentByClass<USkeletalMeshComponent>())
     {
-        if (UAnimInstance* AnimInst = Mesh->GetAnimInstance())
+        if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
         {
             if (ShielderFullMontage && !AnimInst->Montage_IsPlaying(ShielderFullMontage))
             {

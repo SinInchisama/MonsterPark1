@@ -10,9 +10,11 @@
 #include "MassEntityManager.h"
 #include "MassExecutionContext.h"
 #include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "MyAnimInstance.h"
 #include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h"
 #include "MyBasicCharacter.h"
@@ -20,28 +22,20 @@
 // Sets default values
 ACharacterBase::ACharacterBase()
 {
-    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
-    USceneComponent* DummyRoot = CreateDefaultSubobject<USceneComponent>(TEXT("DummyRoot"));
-    RootComponent = DummyRoot;
+    // ACharacter는 기본적으로 CapsuleComponent가 Root입니다.
+    // 기존 SelectionBox가 충돌 판정용이었다면 캡슐의 크기를 조절합니다.
+    GetCapsuleComponent()->InitCapsuleSize(50.f, 100.f);
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
-    SelectionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("SelectionBox"));
-    SelectionBox->SetupAttachment(RootComponent);
+    // 내장 Mesh 컴포넌트 설정 (보통 캐릭터는 -90도 회전되어 있음)
+    GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -100.f));
+    GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
-    SelectionBox->SetBoxExtent(FVector(50.0f, 50.0f, 100.0f));
-
-    SelectionBox->SetCollisionProfileName(TEXT("Custom"));
-    SelectionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-    SelectionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
-    SelectionBox->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
-
-    // Add the ability system component
-    AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-    AbilitySystemComponent->SetIsReplicated(true);
-    AbilitySystemComponent->SetReplicationMode(AscReplicationMode);
-
-    AttributeSet = CreateDefaultSubobject<UMonsterAttributeSet>(TEXT("AttributeSet"));
+    // CharacterMovementComponent 설정 (Landscape 대응 핵심)
+    GetCharacterMovement()->MaxWalkSpeed = 200.f;
+    GetCharacterMovement()->bOrientRotationToMovement = true; // 이동 방향으로 자동 회전
 }
 
 // Called when the game starts or when spawned
@@ -81,43 +75,18 @@ void ACharacterBase::Tick(float DeltaTime)
 
     FVector MoveDirection = FVector(CurrentForwardInput, CurrentRightInput, 0.0f);
 
-    if (!MoveDirection.IsNearlyZero() && SelectionBox && Attacking)
+    if (!MoveDirection.IsNearlyZero() && Attacking)
     {
-        MoveDirection = MoveDirection.GetSafeNormal();
-
-        FRotator TargetRotation = MoveDirection.Rotation();
-        SetActorRotation(FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaTime, 10.0f));
-
-        FVector BoxStartWorldLoc = SelectionBox->GetComponentLocation();
-
-        FVector Delta = MoveDirection * 200.0f * DeltaTime;
-        FHitResult Hit;
-        SelectionBox->MoveComponent(Delta, GetActorRotation(), true, &Hit);
-
-        FVector BoxEndWorldLoc = SelectionBox->GetComponentLocation();
-        FVector ActualMoveDelta = BoxEndWorldLoc - BoxStartWorldLoc;
-
-        if (!ActualMoveDelta.IsNearlyZero())
-        {
-            AddActorWorldOffset(ActualMoveDelta, false);
-            SelectionBox->SetRelativeLocation(FVector::ZeroVector);
-        }
+        // 핵심 변경: 직접 좌표를 계산하지 않고 입력값만 전달
+        // CharacterMovementComponent가 중력과 지형(Landscape)을 계산하여 이동시킵니다.
+        AddMovementInput(MoveDirection.GetSafeNormal(), 1.0f);
 
         UpdateAnimBPSpeed(1);
-        SetMoveAnimClassIfNeeded();
     }
     else
     {
-        if (Attacking)
-        {
-            FindEnemiesInArea();
-        }
-
-        if (bEnemyDetected)
-        {
-            Attack();
-        }
-
+        if (Attacking) FindEnemiesInArea();
+        if (bEnemyDetected) Attack();
         UpdateAnimBPSpeed(0);
     }
 
@@ -251,25 +220,25 @@ TSubclassOf<UAnimInstance> ACharacterBase::GetMoveAnimClass() const
     return AnimClass;
 }
 
-void ACharacterBase::MoveForward(int val)
+void ACharacterBase::MoveForward(float val)
 {
-    CurrentForwardInput = (float)val;
+	CurrentForwardInput = val;
 }
 
-void ACharacterBase::MoveRight(int val)
+void ACharacterBase::MoveRight(float val)
 {
-    CurrentRightInput = (float)val;
+	CurrentRightInput = val;
 }
 
 void ACharacterBase::UpdateAnimBPSpeed(int val)
 {
-    USkeletalMeshComponent* Mesh = FindComponentByClass<USkeletalMeshComponent>();
-    if (!Mesh)
+    USkeletalMeshComponent* CharacterMesh = FindComponentByClass<USkeletalMeshComponent>();
+    if (!CharacterMesh)
     {
         return;
     }
 
-    UAnimInstance* CurrentInst = Mesh->GetAnimInstance();
+    UAnimInstance* CurrentInst = CharacterMesh->GetAnimInstance();
     if (!CurrentInst)
     {
         return;

@@ -166,7 +166,7 @@ void AMyBasicCharacter::OnMouseLeftClick()
     if (PC)
     {
         FHitResult HitResult;
-        if (PC->GetHitResultUnderCursor(ECC_Visibility, false, HitResult))
+        if (PC->GetHitResultUnderCursor(ECC_Pawn, false, HitResult))
         {
             ACharacterBase* TouchedHero = Cast<ACharacterBase>(HitResult.GetActor());
 
