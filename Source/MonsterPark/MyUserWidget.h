@@ -7,6 +7,7 @@
 #include "Runtime/UMG/Public/Components/Button.h"
 #include "Runtime/UMG/Public/Components/TextBlock.h"
 #include "CharacterBase.h"
+#include "Components/Image.h"
 #include "MyUserWidget.generated.h"
 
 /**
@@ -19,6 +20,8 @@ class MONSTERPARK_API UMyUserWidget : public UUserWidget
 	
 protected:
 	virtual void NativeConstruct() override;
+
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
 	UFUNCTION()
 	void Btn_LevelUp_Clicked();
@@ -106,4 +109,7 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* RemainLife;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* Img_Minimap;
 };
