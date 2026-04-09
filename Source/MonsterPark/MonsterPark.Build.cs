@@ -19,6 +19,7 @@ public class MonsterPark : ModuleRules
     "GameplayAbilities",
     "GameplayTasks",
     "GameplayTags",
+    "Niagara",
     "UMG"
 });
 

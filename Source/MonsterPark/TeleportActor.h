@@ -25,6 +25,12 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Teleport", meta = (MakeEditWidget = true, DisplayName = "¿Ãµø"))
     FVector TargetLocation;
 
+    UPROPERTY(VisibleAnywhere)
+    class UNiagaraComponent* PortalLoopEffect;
+
+    UPROPERTY(EditAnywhere, Category = "Effects")
+    TObjectPtr<class UNiagaraSystem> TeleportBurstEffect;
+
     UFUNCTION()
     void OnMeshOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,

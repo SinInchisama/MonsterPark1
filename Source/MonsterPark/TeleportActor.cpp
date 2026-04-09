@@ -1,12 +1,17 @@
 #include "TeleportActor.h"
 #include "Components/StaticMeshComponent.h"
 #include "CharacterBase.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 ATeleportActor::ATeleportActor()
 {
     // 1. 메시 컴포넌트 생성 및 루트 설정
     MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
     RootComponent = MeshComponent;
+
+    PortalLoopEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PortalLoopEffect"));
+    PortalLoopEffect->SetupAttachment(RootComponent);
 
     // 2. 기본 목적지 설정 (상대 좌표)
     TargetLocation = FVector(300.f, 0.f, 0.f);
@@ -44,12 +49,14 @@ void ATeleportActor::OnMeshOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 
         if (TargetHero)
         {
-            // 로그 출력
-            UE_LOG(LogTemp, Warning, TEXT("이동"));
-
             // 좌표 변환 및 이동
-            FVector WorldDest = GetActorLocation() + GetActorRotation().RotateVector(TargetLocation);
-            TargetHero->SetActorLocation(WorldDest);
+            TargetHero->SetActorLocation(TargetLocation);
+
+            if (TeleportBurstEffect)
+            {
+                // 특정 위치에 이펙트 생성 (Spawn System at Location)
+                UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TeleportBurstEffect, TargetLocation);
+            }
         }
     }
 }
