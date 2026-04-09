@@ -20,7 +20,9 @@ public class MonsterPark : ModuleRules
     "GameplayTasks",
     "GameplayTags",
     "Niagara",
-    "UMG"
+    "UMG",
+    "Slate",
+    "SlateCore"
 });
 
         PrivateDependencyModuleNames.RemoveAll(x => x == "GameplayAbilities" || x == "GameplayTasks" || x == "GameplayTags");

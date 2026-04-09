@@ -5,6 +5,9 @@
 #include "MyBasicCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "BasicGameMode.h"
+#include "Layout/Geometry.h"
+#include "Input/Reply.h"
+#include "Layout/SlateRotatedRect.h"
 
 void UMyUserWidget::NativeConstruct()
 {
@@ -63,6 +66,56 @@ void UMyUserWidget::NativeConstruct()
 		ReFreshStore();
 	}
 	ReFreshMoney();
+}
+
+FReply UMyUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		// 2. 미니맵 이미지가 정상적으로 연결되어 있는지 확인
+		if (Img_Minimap)
+		{
+			// 미니맵 이미지의 지오메트리(크기 및 화면 위치 정보) 가져오기
+			FGeometry MinimapGeometry = Img_Minimap->GetCachedGeometry();
+
+			// 3. 클릭한 마우스 위치가 미니맵 이미지 영역 안쪽인지 검사
+			if (MinimapGeometry.IsUnderLocation(InMouseEvent.GetScreenSpacePosition()))
+			{
+				// 4. 화면 절대 좌표를 미니맵 이미지 내부의 로컬 좌표(0 ~ 맵 사이즈)로 변환
+				FVector2D LocalPos = MinimapGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
+				FVector2D MinimapSize = MinimapGeometry.GetLocalSize();
+
+				// 5. 클릭한 위치의 비율(Ratio) 계산 (0.0 ~ 1.0)
+				float RatioX = LocalPos.X / MinimapSize.X;
+				float RatioY = LocalPos.Y / MinimapSize.Y;
+
+				// 6. 3D 월드 좌표로 역계산 (이전 안개 좌표 공식의 반대)
+				// Pos.X = (RatioX - 0.5) * 25200.0
+				float WorldX = (RatioX - 0.5f) * 25200.0f;
+				float WorldY = (RatioY - 0.5f) * 25200.0f;
+
+				// 7. 플레이어(카메라) 위치 이동
+				APlayerController* PC = GetOwningPlayer();
+				if (PC)
+				{
+					AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
+					if (MyPlayer)
+					{
+						FVector CurrentLoc = MyPlayer->GetActorLocation();
+
+						// Z축(높이)은 유지하고 X, Y만 이동
+						MyPlayer->SetActorLocation(FVector(WorldX, WorldY, CurrentLoc.Z));
+					}
+				}
+
+				// "이 클릭 이벤트는 내가 처리했다"고 엔진에 알림 (이벤트 소비)
+				return FReply::Handled();
+			}
+		}
+	}
+
+	// 미니맵을 클릭한 게 아니라면 기본 부모 클래스 로직 실행 (다른 UI 버튼 등이 눌릴 수 있도록)
+	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }
 
 void UMyUserWidget::Btn_LevelUp_Clicked()
