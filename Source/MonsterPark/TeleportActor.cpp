@@ -49,13 +49,25 @@ void ATeleportActor::OnMeshOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
 
         if (TargetHero)
         {
+            FHitResult HitResult;
+            FVector Start = TargetLocation + FVector(0.f, 0.f, 500.f);
+            FVector End = TargetLocation + FVector(0.f, 0.f, -500.f);
+
+            FCollisionQueryParams Params;
+
+            FVector FinalLocation = TargetLocation;
+
+            if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_WorldStatic, Params))
+            {
+                FinalLocation = HitResult.Location + FVector(0.f, 0.f, 110.f);
+            }
+
             // 좌표 변환 및 이동
-            TargetHero->SetActorLocation(TargetLocation);
+            TargetHero->SetActorLocation(FinalLocation);
 
             if (TeleportBurstEffect)
             {
-                // 특정 위치에 이펙트 생성 (Spawn System at Location)
-                UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TeleportBurstEffect, TargetLocation);
+                UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TeleportBurstEffect, FinalLocation);
             }
         }
     }
