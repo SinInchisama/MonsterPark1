@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MassEntityTypes.h"
+#include "NiagaraSystem.h"
 #include "FMonsterSharedFragment.generated.h"
 
 
@@ -17,4 +18,7 @@ struct FMonsterRoundSharedFragment : public FMassSharedFragment
 
     UPROPERTY(EditAnywhere)
     float NextSpawnTime = 0.f; // 다음 스폰까지 남은 시간
+
+    UPROPERTY(EditAnywhere, Category = "VFX")
+    UNiagaraSystem* HitEffect = nullptr;
 };
