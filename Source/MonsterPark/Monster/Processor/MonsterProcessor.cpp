@@ -5,6 +5,7 @@
 #include "MassEntityManager.h"
 #include "MassExecutionContext.h"
 #include "MonsterPark/Monster/Fragment/FMonsterTargetFragment.h"
+#include "MonsterPark//Monster/Fragment/FMonsterStatusFragment.h"
 #include "MassCommonFragments.h"
 #include "MassCommonTypes.h"
 #include "MassMovementFragments.h"
@@ -24,6 +25,7 @@ void UMonsterProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& E
     EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMonsterTargetFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
+    EntityQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
     
 }
 
@@ -36,7 +38,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
             const TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
             auto Velocities = Context.GetMutableFragmentView<FMassVelocityFragment>();
             const TArrayView<FMonsterTargetFragment> SimpleMovementsList = Context.GetMutableFragmentView<FMonsterTargetFragment>();
-           
+            const TArrayView<FMonsterStatusFragment> StatusList = Context.GetMutableFragmentView<FMonsterStatusFragment>();
 
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
             {
@@ -63,7 +65,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                    CurrentRot.Roll = 0.f;
                    Transform.SetRotation(CurrentRot.Quaternion());
 
-                   Velocities[i].Value = Dir.GetSafeNormal() * 400.f;
+                   Velocities[i].Value = Dir.GetSafeNormal() * StatusList[i].SpeedMultiplier;
                }
                
             }

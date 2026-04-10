@@ -19,5 +19,5 @@ public:
 	float Damage = 0;
 
 	UPROPERTY(EditAnywhere, Category = "Stats")
-	float SpeedMultiplier = 1.0f;
+	float SpeedMultiplier = 400.0f;
 };

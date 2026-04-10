@@ -24,4 +24,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Mass|Stats")
 	int Defenset;			// ¹æ¾î·Â
+
+	UPROPERTY(EditAnywhere, Category = "Mass|Stats")
+	float SpeedMultiplier = 400.0f;
 };
