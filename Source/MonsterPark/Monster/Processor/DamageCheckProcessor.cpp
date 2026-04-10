@@ -13,6 +13,7 @@
 
 #include "MonsterPark/Monster/Tag/FMonsterTag.h"
 #include "MonsterPark/Monster/Tag/KilledTag.h"
+#include "MonsterPark/Monster/Tag/MonsterDamagedTag.h"
 
 UDamageCheckProcessor::UDamageCheckProcessor() :DamageCheckQuery(*this)
 {
@@ -49,6 +50,7 @@ void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 					StatusList[i].CurrentHealth -= ConditionList[i].Damage;
 					ConditionList[i].Damage = 0;
 					
+					Context.Defer().AddTag<FMonsterDamagedTag>(Context.GetEntity(i));
 				}
 				if (StatusList[i].CurrentHealth <= 0) {
 					Context.Defer().AddTag<FKilledTag>(Context.GetEntity(i));

@@ -23,10 +23,10 @@ void UMonsterMoveTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildCont
 	BuildContext.AddTag<FMonsterSpawnTag>();
 
 	FMonsterRoundSharedFragment RoundSharedData;
+	RoundSharedData.HitEffect = HitEffect;
 	BuildContext.AddSharedFragment(FSharedStruct::Make(RoundSharedData));
 
 	TargetFrag.Target = FVector(-2600, 400, 60.f);
 	
-
 	//BuildContext.AddFragment<FMonsterTargetFragment>();
 }

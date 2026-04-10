@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "MassEntityTraitBase.h"
 #include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
+#include "NiagaraSystem.h"
 #include "MonsterMoveTrait.generated.h"
 
 /**
@@ -20,4 +21,7 @@ protected:
 
 	UPROPERTY(Category = "Status", EditAnywhere)
 	FMonsterStatusFragment MonstStatusParams;
+
+	UPROPERTY(Category = "VFX", EditAnywhere)
+	UNiagaraSystem* HitEffect;
 };
