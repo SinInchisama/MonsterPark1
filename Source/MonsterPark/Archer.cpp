@@ -6,4 +6,4 @@
 void AArcher::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-};
+}
