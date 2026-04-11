@@ -150,7 +150,8 @@ void ACharacterBase::Attack_End()
 
 void ACharacterBase::FindEnemiesInArea()
 {
-    /*UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
+    
+    UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
     if (!EntitySubsystem)
     {
         return;
@@ -165,81 +166,75 @@ void ACharacterBase::FindEnemiesInArea()
         : DefaultAttackPower;
 
     FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
-    FMassExecutionContext ExecContext(EntityManager, 0.0f);
 
     FVector MyLocation = GetActorLocation();
     float RadiusSq = FMath::Square(RangeValue);
 
-    TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, MyLocation, RadiusSq, AttackPowerValue](FMassExecutionContext& Context)
-        {
-            const int32 NumEntities = Context.GetNumEntities();
-            TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
-            TArrayView<FMonsterConditionFragment> Condtions = Context.GetMutableFragmentView<FMonsterConditionFragment>();
+    if (!bIsOutsideWall) {
+        FMassExecutionContext ExecContext(EntityManager, 0.0f);
 
-            for (int32 i = 0; i < NumEntities; ++i)
+        TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, MyLocation, RadiusSq, AttackPowerValue](FMassExecutionContext& Context)
             {
-                FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
+                const int32 NumEntities = Context.GetNumEntities();
+                TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
+                TArrayView<FMonsterConditionFragment> Condtions = Context.GetMutableFragmentView<FMonsterConditionFragment>();
 
-                if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)
+                for (int32 i = 0; i < NumEntities; ++i)
                 {
-                    bEnemyDetected = true;
-                    Condtions[i].Damage += AttackPowerValue;
-                    Attacking = false;
-                    break;
+                    FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
+
+                    if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)
+                    {
+                        bEnemyDetected = true;
+                        Condtions[i].Damage += AttackPowerValue;
+                        Attacking = false;
+                        break;
+                    }
+                }
+            });
+    }
+    else {
+        int64 MyKey = PlaySubsystem->GetGridKey(MyLocation);
+
+        // 주변 9칸(자기 칸 포함)을 검사하여 범위 내 몬스터 수집
+        TArray<FMassEntityHandle> CandidateMonsters;
+
+        // 격자 좌표 복원 (X, Y)
+        int32 CenterX = (int32)(MyKey >> 32);
+        int32 CenterY = (int32)(MyKey & 0xFFFFFFFF);
+
+        for (int32 x = -1; x <= 1; ++x)
+        {
+            for (int32 y = -1; y <= 1; ++y)
+            {
+                int64 CheckKey = ((int64)(CenterX + x) << 32) | (uint32)(CenterY + y);
+                if (FGridData* Cell = PlaySubsystem->SpatialGrid.Find(CheckKey))
+                {
+                    CandidateMonsters.Append(Cell->MonsterInCell);
                 }
             }
-        });*/
-
-    if (!PlaySubsystem || !AbilitySystemComponent) return;
-
-    UMassEntitySubsystem* MassSubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-    if (!MassSubsystem) return;
-
-    FMassEntityManager& EM = MassSubsystem->GetMutableEntityManager();
-    FVector MyLoc = GetActorLocation();
-    int64 MyKey = PlaySubsystem->GetGridKey(MyLoc);
-
-    float Range = AbilitySystemComponent->GetNumericAttribute(UMonsterAttributeSet::GetRangeAttribute());
-    float RadiusSq = FMath::Square(Range);
-
-    // 주변 9칸(자기 칸 포함)을 검사하여 범위 내 몬스터 수집
-    TArray<FMassEntityHandle> CandidateMonsters;
-
-    // 격자 좌표 복원 (X, Y)
-    int32 CenterX = (int32)(MyKey >> 32);
-    int32 CenterY = (int32)(MyKey & 0xFFFFFFFF);
-
-    for (int32 x = -1; x <= 1; ++x)
-    {
-        for (int32 y = -1; y <= 1; ++y)
-        {
-            int64 CheckKey = ((int64)(CenterX + x) << 32) | (uint32)(CenterY + y);
-            if (FGridData* Cell = PlaySubsystem->SpatialGrid.Find(CheckKey))
-            {
-                CandidateMonsters.Append(Cell->MonsterInCell);
-            }
         }
-    }
 
-    // 찾아낸 몬스터 핸들들을 대상으로 데이터 접근
-    for (FMassEntityHandle MonsterHandle : CandidateMonsters)
-    {
-        if (!EM.IsEntityValid(MonsterHandle)) continue;
-
-        // 프래그먼트 데이터 직접 가져오기
-        FTransformFragment* Transform = EM.GetFragmentDataPtr<FTransformFragment>(MonsterHandle);
-        FMonsterConditionFragment* Condition = EM.GetFragmentDataPtr<FMonsterConditionFragment>(MonsterHandle);
-
-        if (Transform && Condition)
+        // 찾아낸 몬스터 핸들들을 대상으로 데이터 접근
+        for (FMassEntityHandle MonsterHandle : CandidateMonsters)
         {
-            float DistSq = FVector::DistSquared(MyLoc, Transform->GetTransform().GetLocation());
-            if (DistSq <= RadiusSq)
+            if (!EntityManager.IsEntityValid(MonsterHandle)) continue;
+
+            // 프래그먼트 데이터 직접 가져오기
+            FTransformFragment* Transform = EntityManager.GetFragmentDataPtr<FTransformFragment>(MonsterHandle);
+            FMonsterConditionFragment* Condition = EntityManager.GetFragmentDataPtr<FMonsterConditionFragment>(MonsterHandle);
+
+            if (Transform && Condition)
             {
-                // 공격 성공 로직
-                Condition->Damage += DefaultAttackPower; // 공격력 적용
-                bEnemyDetected = true;
-                Attacking = false;
-                break; // 한 마리만 찾으면 종료
+                float DistSq = FVector::DistSquared(MyLocation, Transform->GetTransform().GetLocation());
+                if (DistSq <= RadiusSq)
+                {
+                    // 공격 성공 로직
+                    Condition->Damage += DefaultAttackPower; // 공격력 적용
+                    bEnemyDetected = true;
+                    Attacking = false;
+                    break; // 한 마리만 찾으면 종료
+                }
             }
         }
     }
