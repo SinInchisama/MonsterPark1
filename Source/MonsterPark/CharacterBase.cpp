@@ -22,6 +22,7 @@
 #include "MassEntitySubsystem.h"
 #include "MassEntityManager.h"
 #include "MassExecutionContext.h"
+#include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h"
 #include "Monster/Tag/FMonsterTag.h"
 
@@ -73,10 +74,9 @@ void ACharacterBase::BeginPlay()
     }
 
     EnemyQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
+    EnemyQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
     EnemyQuery.AddRequirement<FMonsterConditionFragment>(EMassFragmentAccess::ReadWrite);
-   // EnemyQuery.AddTagRequirement<FMonsterTag>(EMassFragmentPresence::All);
-
-    //EnemyOutsideQuery.
+    EnemyQuery.AddTagRequirement<FMonsterTag>(EMassFragmentPresence::All);
 
     TargetQueryPtr = &EnemyQuery;
 }
@@ -150,7 +150,7 @@ void ACharacterBase::Attack_End()
 
 void ACharacterBase::FindEnemiesInArea()
 {
-    UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
+    /*UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
     if (!EntitySubsystem)
     {
         return;
@@ -188,7 +188,61 @@ void ACharacterBase::FindEnemiesInArea()
                     break;
                 }
             }
-        });
+        });*/
+
+    if (!PlaySubsystem || !AbilitySystemComponent) return;
+
+    UMassEntitySubsystem* MassSubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
+    if (!MassSubsystem) return;
+
+    FMassEntityManager& EM = MassSubsystem->GetMutableEntityManager();
+    FVector MyLoc = GetActorLocation();
+    int64 MyKey = PlaySubsystem->GetGridKey(MyLoc);
+
+    float Range = AbilitySystemComponent->GetNumericAttribute(UMonsterAttributeSet::GetRangeAttribute());
+    float RadiusSq = FMath::Square(Range);
+
+    // 주변 9칸(자기 칸 포함)을 검사하여 범위 내 몬스터 수집
+    TArray<FMassEntityHandle> CandidateMonsters;
+
+    // 격자 좌표 복원 (X, Y)
+    int32 CenterX = (int32)(MyKey >> 32);
+    int32 CenterY = (int32)(MyKey & 0xFFFFFFFF);
+
+    for (int32 x = -1; x <= 1; ++x)
+    {
+        for (int32 y = -1; y <= 1; ++y)
+        {
+            int64 CheckKey = ((int64)(CenterX + x) << 32) | (uint32)(CenterY + y);
+            if (FGridData* Cell = PlaySubsystem->SpatialGrid.Find(CheckKey))
+            {
+                CandidateMonsters.Append(Cell->MonsterInCell);
+            }
+        }
+    }
+
+    // 찾아낸 몬스터 핸들들을 대상으로 데이터 접근
+    for (FMassEntityHandle MonsterHandle : CandidateMonsters)
+    {
+        if (!EM.IsEntityValid(MonsterHandle)) continue;
+
+        // 프래그먼트 데이터 직접 가져오기
+        FTransformFragment* Transform = EM.GetFragmentDataPtr<FTransformFragment>(MonsterHandle);
+        FMonsterConditionFragment* Condition = EM.GetFragmentDataPtr<FMonsterConditionFragment>(MonsterHandle);
+
+        if (Transform && Condition)
+        {
+            float DistSq = FVector::DistSquared(MyLoc, Transform->GetTransform().GetLocation());
+            if (DistSq <= RadiusSq)
+            {
+                // 공격 성공 로직
+                Condition->Damage += DefaultAttackPower; // 공격력 적용
+                bEnemyDetected = true;
+                Attacking = false;
+                break; // 한 마리만 찾으면 종료
+            }
+        }
+    }
 }
 
 void ACharacterBase::PlayDetectedMontageIfNeeded()

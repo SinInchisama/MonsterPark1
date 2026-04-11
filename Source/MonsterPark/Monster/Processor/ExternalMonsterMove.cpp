@@ -14,6 +14,7 @@
 #include "Engine/World.h"
 #include "Math/UnrealMathUtility.h"
 
+#include "MonsterPark/PlaySubSystem.h"
 #include "MonsterPark/CharacterBase.h"
 
 UExternalMonsterMove::UExternalMonsterMove() : EntityQuery(*this)
@@ -34,98 +35,86 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 {
 	EntityQuery.ForEachEntityChunk(Context, [this](FMassExecutionContext& Context)
 		{
+			UWorld* World = Context.GetWorld();
+			if (!World) return;
+
+			// 1. Subsystem 가져오기 (루프 밖에서 한 번만 캐싱)
+			UPlaySubSystem* PlaySubsystem = World->GetSubsystem<UPlaySubSystem>();
+			if (!PlaySubsystem) return;
+
+			const float DeltaTime = Context.GetDeltaTimeSeconds();
+
+			// 엔티티마다 변하지 않는 상수 및 설정은 루프 밖으로 이동
+			const float ArrivalThresholdSq = FMath::Square(500.0f);
+			FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(MassMonsterTrace), false);
+
 			const TArrayView<FTransformFragment> TransformList = Context.GetMutableFragmentView<FTransformFragment>();
 			const TArrayView<FMonsterRandomMoveFragment> MoveList = Context.GetMutableFragmentView<FMonsterRandomMoveFragment>();
 
-			const float DeltaTime = Context.GetDeltaTimeSeconds();
-			UWorld* World = Context.GetWorld();
+			for (int32 i = 0; i < Context.GetNumEntities(); ++i)
+			{
+				FTransform& Transform = TransformList[i].GetMutableTransform();
+				FMonsterRandomMoveFragment& MoveData = MoveList[i];
+				FVector CurrentLocation = Transform.GetLocation();
 
-            for (int32 i = 0; i < Context.GetNumEntities(); ++i)
-            {
-                FTransform& Transform = TransformList[i].GetMutableTransform();
-                FMonsterRandomMoveFragment& MoveData = MoveList[i];
-                FVector CurrentLocation = Transform.GetLocation();
+				// 1. 초기 위치 설정
+				if (MoveData.OriginLocation.IsZero())
+				{
+					MoveData.OriginLocation = CurrentLocation;
+				}
 
-      
-                if (MoveData.OriginLocation.IsZero())
-                {
-                    MoveData.OriginLocation = CurrentLocation;
-                }
-                float DistSqToTarget = FVector::DistSquared(CurrentLocation, MoveData.TargetLocation);
-                const float ArrivalThreshold = 500.0f;
-                const float ArrivalThresholdSq = ArrivalThreshold * ArrivalThreshold;
+				float DistSqToTarget = FVector::DistSquared(CurrentLocation, MoveData.TargetLocation);
 
-                if (MoveData.TargetLocation.IsZero() || DistSqToTarget < ArrivalThresholdSq)
-                {
-                    FVector2D RandomOffset = FMath::RandPointInCircle(MoveData.WanderRadius);
-                    MoveData.TargetLocation = MoveData.OriginLocation + FVector(RandomOffset.X, RandomOffset.Y, 0.0f);
-                    DistSqToTarget = FVector::DistSquared(CurrentLocation, MoveData.TargetLocation);
-                }
+				// 2. 새 목표 지점 설정 (도착했거나 타겟이 없는 경우)
+				if (MoveData.TargetLocation.IsZero() || DistSqToTarget < ArrivalThresholdSq)
+				{
+					FVector2D RandomOffset = FMath::RandPointInCircle(MoveData.WanderRadius);
+					MoveData.TargetLocation = MoveData.OriginLocation + FVector(RandomOffset.X, RandomOffset.Y, 0.0f);
+					DistSqToTarget = FVector::DistSquared(CurrentLocation, MoveData.TargetLocation);
+				}
 
-  
-                FVector NextLocation = CurrentLocation;
-                FVector Direction = (MoveData.TargetLocation - CurrentLocation).GetSafeNormal2D();
+				FVector NextLocation = CurrentLocation;
+				FVector Direction = (MoveData.TargetLocation - CurrentLocation).GetSafeNormal2D();
 
-      
-                if (!Direction.IsNearlyZero() && DistSqToTarget > ArrivalThresholdSq)
-                {
-                    FVector MoveStep = Direction * MoveData.Speed * DeltaTime;
-                    if (MoveStep.SizeSquared() > DistSqToTarget)
-                    {
-                        NextLocation.X = MoveData.TargetLocation.X;
-                        NextLocation.Y = MoveData.TargetLocation.Y;
-                    }
-                    else
-                    {
-                        NextLocation += MoveStep;
-                    }
-                }
+				// 3. 이동 처리 (VInterpConstantTo를 사용해 오버슛 방지 및 간소화)
+				if (!Direction.IsNearlyZero() && DistSqToTarget > ArrivalThresholdSq)
+				{
+					NextLocation = FMath::VInterpConstantTo(CurrentLocation, MoveData.TargetLocation, DeltaTime, MoveData.Speed);
+					// Z축은 LineTrace로 결정할 것이므로, XY축만 갱신
+					NextLocation.Z = CurrentLocation.Z;
+				}
 
-    
-                if (World)
-                {
-                    FHitResult HitResult;
-                    FVector StartTrace = NextLocation + FVector(0, 0, 1000.0f);
-                    FVector EndTrace = NextLocation - FVector(0, 0, 1000.0f);
+				// 4. 지형 스내핑 및 회전 (Line Trace)
+				FHitResult HitResult;
+				FVector StartTrace = NextLocation + FVector(0, 0, 1000.0f);
+				FVector EndTrace = NextLocation - FVector(0, 0, 1000.0f);
 
-                    FCollisionQueryParams QueryParams;
+				if (World->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_WorldStatic, QueryParams))
+				{
+					AActor* HitActor = HitResult.GetActor();
+					if (!(HitActor && HitActor->IsA(ACharacterBase::StaticClass())))
+					{
+						NextLocation.Z = HitResult.ImpactPoint.Z;
+					}
 
-                    if (World->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_WorldStatic, QueryParams))
-                    {
+					// 5. 지형 경사면에 맞춘 회전 처리 간소화
+					if (!Direction.IsNearlyZero())
+					{
+						// FRotator 변환 후 Yaw - 90을 하는 대신, 2D 벡터 회전 공식 적용
+						// (X, Y)를 -90도 회전하면 (Y, -X)가 됨
+						FVector OffsetForward(Direction.Y, -Direction.X, 0.0f);
+						FVector TerrainNormal = HitResult.ImpactNormal;
 
-                        AActor* HitActor = HitResult.GetActor();
-                        if (HitActor && HitActor->IsA(ACharacterBase::StaticClass()))
-                        {
- 
-                        }
-                        else
-                            NextLocation.Z = HitResult.ImpactPoint.Z;
+						FQuat FinalQuat = FRotationMatrix::MakeFromXZ(OffsetForward, TerrainNormal).ToQuat();
+						Transform.SetRotation(FinalQuat);
+					}
+				}
 
-                        if (!Direction.IsNearlyZero())
-                        {
- 
-                            FRotator CorrectYawRot = Direction.Rotation();
-                            CorrectYawRot.Pitch = 0.f;
-                            CorrectYawRot.Roll = 0.f;
+				// 최종 위치 적용
+				Transform.SetLocation(NextLocation);
 
-
-                            CorrectYawRot.Yaw -= 90.0f;
-
-
-                            FVector TerrainNormal = HitResult.ImpactNormal;
-
-  
-                            FVector OffsetForward = CorrectYawRot.Vector();
-                            FQuat FinalQuat = FRotationMatrix::MakeFromXZ(OffsetForward, TerrainNormal).ToQuat();
-
-
-                            Transform.SetRotation(FinalQuat);
-                        }
-                    }
-                }
-
-
-                Transform.SetLocation(NextLocation);
-            }
+				FMassEntityHandle EntityHandle = Context.GetEntity(i);
+				PlaySubsystem->UpdateMonsterLocation(EntityHandle, MoveData.LastGridKey, NextLocation);
+			}
 		});
 }

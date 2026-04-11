@@ -39,6 +39,31 @@ void UPlaySubSystem::UpdateHeroLocation(AActor* Hero, int64& InOutLastKey, FVect
     InOutLastKey = NewKey;
 }
 
+void UPlaySubSystem::UpdateMonsterLocation(FMassEntityHandle Entity, int64& InOutLastKey, FVector NewLocation)
+{
+    int64 NewKey = GetGridKey(NewLocation);
+
+    // 2. 격자 칸이 바뀌었을 때만 업데이트 수행 (성능 최적화)
+    if (InOutLastKey != NewKey)
+    {
+        // 이전 칸이 유효했다면 이전 칸에서 엔티티 제거
+        if (InOutLastKey != -1)
+        {
+            if (FGridData* OldCell = SpatialGrid.Find(InOutLastKey))
+            {
+                // RemoveSingleSwap은 배열 순서를 유지하지 않지만 속도가 매우 빠름 (TArray 최적화)
+                OldCell->MonsterInCell.RemoveSingleSwap(Entity);
+            }
+        }
+
+        // 새 칸에 엔티티 추가
+        SpatialGrid.FindOrAdd(NewKey).MonsterInCell.AddUnique(Entity);
+
+        // 3. 레퍼런스로 넘어온 LastKey 업데이트 (프래그먼트에 저장됨)
+        InOutLastKey = NewKey;
+    }
+}
+
 void UPlaySubSystem::RemoveHeroFromGrid(AActor* Hero, int64& InOutLastKey)
 {
     if (FGridData* Cell = SpatialGrid.Find(InOutLastKey))

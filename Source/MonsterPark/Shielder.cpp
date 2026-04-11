@@ -6,7 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "MassEntitySubsystem.h"
 #include "MassExecutionContext.h"
-#include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h" // 엔티티 상태 조각
+#include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MassCommonFragments.h"      // Transform 등 공통 조각
 
 void AShielder::Tick(float DeltaTime)
@@ -41,7 +41,7 @@ void AShielder::FindEnemiesInArea()
         {
             const int32 NumEntities = Context.GetNumEntities();
             auto Transforms = Context.GetMutableFragmentView<FTransformFragment>();
-            auto Conditions = Context.GetMutableFragmentView<FMonsterConditionFragment>();
+            auto Conditions = Context.GetMutableFragmentView<FMonsterStatusFragment>();
 
             for (int32 i = 0; i < NumEntities; ++i)
             {
@@ -53,7 +53,7 @@ void AShielder::FindEnemiesInArea()
                 else
                 {
                     // 범위를 벗어난 적은 속도 복구
-                    Conditions[i].SpeedMultiplier = 1.0f;
+                    Conditions[i].SpeedMultiplier = 400.0f;
                 }
             }
         });

@@ -30,7 +30,7 @@ protected:
 
     // 슬로우 수치 설정
     UPROPERTY(EditAnywhere, Category = "Combat")
-    float SlowMultiplier = 0.5f;
+    float SlowMultiplier = 200.0f;
 
 	virtual void PlayDetectedMontageIfNeeded() override;
 

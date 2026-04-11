@@ -51,5 +51,6 @@ public:
 	}
 
 	void UpdateHeroLocation(AActor* Hero, int64& InOutLastKey, FVector NewLocation);
+	void UpdateMonsterLocation(FMassEntityHandle Entity, int64& InOutLastKey, FVector NewLocation);
 	void RemoveHeroFromGrid(AActor* Hero, int64& InOutLastKey);
 };

@@ -8,6 +8,8 @@
 #include "MonsterPark/Monster/Fragment/FMonsterSharedFragment.h"
 #include "MonsterPark/Monster/Fragment/FMonsterRandomMoveFragment.h"
 
+//#include "MonsterPark/Monster/Tag/ExternalMonsterTag.h"
+
 #include "MassEntityTemplateRegistry.h"
 
 
@@ -23,4 +25,6 @@ void UExtencialMonsterTrait::BuildTemplate(FMassEntityTemplateBuildContext& Buil
 	FMonsterRoundSharedFragment RoundSharedData;
 	RoundSharedData.HitEffect = HitEffect;
 	BuildContext.AddSharedFragment(FSharedStruct::Make(RoundSharedData));
+
+	//BuildContext.AddTag<FExternalMonsterTag>();
 }

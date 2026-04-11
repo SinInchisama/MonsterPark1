@@ -25,4 +25,6 @@ struct FMonsterRandomMoveFragment : public FMassFragment
 
     // 배회할 최대 반경
     float WanderRadius = 1000.0f;
+
+    int64 LastGridKey = -1;
 };
