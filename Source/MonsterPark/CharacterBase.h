@@ -58,10 +58,6 @@ protected:
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 
-	//virtual void PossessedBy(AController* NewController) override;
-
-	//virtual void OnRep_PlayerState() override;
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -81,6 +77,7 @@ public:
 
 	void UpdateAnimBPSpeed(int val);
 
+	void SetIsOutside(bool bOutside);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	TSubclassOf<UMyAnimInstance> AnimClass;
@@ -115,6 +112,7 @@ protected:
 	float CurrentForwardInput = 0;
 	float CurrentRightInput = 0;
 
+	bool bIsOutsideWall;
 	UPROPERTY()
 	class UPlaySubSystem* PlaySubsystem;
 };

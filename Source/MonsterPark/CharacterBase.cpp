@@ -284,3 +284,15 @@ void ACharacterBase::UpdateAnimBPSpeed(int val)
         }
     }
 }
+
+void ACharacterBase::SetIsOutside(bool bOutside)
+{
+    bIsOutsideWall = bOutside;
+
+ /*   if (bOutside) {
+        TargetQueryPtr = &EnemyOutsideQuery;
+    }
+    else {
+        TargetQueryPtr = &EnemyQuery;
+    }*/
+}

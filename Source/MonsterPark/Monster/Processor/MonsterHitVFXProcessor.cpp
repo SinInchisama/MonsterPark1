@@ -39,6 +39,7 @@ void UMonsterHitVFXProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			const TArrayView<const FTransformFragment> Transforms = Context.GetFragmentView<FTransformFragment>();
 			UWorld* World = Context.GetWorld();
 
+
 			// 3. 순회하면서 스폰 후 태그 제거
 			for (int32 i = 0; i < Context.GetNumEntities(); ++i)
 			{
