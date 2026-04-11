@@ -22,6 +22,36 @@ void UPlaySubSystem::OnWorldBeginPlay(UWorld& InWorld)
 	MainSpawner = Cast<AMyMassSpawner>(UGameplayStatics::GetActorOfClass(&InWorld, AMyMassSpawner::StaticClass()));
 }
 
+void UPlaySubSystem::UpdateHeroLocation(AActor* Hero, int64& InOutLastKey, FVector NewLocation)
+{
+ 
+    int64 NewKey = GetGridKey(NewLocation);
+
+    if (InOutLastKey == NewKey) return;
+
+    if (FGridData* OldCell = SpatialGrid.Find(InOutLastKey))
+    {
+        OldCell->HeroesInCell.RemoveSingleSwap(Hero);
+    }
+
+    SpatialGrid.FindOrAdd(NewKey).HeroesInCell.AddUnique(Hero);
+
+    InOutLastKey = NewKey;
+}
+
+void UPlaySubSystem::RemoveHeroFromGrid(AActor* Hero, int64& InOutLastKey)
+{
+    if (FGridData* Cell = SpatialGrid.Find(InOutLastKey))
+    {
+        Cell->HeroesInCell.RemoveSingleSwap(Hero);
+        if (Cell->HeroesInCell.Num() == 0)
+        {
+            SpatialGrid.Remove(InOutLastKey);
+        }
+    }
+    InOutLastKey = -1;
+}
+
 void UPlaySubSystem::StartRound(int Round,int Scale)
 {
 	if (!MainSpawner) return;

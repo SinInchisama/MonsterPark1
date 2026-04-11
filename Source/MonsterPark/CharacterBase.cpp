@@ -19,6 +19,8 @@
 #include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h"
 #include "MyBasicCharacter.h"
 
+#include "PlaySubSystem.h"
+
 // Sets default values
 ACharacterBase::ACharacterBase()
 {
@@ -59,8 +61,23 @@ void ACharacterBase::BeginPlay()
         EnemyQuery = FMassEntityQuery(EntityManager.AsShared());
     }
 
+    UWorld* World = GetWorld();
+    if (World)
+    {
+        PlaySubsystem = World->GetSubsystem<UPlaySubSystem>();
+    }
+
     EnemyQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
     EnemyQuery.AddRequirement<FMonsterConditionFragment>(EMassFragmentAccess::ReadWrite);
+}
+
+void ACharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (PlaySubsystem && LastGridKey != -1)
+    {
+        PlaySubsystem->RemoveHeroFromGrid(this, LastGridKey);
+    }
+    Super::EndPlay(EndPlayReason);
 }
 
 void ACharacterBase::OnResumeAction()
@@ -80,6 +97,11 @@ void ACharacterBase::Tick(float DeltaTime)
         // 핵심 변경: 직접 좌표를 계산하지 않고 입력값만 전달
         // CharacterMovementComponent가 중력과 지형(Landscape)을 계산하여 이동시킵니다.
         AddMovementInput(MoveDirection.GetSafeNormal(), 1.0f);
+
+        if (PlaySubsystem)
+        {
+            PlaySubsystem->UpdateHeroLocation(this, LastGridKey, GetActorLocation());
+        }
 
         UpdateAnimBPSpeed(1);
     }

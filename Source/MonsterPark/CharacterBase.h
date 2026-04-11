@@ -47,6 +47,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit|Stats")
 	float DefaultCost = 1.0f;
 
+	int64 LastGridKey = -1;
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability System")
 	EGameplayEffectReplicationMode AscReplicationMode = EGameplayEffectReplicationMode::Mixed;
@@ -54,6 +55,8 @@ protected:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason)override;
 
 	//virtual void PossessedBy(AController* NewController) override;
 
@@ -109,4 +112,7 @@ protected:
 
 	float CurrentForwardInput = 0;
 	float CurrentRightInput = 0;
+
+	UPROPERTY()
+	class UPlaySubSystem* PlaySubsystem;
 };

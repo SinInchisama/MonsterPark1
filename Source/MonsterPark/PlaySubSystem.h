@@ -5,12 +5,22 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "MyMassSpawner.h"
+#include "MassEntityTypes.h"
 #include "PlaySubSystem.generated.h"
 
 
 /**
  * 
  */
+
+USTRUCT()
+struct FGridData
+{
+	GENERATED_BODY()
+	TArray<AActor*> HeroesInCell;
+	TArray<FMassEntityHandle> MonsterInCell;
+};
+
 UCLASS()
 class MONSTERPARK_API UPlaySubSystem : public UWorldSubsystem
 {
@@ -28,4 +38,18 @@ protected:
 public:
 	UPROPERTY()
 	AMyMassSpawner* MainSpawner;
+
+	const float CellSize = 500.f;
+
+	TMap<int64, FGridData> SpatialGrid;
+
+	int64 GetGridKey(FVector Location) const
+	{
+		int32 X = FMath::FloorToInt(Location.X / CellSize);
+		int32 Y = FMath::FloorToInt(Location.Y / CellSize);
+		return ((int64)X << 32) | (uint32)Y; // X, Y를 합쳐 하나의 키로 만듦
+	}
+
+	void UpdateHeroLocation(AActor* Hero, int64& InOutLastKey, FVector NewLocation);
+	void RemoveHeroFromGrid(AActor* Hero, int64& InOutLastKey);
 };
