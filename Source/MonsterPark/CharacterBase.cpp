@@ -2,26 +2,29 @@
 
 
 #include "CharacterBase.h"
+
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "MyBasicCharacter.h"
+#include "PlaySubSystem.h"
+
 #include "TimerManager.h"
-#include "MonsterAttributeSet.h"
-#include "MassCommonFragments.h"
-#include "MassEntitySubsystem.h"
-#include "MassEntityManager.h"
-#include "MassExecutionContext.h"
+
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "MyAnimInstance.h"
+
+#include "MonsterAttributeSet.h"
+#include "MassCommonFragments.h"
+#include "MassEntitySubsystem.h"
+#include "MassEntityManager.h"
+#include "MassExecutionContext.h"
 #include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h"
-#include "MyBasicCharacter.h"
+#include "Monster/Tag/FMonsterTag.h"
 
-#include "PlaySubSystem.h"
-
-// Sets default values
 ACharacterBase::ACharacterBase()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -59,6 +62,8 @@ void ACharacterBase::BeginPlay()
     {
         FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
         EnemyQuery = FMassEntityQuery(EntityManager.AsShared());
+
+        EnemyOutsideQuery = FMassEntityQuery(EntityManager.AsShared());
     }
 
     UWorld* World = GetWorld();
@@ -69,6 +74,11 @@ void ACharacterBase::BeginPlay()
 
     EnemyQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
     EnemyQuery.AddRequirement<FMonsterConditionFragment>(EMassFragmentAccess::ReadWrite);
+   // EnemyQuery.AddTagRequirement<FMonsterTag>(EMassFragmentPresence::All);
+
+    //EnemyOutsideQuery.
+
+    TargetQueryPtr = &EnemyQuery;
 }
 
 void ACharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -160,7 +170,7 @@ void ACharacterBase::FindEnemiesInArea()
     FVector MyLocation = GetActorLocation();
     float RadiusSq = FMath::Square(RangeValue);
 
-    EnemyQuery.ForEachEntityChunk(ExecContext, [this, MyLocation, RadiusSq, AttackPowerValue](FMassExecutionContext& Context)
+    TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, MyLocation, RadiusSq, AttackPowerValue](FMassExecutionContext& Context)
         {
             const int32 NumEntities = Context.GetNumEntities();
             TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();

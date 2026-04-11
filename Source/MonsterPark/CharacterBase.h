@@ -93,7 +93,9 @@ public:
 
     TArray<FMassEntityHandle> DetectedEnemies;
     FMassEntityQuery EnemyQuery;
+	FMassEntityQuery EnemyOutsideQuery;
 
+	FMassEntityQuery* TargetQueryPtr = nullptr;
 protected:
 	void OnResumeAction();
 

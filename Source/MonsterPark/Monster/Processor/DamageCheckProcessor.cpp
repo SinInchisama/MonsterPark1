@@ -23,14 +23,12 @@ UDamageCheckProcessor::UDamageCheckProcessor() :DamageCheckQuery(*this)
 
 void UDamageCheckProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	DamageCheckQuery.AddTagRequirement<FMonsterTag>(EMassFragmentPresence::All);
 	DamageCheckQuery.AddTagRequirement<FKilledTag>(EMassFragmentPresence::None);
 
 	DamageCheckQuery.AddRequirement<FMonsterConditionFragment>(EMassFragmentAccess::ReadWrite);
 	DamageCheckQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
 
 	DamageCheckQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite); // static mesh�� ����� ����� ��� �ϴ� ��ġ �������� �� ���̰� ����
-	DamageCheckQuery.AddRequirement<FMonsterTargetFragment>(EMassFragmentAccess::ReadWrite);
 }
 
 void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -39,9 +37,6 @@ void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 		{
 			const TArrayView<FMonsterConditionFragment> ConditionList = Context.GetMutableFragmentView<FMonsterConditionFragment>();
 			const TArrayView<FMonsterStatusFragment> StatusList = Context.GetMutableFragmentView<FMonsterStatusFragment>();
-
-			const TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
-			const TArrayView<FMonsterTargetFragment> SimpleMovementsList = Context.GetMutableFragmentView<FMonsterTargetFragment>();
 
 			for (int32 i = 0; i < Context.GetNumEntities(); ++i)
 			{
