@@ -2,12 +2,16 @@
 
 
 #include "MonsterMoveTrait.h"
+
 #include "MonsterPark/Monster/Fragment/FMonsterTargetFragment.h"
 #include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h"
-#include "MassEntityTemplateRegistry.h"
-#include "MonsterPark/Monster/Tag/MonsterSpawnTag.h"
 #include "MonsterPark/Monster/Fragment/FMonsterSharedFragment.h"
+
+#include "MonsterPark/Monster/Tag/MonsterSpawnTag.h"
+
+#include "MassEntityTemplateRegistry.h"
+
 
 void UMonsterMoveTrait::BuildTemplate(FMassEntityTemplateBuildContext& BuildContext, const UWorld& World) const
 {
