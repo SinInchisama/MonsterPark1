@@ -29,16 +29,11 @@ void AWallTrigger::OnMeshOverlap(UPrimitiveComponent* OverlappedComp, AActor* Ot
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
-
 	if (OtherActor && OtherActor != this)
 	{
-		// 영웅 캐릭터인지 확인
 		if (ACharacterBase* Hero = Cast<ACharacterBase>(OtherActor))
 		{
-			// 영웅의 타겟팅 쿼리 포인터를 변경하는 함수 호출
 			Hero->SetIsOutside(bIsOutsideTrigger);
-
-			UE_LOG(LogTemp, Warning, TEXT("Hero crossed the wall! Outside: %s"), bIsOutsideTrigger ? TEXT("True") : TEXT("False"));
 		}
 	}
 }
