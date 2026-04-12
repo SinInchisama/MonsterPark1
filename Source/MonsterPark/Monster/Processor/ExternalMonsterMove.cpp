@@ -1,15 +1,13 @@
 #pragma once
 
-// 1. 무조건 해당 클래스의 헤더가 최상단!
+
 #include "ExternalMonsterMove.h" 
 
-// 2. 프로젝트 및 Mass Entity 필수 헤더
 #include "MassEntityManager.h"
 #include "MassExecutionContext.h"
 #include "MassCommonTypes.h"
 #include "MassCommonFragments.h"
 
-// 3. 사용자가 정의한 프래그먼트 및 기타 엔진 헤더
 #include "MonsterPark/Monster/Fragment/FMonsterRandomMoveFragment.h"
 #include "Engine/World.h"
 #include "Math/UnrealMathUtility.h"
@@ -19,14 +17,12 @@
 
 UExternalMonsterMove::UExternalMonsterMove() : EntityQuery(*this)
 {
-	// DamageCheckProcessor와 동일하게 페이즈와 그룹 설정
 	ProcessingPhase = EMassProcessingPhase::PrePhysics;
 	ExecutionOrder.ExecuteInGroup = UE::Mass::ProcessorGroupNames::Movement;
 }
 
 void UExternalMonsterMove::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
-	// 정상 작동 코드(DamageCheck)의 방식을 그대로 따름
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FMonsterRandomMoveFragment>(EMassFragmentAccess::ReadWrite);
 }
@@ -49,7 +45,7 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
             const float ArrivalThresholdSq = FMath::Square(500.0f);
             const float DetectRange = 800.0f;
 
-            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 0; // 로직에 따라 수정 가능
+            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 5; // 로직에 따라 수정 가능
 
             FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(MassMonsterTrace), false);
 
@@ -99,17 +95,12 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                         if (CurrentTarget) MoveData.TargetHero = CurrentTarget;
                     }
                 }
-
-                // 3. 타겟 상호작용 (위치 가져오기 및 공격)
                 if (IsValid(CurrentTarget))
                 {
-                    // [중요] 인터페이스를 통해 실제 '메시' 혹은 '타겟' 위치를 가져옴
                     IHitInterface* HitInterface = Cast<IHitInterface>(CurrentTarget);
                     FVector TargetPos = HitInterface ? HitInterface->GetTargetLocation(CurrentLocation) : CurrentTarget->GetActorLocation();
 
                     float DistSqToTarget = FVector::DistSquared(CurrentLocation, TargetPos);
-
-                    // 유효 거리 체크 (추적 포기 - 일반 라운드 전용)
                     if (!bIsFinalRound && DistSqToTarget > LoseRangeSq)
                     {
                         MoveData.TargetHero = nullptr;
@@ -121,7 +112,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 
                         if (MoveData.AttackCooldown <= 0.f && HitInterface)
                         {
-                            // [핵심] 물리/액터 수정을 포함할 수 있으므로 GameThread에서 실행
                             AsyncTask(ENamedThreads::GameThread, [HitInterface, CurrentLocation]()
                                 {
                                     if (HitInterface)
@@ -138,7 +128,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     }
                 }
 
-                // 4. 배회 로직 (타겟이 없을 때)
                 if (!IsValid(CurrentTarget))
                 {
                     if (MoveData.OriginLocation.IsZero()) MoveData.OriginLocation = CurrentLocation;
@@ -151,7 +140,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     }
                 }
 
-                // 5. 이동 계산
                 FVector NextLocation = CurrentLocation;
                 if (!bIsAttacking)
                 {
@@ -162,7 +150,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     }
                 }
 
-                // 6. 지형 스내핑 및 회전
                 FHitResult HitResult;
                 FVector StartTrace = NextLocation + FVector(0, 0, 1000.0f);
                 FVector EndTrace = NextLocation - FVector(0, 0, 1000.0f);
@@ -170,13 +157,11 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                 if (World->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_WorldStatic, QueryParams))
                 {
                     AActor* HitActor = HitResult.GetActor();
-                    // 영웅 밟기 방지
                     if (!(HitActor && HitActor->IsA(ACharacterBase::StaticClass())))
                     {
                         NextLocation.Z = HitResult.ImpactPoint.Z;
                     }
 
-                    // 회전 계산용 타겟 위치 (공격 중이면 타겟 메시, 아니면 이동 지점)
                     FVector LookTarget = bIsAttacking && IsValid(CurrentTarget) ?
                         (Cast<IHitInterface>(CurrentTarget) ? Cast<IHitInterface>(CurrentTarget)->GetTargetLocation(CurrentLocation) : CurrentTarget->GetActorLocation())
                         : MoveData.TargetLocation;

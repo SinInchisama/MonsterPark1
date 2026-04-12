@@ -9,6 +9,11 @@
 #include "Input/Reply.h"
 #include "Layout/SlateRotatedRect.h"
 
+#include "PlaySubSystem.h"
+
+#include "Components/Image.h"
+#include "Engine/Texture2D.h"
+
 void UMyUserWidget::NativeConstruct()
 {
 	
@@ -33,6 +38,13 @@ void UMyUserWidget::NativeConstruct()
 	if (Text_HeroPrice2) Text_HeroPrice_Array.Add(Text_HeroPrice2);
 	if (Text_HeroPrice3) Text_HeroPrice_Array.Add(Text_HeroPrice3);
 	if (Text_HeroPrice4) Text_HeroPrice_Array.Add(Text_HeroPrice4);
+
+	Img_Portrait_Array.Empty();
+	Img_Portrait_Array.Add(Img_Portrait_0);
+	Img_Portrait_Array.Add(Img_Portrait_1);
+	Img_Portrait_Array.Add(Img_Portrait_2);
+	Img_Portrait_Array.Add(Img_Portrait_3);
+	Img_Portrait_Array.Add(Img_Portrait_4);
 
 	if (Btn_LevelUp)
 	{
@@ -65,6 +77,18 @@ void UMyUserWidget::NativeConstruct()
 		UpdateTimer(20.f);
 		ReFreshStore();
 	}
+
+	if (UWorld* World = GetWorld())
+	{
+		if (UPlaySubSystem* PlaySubsystem = World->GetSubsystem<UPlaySubSystem>())
+		{
+			// 서브시스템의 OnRoundChanged 이벤트가 발생하면 내 UpdateRoundText를 실행해라!
+			PlaySubsystem->OnRoundChanged.AddDynamic(this, &UMyUserWidget::UpdateRoundText);
+
+			// 초기화 시점에도 현재 라운드를 표시하고 싶다면 직접 호출
+			UpdateRoundText(PlaySubsystem->CurrentRound);
+		}
+	}
 	ReFreshMoney();
 }
 
@@ -72,29 +96,21 @@ FReply UMyUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const
 {
 	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
 	{
-		// 2. 미니맵 이미지가 정상적으로 연결되어 있는지 확인
 		if (Img_Minimap)
 		{
-			// 미니맵 이미지의 지오메트리(크기 및 화면 위치 정보) 가져오기
 			FGeometry MinimapGeometry = Img_Minimap->GetCachedGeometry();
 
-			// 3. 클릭한 마우스 위치가 미니맵 이미지 영역 안쪽인지 검사
 			if (MinimapGeometry.IsUnderLocation(InMouseEvent.GetScreenSpacePosition()))
 			{
-				// 4. 화면 절대 좌표를 미니맵 이미지 내부의 로컬 좌표(0 ~ 맵 사이즈)로 변환
 				FVector2D LocalPos = MinimapGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
 				FVector2D MinimapSize = MinimapGeometry.GetLocalSize();
 
-				// 5. 클릭한 위치의 비율(Ratio) 계산 (0.0 ~ 1.0)
 				float RatioX = LocalPos.X / MinimapSize.X;
 				float RatioY = LocalPos.Y / MinimapSize.Y;
 
-				// 6. 3D 월드 좌표로 역계산 (이전 안개 좌표 공식의 반대)
-				// Pos.X = (RatioX - 0.5) * 25200.0
 				float WorldX = (RatioX - 0.5f) * 25200.0f;
 				float WorldY = (RatioY - 0.5f) * 25200.0f;
 
-				// 7. 플레이어(카메라) 위치 이동
 				APlayerController* PC = GetOwningPlayer();
 				if (PC)
 				{
@@ -103,18 +119,15 @@ FReply UMyUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const
 					{
 						FVector CurrentLoc = MyPlayer->GetActorLocation();
 
-						// Z축(높이)은 유지하고 X, Y만 이동
 						MyPlayer->SetActorLocation(FVector(WorldX, WorldY, CurrentLoc.Z));
 					}
 				}
 
-				// "이 클릭 이벤트는 내가 처리했다"고 엔진에 알림 (이벤트 소비)
 				return FReply::Handled();
 			}
 		}
 	}
 
-	// 미니맵을 클릭한 게 아니라면 기본 부모 클래스 로직 실행 (다른 UI 버튼 등이 눌릴 수 있도록)
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }
 
@@ -213,6 +226,10 @@ void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 					Text_HeroName_Array[Btn_Num]->SetText(FText::GetEmpty());
 				}
 				Text_HeroPrice_Array[Btn_Num]->SetText(FText::GetEmpty());
+				if (Img_Portrait_Array.IsValidIndex(Btn_Num) && Img_Portrait_Array[Btn_Num])
+				{
+					Img_Portrait_Array[Btn_Num]->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.f));
+				}
 			}
 		}
 	}
@@ -221,7 +238,7 @@ void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 void UMyUserWidget::ReFreshStore()
 {
 	AMyBasicCharacter* PC = Cast<AMyBasicCharacter>(GetOwningPlayerPawn());
-	if (!CachedGM || !PC)
+	if (!CachedGM || !PC || Img_Portrait_Array.Num() == 0)
 	{
 		return;
 	}
@@ -231,7 +248,8 @@ void UMyUserWidget::ReFreshStore()
 	const int32 SlotCount = Text_HeroName_Array.Num();
 	for (int32 i = 0; i < SlotCount; i++)
 	{
-		if (!Text_HeroName_Array.IsValidIndex(i) || !Text_HeroPrice_Array.IsValidIndex(i) || !Btn_BuyHero_Array.IsValidIndex(i))
+		if (!Text_HeroName_Array.IsValidIndex(i) || !Text_HeroPrice_Array.IsValidIndex(i) ||
+			!Btn_BuyHero_Array.IsValidIndex(i) || !Img_Portrait_Array.IsValidIndex(i))
 		{
 			continue;
 		}
@@ -241,6 +259,7 @@ void UMyUserWidget::ReFreshStore()
 
 		if (!HeroBaseClass)
 		{
+			Img_Portrait_Array[i]->SetBrushFromTexture(nullptr);
 			continue;
 		}
 
@@ -254,6 +273,15 @@ void UMyUserWidget::ReFreshStore()
 			Text_HeroName_Array[i]->SetText(CDO->UnitName);
 			int32 Price = static_cast<int32>(CDO->DefaultCost);
 			Text_HeroPrice_Array[i]->SetText(FText::AsNumber(Price));
+
+			if (CDO->UnitPortrait)
+			{
+				Img_Portrait_Array[i]->SetBrushFromTexture(CDO->UnitPortrait);
+			}
+			else
+			{
+				Img_Portrait_Array[i]->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.f));
+			}
 		}
 	}
 }
@@ -283,4 +311,13 @@ void UMyUserWidget::UpdateTimer(float Timer)
 
 	ReFreshMoney();
 }
+
+void UMyUserWidget::UpdateRoundText(int32 NewRound)
+{
+	if (CurrentRound)
+	{
+		CurrentRound->SetText(FText::AsNumber(NewRound));
+	}
+}
+
 
