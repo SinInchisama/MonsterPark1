@@ -9,6 +9,7 @@
 #include "MassEntityQuery.h"
 #include "DetectionUnitTypes.h"
 #include "MyAnimInstance.h"
+#include "HitInterface.h"
 #include "CharacterBase.generated.h"
 
 class UBoxComponent;
@@ -18,7 +19,7 @@ class UMyAnimInstance;
 class UNiagaraSystem;
 
 UCLASS(Blueprintable, BlueprintType, ShowCategories=("Animation", "Collision"))
-class MONSTERPARK_API ACharacterBase : public ACharacter, public IAbilitySystemInterface
+class MONSTERPARK_API ACharacterBase : public ACharacter, public IAbilitySystemInterface, public IHitInterface
 {
     GENERATED_BODY()
     
@@ -83,7 +84,7 @@ public:
 
 	void SetIsOutside(bool bOutside);
 
-	void TakeMonsterDamage(float DamageAmount, FVector AttackerLocation);
+	virtual void TakeMonsterDamage(float Damage, FVector AttackerLocation) override;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	TSubclassOf<UMyAnimInstance> AnimClass;

@@ -3,7 +3,9 @@
 
 #include "PlaySubSystem.h"
 #include "MyBasicCharacter.h"
+#include "Map/WallActor.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/BoxComponent.h"
 
 void UPlaySubSystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -106,11 +108,44 @@ AActor* UPlaySubSystem::FindNearestHeroInGrid(FVector SearchLocation, float Sear
     return NearestHero;
 }
 
+AActor* UPlaySubSystem::FindFinalRoundTarget(FVector MonsterLocation)
+{
+    if (ActiveWalls.Num() > 0)
+    {
+        AActor* BestTarget = nullptr;
+        float MinDistSq = MAX_FLT;
+
+        for (AActor* WallActor : ActiveWalls)
+        {
+            if (AWallActor* Wall = Cast<AWallActor>(WallActor))
+            {
+                FVector MeshLocation;
+                Wall->AttackZone->GetClosestPointOnCollision(MonsterLocation, MeshLocation);
+
+                float DistSq = FVector::DistSquared(MonsterLocation, MeshLocation);
+                if (DistSq < MinDistSq)
+                {
+                    MinDistSq = DistSq;
+                    BestTarget = Wall;
+                }
+            }
+        }
+        return BestTarget;
+    }
+
+    return Nexus;
+}
+
+void UPlaySubSystem::OnWallDestroyed(AActor* DestroyedWall)
+{
+    ActiveWalls.RemoveSingleSwap(DestroyedWall);
+}
+
 void UPlaySubSystem::StartRound(int Round,int Scale)
 {
 	if (!MainSpawner) return;
 
-	MainSpawner->SpawnEntityByIndex(Round,Scale);
+	MainSpawner->SpawnEntityByIndex(CurrentRound ,Scale);
 
 }
 
@@ -133,6 +168,7 @@ void UPlaySubSystem::EndRound()
         }
     }
 
+    ++CurrentRound;
 	MainSpawner->DoDespawning();
 
 }

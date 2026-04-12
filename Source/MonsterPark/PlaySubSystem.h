@@ -39,6 +39,15 @@ public:
 	UPROPERTY()
 	AMyMassSpawner* MainSpawner;
 
+	UPROPERTY()
+	int32 CurrentRound;
+
+	UPROPERTY()
+	TArray<AActor*> ActiveWalls;
+	UPROPERTY()
+	AActor* Nexus;
+
+
 	const float CellSize = 500.f;
 
 	TMap<int64, FGridData> SpatialGrid;
@@ -54,4 +63,7 @@ public:
 	void UpdateMonsterLocation(FMassEntityHandle Entity, int64& InOutLastKey, FVector NewLocation);
 	void RemoveHeroFromGrid(AActor* Hero, int64& InOutLastKey);
 	AActor* FindNearestHeroInGrid(FVector SearchLocation, float SearchRadius);
+
+	AActor*  FindFinalRoundTarget(FVector MonsterLocation);
+	void OnWallDestroyed(AActor* DestroyedWall);
 };

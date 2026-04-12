@@ -34,4 +34,7 @@ struct FMonsterRandomMoveFragment : public FMassFragment
 
     // 공격 쿨타임 타이머
     float AttackCooldown = 0.0f;
+
+    // 성벽을 부셔는지 체크
+    bool bHasFinishedWall = false;
 };

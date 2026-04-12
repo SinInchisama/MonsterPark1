@@ -73,9 +73,6 @@ protected:
 	FTimerHandle SpawnerCheckHandle;
 
 	UPROPERTY()
-	int32 CurrentRound;
-
-	UPROPERTY()
 	float StayTime = 5;
 	UPROPERTY()
 	float PlayTime = 20;

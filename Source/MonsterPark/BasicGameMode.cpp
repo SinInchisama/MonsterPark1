@@ -12,7 +12,6 @@ ABasicGameMode::ABasicGameMode()
 	HUDClass = AGame_HUD::StaticClass();
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PostPhysics;
-	CurrentRound = 0;
 }
 
 void ABasicGameMode::SpawnHeroFromShop(TSubclassOf<ACharacterBase> HeroClass, ACharacter* PlayerChar)
@@ -102,14 +101,13 @@ void ABasicGameMode::UpdateMatchState(EMatchState NewState)
 		// 1. ���� ���� ������ �غ� (����ý��� Ȱ��)
 		RoundTimer = StayTime;
 		MonsterSubsystem->EndRound();
-		++CurrentRound;
 	}
 	else if (CurrentState == EMatchState::Playing)
 	{
 		// 2. ��� ���� ���͵� �����
 		if (MonsterSubsystem->MainSpawner)
 		{
-			MonsterSubsystem->StartRound(CurrentRound,40);
+			MonsterSubsystem->StartRound(0,40);
 		}
 		RoundTimer = PlayTime;
 	}
