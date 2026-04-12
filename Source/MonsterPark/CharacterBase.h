@@ -15,6 +15,7 @@ class UBoxComponent;
 class UAnimMontage;
 class UAnimInstance;
 class UMyAnimInstance;
+class UNiagaraSystem;
 
 UCLASS(Blueprintable, BlueprintType, ShowCategories=("Animation", "Collision"))
 class MONSTERPARK_API ACharacterBase : public ACharacter, public IAbilitySystemInterface
@@ -47,6 +48,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit|Stats")
 	float DefaultCost = 1.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+	UNiagaraSystem* HitEffectTemplate;
+
 	int64 LastGridKey = -1;
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability System")
@@ -78,6 +82,8 @@ public:
 	void UpdateAnimBPSpeed(int val);
 
 	void SetIsOutside(bool bOutside);
+
+	void TakeMonsterDamage(float DamageAmount, FVector AttackerLocation);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	TSubclassOf<UMyAnimInstance> AnimClass;

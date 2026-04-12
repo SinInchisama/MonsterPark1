@@ -7,6 +7,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MyBasicCharacter.h"
 #include "PlaySubSystem.h"
+#include "Async/Async.h"
+#include "NiagaraFunctionLibrary.h"
 
 #include "TimerManager.h"
 
@@ -299,6 +301,26 @@ UAnimMontage* ACharacterBase::GetDetectedMontage() const
 TSubclassOf<UAnimInstance> ACharacterBase::GetMoveAnimClass() const
 {
     return AnimClass;
+}
+
+void ACharacterBase::TakeMonsterDamage(float DamageAmount, FVector AttackerLocation)
+{
+    FVector HeroLoc = GetActorLocation();
+    FVector Direction = (AttackerLocation - HeroLoc).GetSafeNormal2D();
+    FRotator SpawnRotation = Direction.Rotation();
+
+    AsyncTask(ENamedThreads::GameThread, [this, SpawnRotation]()
+        {
+            if (HitEffectTemplate)
+            {
+                UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+                    GetWorld(),
+                    HitEffectTemplate,
+                    GetActorLocation(),
+                    SpawnRotation
+                );
+            }
+        });
 }
 
 void ACharacterBase::MoveForward(float val)

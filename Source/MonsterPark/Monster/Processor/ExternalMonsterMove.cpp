@@ -38,14 +38,16 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 			UWorld* World = Context.GetWorld();
 			if (!World) return;
 
-			// 1. Subsystem 가져오기 (루프 밖에서 한 번만 캐싱)
 			UPlaySubSystem* PlaySubsystem = World->GetSubsystem<UPlaySubSystem>();
 			if (!PlaySubsystem) return;
 
 			const float DeltaTime = Context.GetDeltaTimeSeconds();
 
-			// 엔티티마다 변하지 않는 상수 및 설정은 루프 밖으로 이동
-			const float ArrivalThresholdSq = FMath::Square(500.0f);
+			const float DetectRangeSq = FMath::Square(800.0f); // 탐지 거리
+			const float LoseRangeSq = FMath::Square(1000.0f);   // 추적 포기 거리
+			const float AttackRangeSq = FMath::Square(300.0f); // 공격 거리
+			const float ArrivalThresholdSq = FMath::Square(500.0f);	// 배회 시 도착 판정 거리
+
 			FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(MassMonsterTrace), false);
 
 			const TArrayView<FTransformFragment> TransformList = Context.GetMutableFragmentView<FTransformFragment>();
@@ -56,35 +58,73 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 				FTransform& Transform = TransformList[i].GetMutableTransform();
 				FMonsterRandomMoveFragment& MoveData = MoveList[i];
 				FVector CurrentLocation = Transform.GetLocation();
+				bool bIsAttacking = false;
 
-				// 1. 초기 위치 설정
-				if (MoveData.OriginLocation.IsZero())
+				if (MoveData.AttackCooldown > 0.f) MoveData.AttackCooldown -= DeltaTime;
+
+				AActor* TargetHero = MoveData.TargetHero.Get();
+
+				if (!TargetHero)
 				{
-					MoveData.OriginLocation = CurrentLocation;
+					TargetHero = PlaySubsystem->FindNearestHeroInGrid(CurrentLocation, 500.0f); 
+					if (TargetHero) MoveData.TargetHero = TargetHero;
 				}
 
-				float DistSqToTarget = FVector::DistSquared(CurrentLocation, MoveData.TargetLocation);
-
-				// 2. 새 목표 지점 설정 (도착했거나 타겟이 없는 경우)
-				if (MoveData.TargetLocation.IsZero() || DistSqToTarget < ArrivalThresholdSq)
+				if (TargetHero)
 				{
-					FVector2D RandomOffset = FMath::RandPointInCircle(MoveData.WanderRadius);
-					MoveData.TargetLocation = MoveData.OriginLocation + FVector(RandomOffset.X, RandomOffset.Y, 0.0f);
-					DistSqToTarget = FVector::DistSquared(CurrentLocation, MoveData.TargetLocation);
+					float DistSqToHero = FVector::DistSquared(CurrentLocation, TargetHero->GetActorLocation());
+
+					if (DistSqToHero > LoseRangeSq)
+					{
+						MoveData.TargetHero = nullptr;
+						TargetHero = nullptr;
+					}
+					else if (DistSqToHero <= AttackRangeSq)
+					{
+						bIsAttacking = true;
+
+						if (MoveData.AttackCooldown <= 0.f)
+						{
+							if (ACharacterBase* Hero = Cast<ACharacterBase>(TargetHero))
+							{
+								Hero->TakeMonsterDamage(10.0f, CurrentLocation);
+							}
+
+							MoveData.AttackCooldown = 1.0f;
+						}
+					}
+					else
+					{
+						MoveData.TargetLocation = TargetHero->GetActorLocation();
+					}
+				}
+
+				if (!TargetHero)
+				{
+					if (MoveData.OriginLocation.IsZero()) MoveData.OriginLocation = CurrentLocation;
+
+					float DistSqToTarget = FVector::DistSquared(CurrentLocation, MoveData.TargetLocation);
+					if (MoveData.TargetLocation.IsZero() || DistSqToTarget < ArrivalThresholdSq)
+					{
+						FVector2D RandomOffset = FMath::RandPointInCircle(MoveData.WanderRadius);
+						MoveData.TargetLocation = MoveData.OriginLocation + FVector(RandomOffset.X, RandomOffset.Y, 0.0f);
+					}
 				}
 
 				FVector NextLocation = CurrentLocation;
-				FVector Direction = (MoveData.TargetLocation - CurrentLocation).GetSafeNormal2D();
 
-				// 3. 이동 처리 (VInterpConstantTo를 사용해 오버슛 방지 및 간소화)
-				if (!Direction.IsNearlyZero() && DistSqToTarget > ArrivalThresholdSq)
+				if (!bIsAttacking)
 				{
-					NextLocation = FMath::VInterpConstantTo(CurrentLocation, MoveData.TargetLocation, DeltaTime, MoveData.Speed);
-					// Z축은 LineTrace로 결정할 것이므로, XY축만 갱신
-					NextLocation.Z = CurrentLocation.Z;
+					FVector Direction = (MoveData.TargetLocation - CurrentLocation).GetSafeNormal2D();
+					float DistSqToTarget = FVector::DistSquared(CurrentLocation, MoveData.TargetLocation);
+
+					if (!Direction.IsNearlyZero() && (TargetHero || DistSqToTarget > ArrivalThresholdSq))
+					{
+						NextLocation = FMath::VInterpConstantTo(CurrentLocation, MoveData.TargetLocation, DeltaTime, MoveData.Speed);
+						NextLocation.Z = CurrentLocation.Z;
+					}
 				}
 
-				// 4. 지형 스내핑 및 회전 (Line Trace)
 				FHitResult HitResult;
 				FVector StartTrace = NextLocation + FVector(0, 0, 1000.0f);
 				FVector EndTrace = NextLocation - FVector(0, 0, 1000.0f);
@@ -96,25 +136,22 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 					{
 						NextLocation.Z = HitResult.ImpactPoint.Z;
 					}
+					FVector LookDirection = bIsAttacking ? (TargetHero->GetActorLocation() - CurrentLocation).GetSafeNormal2D()
+						: (MoveData.TargetLocation - CurrentLocation).GetSafeNormal2D();
 
-					// 5. 지형 경사면에 맞춘 회전 처리 간소화
-					if (!Direction.IsNearlyZero())
+					if (!LookDirection.IsNearlyZero())
 					{
-						// FRotator 변환 후 Yaw - 90을 하는 대신, 2D 벡터 회전 공식 적용
-						// (X, Y)를 -90도 회전하면 (Y, -X)가 됨
-						FVector OffsetForward(Direction.Y, -Direction.X, 0.0f);
+						FVector OffsetForward(LookDirection.Y, -LookDirection.X, 0.0f);
 						FVector TerrainNormal = HitResult.ImpactNormal;
 
 						FQuat FinalQuat = FRotationMatrix::MakeFromXZ(OffsetForward, TerrainNormal).ToQuat();
 						Transform.SetRotation(FinalQuat);
 					}
 				}
-
-				// 최종 위치 적용
 				Transform.SetLocation(NextLocation);
 
 				FMassEntityHandle EntityHandle = Context.GetEntity(i);
 				PlaySubsystem->UpdateMonsterLocation(EntityHandle, MoveData.LastGridKey, NextLocation);
 			}
-		});
+	});
 }

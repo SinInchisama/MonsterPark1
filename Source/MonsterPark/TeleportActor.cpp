@@ -69,6 +69,8 @@ void ATeleportActor::OnMeshOverlap(UPrimitiveComponent* OverlappedComp, AActor* 
             {
                 UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TeleportBurstEffect, FinalLocation);
             }
+
+            TargetHero->SetIsOutside(true);
         }
     }
 }

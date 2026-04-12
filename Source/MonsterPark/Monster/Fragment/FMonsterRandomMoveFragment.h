@@ -26,5 +26,12 @@ struct FMonsterRandomMoveFragment : public FMassFragment
     // 배회할 최대 반경
     float WanderRadius = 1000.0f;
 
+    // 격자에 사용하는 키
     int64 LastGridKey = -1;
+
+    // 현재 타켓팅 중인 영웅
+    TWeakObjectPtr<AActor> TargetHero = nullptr;
+
+    // 공격 쿨타임 타이머
+    float AttackCooldown = 0.0f;
 };

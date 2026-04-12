@@ -43,23 +43,18 @@ void UPlaySubSystem::UpdateMonsterLocation(FMassEntityHandle Entity, int64& InOu
 {
     int64 NewKey = GetGridKey(NewLocation);
 
-    // 2. 격자 칸이 바뀌었을 때만 업데이트 수행 (성능 최적화)
     if (InOutLastKey != NewKey)
     {
-        // 이전 칸이 유효했다면 이전 칸에서 엔티티 제거
         if (InOutLastKey != -1)
         {
             if (FGridData* OldCell = SpatialGrid.Find(InOutLastKey))
             {
-                // RemoveSingleSwap은 배열 순서를 유지하지 않지만 속도가 매우 빠름 (TArray 최적화)
                 OldCell->MonsterInCell.RemoveSingleSwap(Entity);
             }
         }
 
-        // 새 칸에 엔티티 추가
         SpatialGrid.FindOrAdd(NewKey).MonsterInCell.AddUnique(Entity);
 
-        // 3. 레퍼런스로 넘어온 LastKey 업데이트 (프래그먼트에 저장됨)
         InOutLastKey = NewKey;
     }
 }
@@ -75,6 +70,40 @@ void UPlaySubSystem::RemoveHeroFromGrid(AActor* Hero, int64& InOutLastKey)
         }
     }
     InOutLastKey = -1;
+}
+
+AActor* UPlaySubSystem::FindNearestHeroInGrid(FVector SearchLocation, float SearchRadius)
+{
+    float MinDistSq = FMath::Square(SearchRadius);
+    AActor* NearestHero = nullptr;
+    int64 CenterKey = GetGridKey(SearchLocation);
+
+    int32 CenterX = (int32)(CenterKey >> 32);
+    int32 CenterY = (int32)(CenterKey & 0xFFFFFFFF);
+
+    for (int32 x = -1; x <= 1; ++x)
+    {
+        for (int32 y = -1; y <= 1; ++y)
+        {
+            int64 CheckKey = ((int64)(CenterX + x) << 32) | (uint32)(CenterY + y);
+            if (FGridData* Cell = SpatialGrid.Find(CheckKey))
+            {
+                for (AActor* Hero : Cell->HeroesInCell)
+                {
+                    if (Hero)
+                    {
+                        float DistSq = FVector::DistSquared(SearchLocation, Hero->GetActorLocation());
+                        if (DistSq < MinDistSq)
+                        {
+                            MinDistSq = DistSq;
+                            NearestHero = Hero;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return NearestHero;
 }
 
 void UPlaySubSystem::StartRound(int Round,int Scale)
