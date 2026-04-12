@@ -39,13 +39,12 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 
             const float DeltaTime = Context.GetDeltaTimeSeconds();
 
-            // 설정값
             const float LoseRangeSq = FMath::Square(1000.0f);
             const float AttackRangeSq = FMath::Square(300.0f);
             const float ArrivalThresholdSq = FMath::Square(500.0f);
             const float DetectRange = 800.0f;
 
-            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 5; // 로직에 따라 수정 가능
+            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 5; 
 
             FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(MassMonsterTrace), false);
 

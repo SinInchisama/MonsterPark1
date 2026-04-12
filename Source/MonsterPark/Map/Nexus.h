@@ -26,7 +26,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
 	float Health = 1000.0f;
 
-	// IHitInterface ±¸Çö
 	virtual void TakeMonsterDamage(float DamageAmount, FVector AttackerLocation) override;
 	virtual FVector GetTargetLocation(FVector AttackerLocation) override;
 

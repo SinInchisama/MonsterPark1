@@ -32,17 +32,14 @@ ACharacterBase::ACharacterBase()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    // ACharacter는 기본적으로 CapsuleComponent가 Root입니다.
-    // 기존 SelectionBox가 충돌 판정용이었다면 캡슐의 크기를 조절합니다.
     GetCapsuleComponent()->InitCapsuleSize(50.f, 100.f);
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
-    // 내장 Mesh 컴포넌트 설정 (보통 캐릭터는 -90도 회전되어 있음)
     GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -100.f));
     GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
     GetCharacterMovement()->MaxWalkSpeed = 200.f;
-    GetCharacterMovement()->bOrientRotationToMovement = true; // 이동 방향으로 자동 회전
+    GetCharacterMovement()->bOrientRotationToMovement = true; 
 
     GetCharacterMovement()->SetWalkableFloorAngle(80.0f);
 
@@ -109,8 +106,6 @@ void ACharacterBase::Tick(float DeltaTime)
 
     if (!MoveDirection.IsNearlyZero() && Attacking)
     {
-        // 핵심 변경: 직접 좌표를 계산하지 않고 입력값만 전달
-        // CharacterMovementComponent가 중력과 지형(Landscape)을 계산하여 이동시킵니다.
         AddMovementInput(MoveDirection.GetSafeNormal(), 1.0f);
 
         if (PlaySubsystem)
@@ -144,13 +139,11 @@ UAbilitySystemComponent* ACharacterBase::GetAbilitySystemComponent() const
 
 void ACharacterBase::Attack_Melee()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Attack_Melee Called!"));
     GetWorldTimerManager().SetTimer(TH_Attack_End, this, &ACharacterBase::Attack_End, 1.0f, false);
 }
 
 void ACharacterBase::Attack_End()
 {
-    UE_LOG(LogTemp, Warning, TEXT("Attack_End Called!"));
 }
 
 void ACharacterBase::FindEnemiesInArea()
@@ -193,6 +186,13 @@ void ACharacterBase::FindEnemiesInArea()
                         bEnemyDetected = true;
                         Condtions[i].Damage += AttackPowerValue;
                         Attacking = false;
+
+                        FVector Direction = (EnemyLoc - MyLocation).GetSafeNormal2D(); 
+                        if (!Direction.IsNearlyZero())
+                        {
+                            SetActorRotation(Direction.Rotation());
+                        }
+
                         break;
                     }
                 }
@@ -227,13 +227,21 @@ void ACharacterBase::FindEnemiesInArea()
 
             if (Transform && Condition)
             {
-                float DistSq = FVector::DistSquared(MyLocation, Transform->GetTransform().GetLocation());
+                FVector EnemyLoc = Transform->GetTransform().GetLocation(); // 변수로 빼줌
+                float DistSq = FVector::DistSquared(MyLocation, EnemyLoc);
                 if (DistSq <= RadiusSq)
                 {
                     Condition->Damage += DefaultAttackPower;
                     bEnemyDetected = true;
                     Attacking = false;
-                    break; 
+
+                    FVector Direction = (EnemyLoc - MyLocation).GetSafeNormal2D();
+                    if (!Direction.IsNearlyZero())
+                    {
+                        SetActorRotation(Direction.Rotation());
+                    }
+
+                    break;
                 }
             }
         }
@@ -357,11 +365,4 @@ void ACharacterBase::UpdateAnimBPSpeed(int val)
 void ACharacterBase::SetIsOutside(bool bOutside)
 {
     bIsOutsideWall = bOutside;
-
- /*   if (bOutside) {
-        TargetQueryPtr = &EnemyOutsideQuery;
-    }
-    else {
-        TargetQueryPtr = &EnemyQuery;
-    }*/
 }
