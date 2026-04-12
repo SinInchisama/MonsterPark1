@@ -41,9 +41,12 @@ ACharacterBase::ACharacterBase()
     GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -100.f));
     GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
-    // CharacterMovementComponent 설정 (Landscape 대응 핵심)
     GetCharacterMovement()->MaxWalkSpeed = 200.f;
     GetCharacterMovement()->bOrientRotationToMovement = true; // 이동 방향으로 자동 회전
+
+    GetCharacterMovement()->SetWalkableFloorAngle(80.0f);
+
+    GetCharacterMovement()->MaxStepHeight = 100.0f;
 }
 
 // Called when the game starts or when spawned
@@ -198,10 +201,8 @@ void ACharacterBase::FindEnemiesInArea()
     else {
         int64 MyKey = PlaySubsystem->GetGridKey(MyLocation);
 
-        // 주변 9칸(자기 칸 포함)을 검사하여 범위 내 몬스터 수집
         TArray<FMassEntityHandle> CandidateMonsters;
 
-        // 격자 좌표 복원 (X, Y)
         int32 CenterX = (int32)(MyKey >> 32);
         int32 CenterY = (int32)(MyKey & 0xFFFFFFFF);
 
@@ -217,12 +218,10 @@ void ACharacterBase::FindEnemiesInArea()
             }
         }
 
-        // 찾아낸 몬스터 핸들들을 대상으로 데이터 접근
         for (FMassEntityHandle MonsterHandle : CandidateMonsters)
         {
             if (!EntityManager.IsEntityValid(MonsterHandle)) continue;
 
-            // 프래그먼트 데이터 직접 가져오기
             FTransformFragment* Transform = EntityManager.GetFragmentDataPtr<FTransformFragment>(MonsterHandle);
             FMonsterConditionFragment* Condition = EntityManager.GetFragmentDataPtr<FMonsterConditionFragment>(MonsterHandle);
 
@@ -231,11 +230,10 @@ void ACharacterBase::FindEnemiesInArea()
                 float DistSq = FVector::DistSquared(MyLocation, Transform->GetTransform().GetLocation());
                 if (DistSq <= RadiusSq)
                 {
-                    // 공격 성공 로직
-                    Condition->Damage += DefaultAttackPower; // 공격력 적용
+                    Condition->Damage += DefaultAttackPower;
                     bEnemyDetected = true;
                     Attacking = false;
-                    break; // 한 마리만 찾으면 종료
+                    break; 
                 }
             }
         }
