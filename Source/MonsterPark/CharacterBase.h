@@ -17,6 +17,7 @@ class UAnimMontage;
 class UAnimInstance;
 class UMyAnimInstance;
 class UNiagaraSystem;
+class UGameplayAbility;
 
 UCLASS(Blueprintable, BlueprintType, ShowCategories=("Animation", "Collision"))
 class MONSTERPARK_API ACharacterBase : public ACharacter, public IAbilitySystemInterface, public IHitInterface
@@ -33,6 +34,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Ability System")
 	class UMonsterAttributeSet* AttributeSet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability System")
+	TSubclassOf<UGameplayAbility> SkillAbilityClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit")
 	FText UnitName;
@@ -74,6 +78,7 @@ public:
 	
 	void Attack_Melee();
 	void Attack_End();
+	void UseSkill();
 	
 	virtual void FindEnemiesInArea();
 
@@ -102,6 +107,7 @@ public:
 	FMassEntityQuery* TargetQueryPtr = nullptr;
 protected:
 	void OnResumeAction();
+	void GrantDefaultAbilities();
 
 	FTimerHandle AttackDelayTimerHandle;
 	FTimerHandle TH_Attack_End;

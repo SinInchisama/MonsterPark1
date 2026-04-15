@@ -19,6 +19,8 @@
 #include "Animation/AnimMontage.h"
 #include "MyAnimInstance.h"
 
+#include "GameplayAbilitySpec.h"
+
 #include "MonsterAttributeSet.h"
 #include "MassCommonFragments.h"
 #include "MassEntitySubsystem.h"
@@ -31,6 +33,12 @@
 ACharacterBase::ACharacterBase()
 {
     PrimaryActorTick.bCanEverTick = true;
+
+    AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+    AbilitySystemComponent->SetIsReplicated(true);
+    AbilitySystemComponent->SetReplicationMode(AscReplicationMode);
+
+    AttributeSet = CreateDefaultSubobject<UMonsterAttributeSet>(TEXT("AttributeSet"));
 
     // ACharacter는 기본적으로 CapsuleComponent가 Root입니다.
     // 기존 SelectionBox가 충돌 판정용이었다면 캡슐의 크기를 조절합니다.
@@ -62,6 +70,8 @@ void ACharacterBase::BeginPlay()
         AbilitySystemComponent->SetNumericAttributeBase(UMonsterAttributeSet::GetRangeAttribute(), DefaultRange);
         AbilitySystemComponent->SetNumericAttributeBase(UMonsterAttributeSet::GetCostAttribute(), DefaultCost);
     }
+
+    GrantDefaultAbilities();
 
     UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
     if (EntitySubsystem)
@@ -151,6 +161,14 @@ void ACharacterBase::Attack_Melee()
 void ACharacterBase::Attack_End()
 {
     UE_LOG(LogTemp, Warning, TEXT("Attack_End Called!"));
+}
+
+void ACharacterBase::UseSkill()
+{
+    if (AbilitySystemComponent && SkillAbilityClass)
+    {
+        AbilitySystemComponent->TryActivateAbilityByClass(SkillAbilityClass);
+    }
 }
 
 void ACharacterBase::FindEnemiesInArea()
@@ -364,4 +382,18 @@ void ACharacterBase::SetIsOutside(bool bOutside)
     else {
         TargetQueryPtr = &EnemyQuery;
     }*/
+}
+
+void ACharacterBase::GrantDefaultAbilities()
+{
+    if (!AbilitySystemComponent || !HasAuthority())
+    {
+        return;
+    }
+
+    if (SkillAbilityClass)
+    {
+        AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(SkillAbilityClass, 1, 1, this));
+    }
+
 }
