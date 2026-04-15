@@ -43,6 +43,9 @@ protected:
 
 	UFUNCTION()
 	void UpdateTimer(float Timer);
+
+	UFUNCTION()
+	void UpdateRoundText(int32 NewRound);
 protected:
 	UPROPERTY()
 	class ABasicGameMode* CachedGM;
@@ -70,6 +73,19 @@ protected:
 	UButton* Btn_BuyHero3 = nullptr;
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	UButton* Btn_BuyHero4 = nullptr;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* Img_Portrait_0;
+	UPROPERTY(meta = (BindWidget))
+	class UImage* Img_Portrait_1;
+	UPROPERTY(meta = (BindWidget))
+	class UImage* Img_Portrait_2;
+	UPROPERTY(meta = (BindWidget))
+	class UImage* Img_Portrait_3;
+	UPROPERTY(meta = (BindWidget))
+	class UImage* Img_Portrait_4;
+	UPROPERTY(meta = (BindWidgetOptional))
+	TArray<class UImage*> Img_Portrait_Array;
 
 
 	UPROPERTY()
@@ -109,6 +125,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* RemainLife;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* CurrentRound;
 
 	UPROPERTY(meta = (BindWidget))
 	UImage* Img_Minimap;

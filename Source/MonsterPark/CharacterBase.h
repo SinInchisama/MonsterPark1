@@ -105,6 +105,9 @@ public:
 	FMassEntityQuery EnemyOutsideQuery;
 
 	FMassEntityQuery* TargetQueryPtr = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	class UTexture2D* UnitPortrait;
 protected:
 	void OnResumeAction();
 	void GrantDefaultAbilities();

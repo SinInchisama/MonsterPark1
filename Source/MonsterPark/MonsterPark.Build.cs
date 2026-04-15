@@ -22,7 +22,8 @@ public class MonsterPark : ModuleRules
     "Niagara",
     "UMG",
     "Slate",
-    "SlateCore"
+    "SlateCore",
+    "Landscape"
 });
 
         PrivateDependencyModuleNames.RemoveAll(x => x == "GameplayAbilities" || x == "GameplayTasks" || x == "GameplayTags");

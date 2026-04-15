@@ -18,7 +18,7 @@ struct MONSTERPARK_API FMonsterTargetFragment : public FMassFragment
 
     int TargetIndex = 0;
 
-    float SpawnTime = -1.f;     // 추후 분리 예정
+    float SpawnTime = -1.f;     
     bool bSpawned = false;
 
     bool Death = false;

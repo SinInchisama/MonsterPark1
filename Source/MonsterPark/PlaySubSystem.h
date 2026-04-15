@@ -8,7 +8,7 @@
 #include "MassEntityTypes.h"
 #include "PlaySubSystem.generated.h"
 
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundChanged, int32, NewRound);
 /**
  * 
  */
@@ -47,6 +47,9 @@ public:
 	UPROPERTY()
 	AActor* Nexus;
 
+
+	UPROPERTY(BlueprintAssignable, Category = "Game")
+	FOnRoundChanged OnRoundChanged;
 
 	const float CellSize = 500.f;
 

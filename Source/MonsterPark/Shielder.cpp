@@ -30,7 +30,7 @@ void AShielder::FindEnemiesInArea()
     if (!EntitySubsystem || !AbilitySystemComponent) return;
 
     const float RangeValue = AbilitySystemComponent->GetNumericAttribute(UMonsterAttributeSet::GetRangeAttribute());
-    float RadiusSq = FMath::Square(RangeValue);
+    float RadiusSq = FMath::Square(500.0f);
     FVector MyLocation = GetActorLocation();
 
     FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();

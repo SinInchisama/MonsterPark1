@@ -169,6 +169,9 @@ void UPlaySubSystem::EndRound()
     }
 
     ++CurrentRound;
+
+    OnRoundChanged.Broadcast(CurrentRound);
+
 	MainSpawner->DoDespawning();
 
 }
