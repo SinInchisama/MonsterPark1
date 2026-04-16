@@ -82,10 +82,8 @@ void UMyUserWidget::NativeConstruct()
 	{
 		if (UPlaySubSystem* PlaySubsystem = World->GetSubsystem<UPlaySubSystem>())
 		{
-			// 서브시스템의 OnRoundChanged 이벤트가 발생하면 내 UpdateRoundText를 실행해라!
 			PlaySubsystem->OnRoundChanged.AddDynamic(this, &UMyUserWidget::UpdateRoundText);
 
-			// 초기화 시점에도 현재 라운드를 표시하고 싶다면 직접 호출
 			UpdateRoundText(PlaySubsystem->CurrentRound);
 		}
 	}
@@ -316,7 +314,7 @@ void UMyUserWidget::UpdateRoundText(int32 NewRound)
 {
 	if (CurrentRound)
 	{
-		CurrentRound->SetText(FText::AsNumber(NewRound));
+		CurrentRound->SetText(FText::AsNumber(NewRound + 1));
 	}
 }
 

@@ -10,6 +10,5 @@ void ABerserker::Tick(float DeltaTime)
 
 UAnimMontage* ABerserker::GetDetectedMontage() const
 {
-    // 부모 클래스의 PlayDetectedMontageIfNeeded()가 이 몽타주를 사용하게 됩니다.
     return BerserkerFullMontage;
 }

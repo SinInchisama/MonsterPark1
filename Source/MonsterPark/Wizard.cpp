@@ -12,7 +12,6 @@ void AWizard::Tick(float DeltaTime)
 
 UAnimMontage* AWizard::GetDetectedMontage() const
 {
-    // 부모 클래스의 PlayDetectedMontageIfNeeded()가 이 몽타주를 사용하게 됩니다.
     return WizardFullMontage;
 }
 
@@ -20,7 +19,6 @@ void AWizard::PlayDetectedMontageIfNeeded()
 {
     if (!bEnemyDetected) return;
 
-    // ACharacter의 내장 함수 GetMesh() 사용
     USkeletalMeshComponent* CharacterMesh = GetMesh();
     if (CharacterMesh)
     {

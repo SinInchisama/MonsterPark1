@@ -90,6 +90,8 @@ public:
 	void SetIsOutside(bool bOutside);
 
 	virtual void TakeMonsterDamage(float Damage, FVector AttackerLocation) override;
+
+	virtual FVector GetTargetLocation(FVector AttackerLocation) override {return GetActorLocation();};
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	TSubclassOf<UMyAnimInstance> AnimClass;

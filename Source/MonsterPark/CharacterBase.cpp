@@ -34,7 +34,7 @@ ACharacterBase::ACharacterBase()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-<<<<<<< HEAD
+
     AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
     AbilitySystemComponent->SetIsReplicated(true);
     AbilitySystemComponent->SetReplicationMode(AscReplicationMode);
@@ -43,8 +43,7 @@ ACharacterBase::ACharacterBase()
 
     // ACharacter는 기본적으로 CapsuleComponent가 Root입니다.
     // 기존 SelectionBox가 충돌 판정용이었다면 캡슐의 크기를 조절합니다.
-=======
->>>>>>> master
+
     GetCapsuleComponent()->InitCapsuleSize(50.f, 100.f);
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 

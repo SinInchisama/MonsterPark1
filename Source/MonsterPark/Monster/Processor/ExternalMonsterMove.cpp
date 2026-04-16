@@ -102,6 +102,9 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     float DistSqToTarget = FVector::DistSquared(CurrentLocation, TargetPos);
                     if (!bIsFinalRound && DistSqToTarget > LoseRangeSq)
                     {
+                        UE_LOG(LogTemp, Warning, TEXT("Target Location Check - TargetPos: %s, ActorLoc: %s"),
+                            *TargetPos.ToString(),
+                            *CurrentTarget->GetActorLocation().ToString());
                         MoveData.TargetHero = nullptr;
                         CurrentTarget = nullptr;
                     }
@@ -115,6 +118,7 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                                 {
                                     if (HitInterface)
                                     {
+ 
                                         HitInterface->TakeMonsterDamage(10.0f, CurrentLocation);
                                     }
                                 });
@@ -176,7 +180,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     }
                 }
 
-                // 7. 최종 위치 적용 및 그리드 업데이트
                 Transform.SetLocation(NextLocation);
                 FMassEntityHandle EntityHandle = Context.GetEntity(i);
                 PlaySubsystem->UpdateMonsterLocation(EntityHandle, MoveData.LastGridKey, NextLocation);
