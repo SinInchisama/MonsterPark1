@@ -10,6 +10,7 @@
 #include "MassCommonTypes.h"
 #include "MassMovementFragments.h"
 #include "MonsterPark/Monster/Tag/FMonsterTag.h"
+#include "MassActorSubsystem.h"
 
 UMonsterProcessor::UMonsterProcessor() :EntityQuery(*this)
 {
@@ -26,6 +27,7 @@ void UMonsterProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& E
     EntityQuery.AddRequirement<FMonsterTargetFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
+    EntityQuery.AddRequirement<FMassActorFragment>(EMassFragmentAccess::ReadWrite);
     
 }
 
@@ -39,6 +41,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
             auto Velocities = Context.GetMutableFragmentView<FMassVelocityFragment>();
             const TArrayView<FMonsterTargetFragment> SimpleMovementsList = Context.GetMutableFragmentView<FMonsterTargetFragment>();
             const TArrayView<FMonsterStatusFragment> StatusList = Context.GetMutableFragmentView<FMonsterStatusFragment>();
+            auto ActorFragments = Context.GetMutableFragmentView<FMassActorFragment>();
 
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
             {
@@ -66,6 +69,12 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                    Transform.SetRotation(CurrentRot.Quaternion());
 
                    Velocities[i].Value = Dir.GetSafeNormal() * StatusList[i].SpeedMultiplier;
+
+                   AActor* TargetActor = ActorFragments[i].GetMutable();
+                   if (TargetActor)
+                   {
+                       TargetActor->SetActorTransform(Transforms[i].GetTransform(), false, nullptr, ETeleportType::TeleportPhysics);
+                   }
                }
                
             }

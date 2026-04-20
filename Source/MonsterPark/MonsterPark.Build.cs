@@ -16,6 +16,7 @@ public class MonsterPark : ModuleRules
     "MassSpawner",
     "MassRepresentation",
     "MassNavigation",
+    "MassActors",
     "GameplayAbilities",
     "GameplayTasks",
     "GameplayTags",
