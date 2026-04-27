@@ -18,8 +18,12 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 protected:
+	virtual void FindEnemiesInArea() override;
 	virtual UAnimMontage* GetDetectedMontage() const override;
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* BerserkerFullMontage;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float DefenseReductionMultiplier = 0.7f;
 };
