@@ -16,15 +16,18 @@ struct MONSTERPARK_API FMonsterStatusFragment : public FMassFragment
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Mass|Stats")
-	float CurrentHealth;	// ÇöÀç Ã¼·Â
+	float CurrentHealth;	// ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½ï¿½
 
 	UPROPERTY(EditAnywhere, Category = "Mass|Stats")
-	float MaxHealt;			// ÃÖ´ë Ã¼·Â
+	float MaxHealt;			// ï¿½Ö´ï¿½ Ã¼ï¿½ï¿½
 
 
 	UPROPERTY(EditAnywhere, Category = "Mass|Stats")
-	int Defenset;			// ¹æ¾î·Â
+	int Defenset;			// ï¿½ï¿½ï¿½ï¿½
 
 	UPROPERTY(EditAnywhere, Category = "Mass|Stats")
 	float SpeedMultiplier = 400.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Mass|Stats")
+	float PendingAoEDamage = 0.0f;
 };

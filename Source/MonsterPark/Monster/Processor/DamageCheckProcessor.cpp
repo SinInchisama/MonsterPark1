@@ -47,6 +47,12 @@ void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 					
 					Context.Defer().AddTag<FMonsterDamagedTag>(Context.GetEntity(i));
 				}
+				if (StatusList[i].PendingAoEDamage != 0)
+				{
+					StatusList[i].CurrentHealth -= StatusList[i].PendingAoEDamage;
+					StatusList[i].PendingAoEDamage = 0;
+					Context.Defer().AddTag<FMonsterDamagedTag>(Context.GetEntity(i));
+				}
 				if (StatusList[i].CurrentHealth <= 0) {
 					Context.Defer().AddTag<FKilledTag>(Context.GetEntity(i));
 				}
