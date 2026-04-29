@@ -54,6 +54,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_RequestShopRefresh();
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_RequestPurchaseHero(int32 SlotIndex);
+
 	void OnMouseLeftClick();
 	void HeroMixture();
 protected:

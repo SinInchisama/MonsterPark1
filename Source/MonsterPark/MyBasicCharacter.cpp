@@ -7,6 +7,7 @@
 #include "GameFramework/DefaultPawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "BasicGameMode.h"
+#include "MyPlayerState.h"
 
 // Sets default values
 AMyBasicCharacter::AMyBasicCharacter()
@@ -165,6 +166,39 @@ void AMyBasicCharacter::Server_RequestShopRefresh_Implementation()
     if (GM)
     {
         GM->RefreshIndividualShop(Cast<APlayerController>(GetController()));
+    }
+}
+
+bool AMyBasicCharacter::Server_RequestPurchaseHero_Validate(int32 SlotIndex) {
+    return true; 
+}
+
+void AMyBasicCharacter::Server_RequestPurchaseHero_Implementation(int32 SlotIndex)
+{
+    AMyPlayerState* PS = GetPlayerState<AMyPlayerState>();
+    if (!PS || !PS->MyShopHeroes.IsValidIndex(SlotIndex)) return;
+
+    TSubclassOf<ACharacterBase> SelectedClass = PS->MyShopHeroes[SlotIndex];
+    if (!SelectedClass) return;
+
+    int32 Price = 0;
+    if (ACharacterBase* DefaultHero = SelectedClass->GetDefaultObject<ACharacterBase>())
+    {
+        Price = static_cast<int32>(DefaultHero->DefaultCost);
+    }
+
+    if (Get_PlayerMoney() >= Price)
+    {
+        Set_PlayerMoney(-Price);
+
+        if (ABasicGameMode* GM = GetWorld()->GetAuthGameMode<ABasicGameMode>())
+        {
+            GM->SpawnHeroFromShop(SelectedClass, this);
+        }
+
+        PS->MyShopHeroes[SlotIndex] = nullptr; 
+        
+        PS->Client_NotifyShopRefreshed(PS->MyShopHeroes);
     }
 }
 

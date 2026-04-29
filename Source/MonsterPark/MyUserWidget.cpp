@@ -189,49 +189,16 @@ void UMyUserWidget::Btn_BuyHero_Clicked()
 
 void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 {
-	APlayerController* PC = GetOwningPlayer();
-	if (!PC || !Text_HeroPrice_Array.IsValidIndex(Btn_Num) || !CurrentSlotClasses.IsValidIndex(Btn_Num))
+	AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(GetOwningPlayerPawn());
+	if (MyPlayer)
 	{
-		return;
-	}
+		// 서버에 인덱스만 넘김
+		MyPlayer->Server_RequestPurchaseHero(Btn_Num);
 
-	if (!Text_HeroPrice_Array[Btn_Num])
-	{
-		return;
-	}
-
-	AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
-	if (!MyPlayer)
-	{
-		return;
-	}
-
-	int32 PriceInt = FCString::Atoi(*(Text_HeroPrice_Array[Btn_Num]->GetText().ToString()));
-
-	if (MyPlayer->Get_PlayerMoney() >= PriceInt)
-	{
-		TSubclassOf<ACharacterBase> SelectedClass = CurrentSlotClasses[Btn_Num];
-		if (SelectedClass)
+		// (선택 사항) 로컬에서 즉시 버튼을 비활성화해서 "광클" 방지
+		if (Btn_BuyHero_Array.IsValidIndex(Btn_Num))
 		{
-			ACharacterBase* DefaultHero = SelectedClass->GetDefaultObject<ACharacterBase>();
-			if (DefaultHero && CachedGM)
-			{
-				CachedGM->SpawnHeroFromShop(SelectedClass, MyPlayer);
-				MyPlayer->Set_PlayerMoney(-PriceInt);
-				if (Btn_BuyHero_Array.IsValidIndex(Btn_Num) && Btn_BuyHero_Array[Btn_Num])
-				{
-					Btn_BuyHero_Array[Btn_Num]->SetIsEnabled(false);
-				}
-				if (Text_HeroName_Array.IsValidIndex(Btn_Num) && Text_HeroName_Array[Btn_Num])
-				{
-					Text_HeroName_Array[Btn_Num]->SetText(FText::GetEmpty());
-				}
-				Text_HeroPrice_Array[Btn_Num]->SetText(FText::GetEmpty());
-				if (Img_Portrait_Array.IsValidIndex(Btn_Num) && Img_Portrait_Array[Btn_Num])
-				{
-					Img_Portrait_Array[Btn_Num]->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.f));
-				}
-			}
+			Btn_BuyHero_Array[Btn_Num]->SetIsEnabled(false);
 		}
 	}
 }
@@ -265,7 +232,20 @@ void UMyUserWidget::ReFreshStore()
 		CurrentSlotClasses.Add(HeroClass);
 		if (!HeroClass)
 		{
-			Img_Portrait_Array[i]->SetBrushFromTexture(nullptr);
+			if (Btn_BuyHero_Array.IsValidIndex(i) && Btn_BuyHero_Array[i])
+				Btn_BuyHero_Array[i]->SetIsEnabled(false);
+
+			if (Text_HeroName_Array.IsValidIndex(i) && Text_HeroName_Array[i])
+				Text_HeroName_Array[i]->SetText(FText::GetEmpty());
+
+			if (Text_HeroPrice_Array.IsValidIndex(i) && Text_HeroPrice_Array[i])
+				Text_HeroPrice_Array[i]->SetText(FText::GetEmpty());
+
+			if (Img_Portrait_Array.IsValidIndex(i) && Img_Portrait_Array[i])
+			{
+				Img_Portrait_Array[i]->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.f));
+				Img_Portrait_Array[i]->SetBrushFromTexture(nullptr);
+			}
 			continue;
 		}
 
