@@ -38,6 +38,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TSubclassOf<ACharacterBase>GetRandomHeroByChance(const FHeroChanceRow& ChanceData);
 
+	UFUNCTION(BlueprintCallable)
+	void RefreshIndividualShop(APlayerController* PC);		// Access playerstate and place a random hero shop
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MonsterSetup")
 	TArray<TSubclassOf<ACharacterBase>> MonsterOneCoinClasses;
 
@@ -52,6 +55,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
 	virtual void Tick(float DeltaTime) override;
 
 	void UpdateMatchState(EMatchState NewState);

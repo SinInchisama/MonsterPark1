@@ -6,7 +6,8 @@
 #include "MyBasicCharacter.h"
 #include "PlaySubSystem.h"
 #include "Engine/Engine.h"
-
+#include "PlayState.h"
+#include "MyPlayerState.h"
 ABasicGameMode::ABasicGameMode()
 {
 	HUDClass = AGame_HUD::StaticClass();
@@ -33,7 +34,6 @@ void ABasicGameMode::SpawnHeroFromShop(TSubclassOf<ACharacterBase> HeroClass, AC
 
 void ABasicGameMode::OnLevelUp(FHeroChanceRow& CurrentChane,int Level)
 {
-
 	if (!HeroChanceTable)
 	{
 		return;
@@ -70,6 +70,23 @@ TSubclassOf<ACharacterBase> ABasicGameMode::GetRandomHeroByChance(const FHeroCha
 	return (MonsterOneCoinClasses.Num() > 0) ? MonsterOneCoinClasses[0] : nullptr;
 }
 
+void ABasicGameMode::RefreshIndividualShop(APlayerController* PC)
+{
+	AMyPlayerState* PS = PC->GetPlayerState<AMyPlayerState>();
+	if (PS)
+	{
+		TArray<TSubclassOf<ACharacterBase>>  TempHeroes;
+		PS->MyShopHeroes.Empty(5);
+		for (int32 i = 0; i < 5; i++)
+		{
+			TempHeroes.Add(GetRandomHeroByChance(PS->CurrentLevelChance));
+		}
+		PS->MyShopHeroes = TempHeroes;
+
+		PS->Client_NotifyShopRefreshed(TempHeroes);
+	}
+}
+
 
 void ABasicGameMode::BeginPlay()
 {
@@ -77,14 +94,23 @@ void ABasicGameMode::BeginPlay()
 
 	TryStartTimer();
 
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(PC->GetPawn());
-	if (MyChar)
-	{
-		MyChar->Mixtured.AddDynamic(this, &ABasicGameMode::Mixture);
-	}
-
 	CurrentState = EMatchState::Waiting;
+}
+
+void ABasicGameMode::PostLogin(APlayerController* PC)
+{
+	Super::PostLogin(PC);
+
+	if (PC)
+	{
+		AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(PC->GetPawn());
+		if (MyChar)
+		{
+			MyChar->Mixtured.AddDynamic(this, &ABasicGameMode::Mixture);
+			AMyPlayerState* PS = PC->GetPlayerState<AMyPlayerState>();
+			GetRandomHeroByChance(PS->CurrentLevelChance);
+		}
+	}
 }
 
 void ABasicGameMode::Tick(float DeltaTime)
@@ -98,13 +124,12 @@ void ABasicGameMode::UpdateMatchState(EMatchState NewState)
 
 	if (CurrentState == EMatchState::Waiting)
 	{
-		// 1. ���� ���� ������ �غ� (����ý��� Ȱ��)
 		RoundTimer = StayTime;
 		MonsterSubsystem->EndRound();
+
 	}
 	else if (CurrentState == EMatchState::Playing)
 	{
-		// 2. ��� ���� ���͵� �����
 		if (MonsterSubsystem->MainSpawner)
 		{
 			MonsterSubsystem->StartRound(0,40);
@@ -117,12 +142,20 @@ void ABasicGameMode::UpdateTimerEverySecond()
 {
 	RoundTimer -= 1.0f;
 
+	APlayState* PS = GetGameState<APlayState>();
+	if (PS)
+	{
+		PS->RemainingTime = FMath::Max(0, FMath::FloorToInt(RoundTimer));
+	}
+
 	if (RoundTimer <= 0.0f)
 	{
 		if (CurrentState == EMatchState::Waiting) UpdateMatchState(EMatchState::Playing);
-		else UpdateMatchState(EMatchState::Waiting);
+		else {
+			UpdateMatchState(EMatchState::Waiting);
+			PS->CurrentRound += 1;
+		}
 	}
-	OnTimerUpdated.Broadcast(RoundTimer);
 }
 
 void ABasicGameMode::Mixture(int32 cost)
@@ -149,7 +182,6 @@ void ABasicGameMode::TryStartTimer()
 	{
 		RoundTimer = StayTime;
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &ABasicGameMode::UpdateTimerEverySecond, 1.0f, true);
-		OnTimerUpdated.Broadcast(RoundTimer);
 	}
 	else
 	{

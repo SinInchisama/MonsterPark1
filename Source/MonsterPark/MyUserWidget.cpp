@@ -14,6 +14,9 @@
 #include "Components/Image.h"
 #include "Engine/Texture2D.h"
 
+#include "PlayState.h"
+#include "MyPlayerState.h"
+
 void UMyUserWidget::NativeConstruct()
 {
 	
@@ -60,19 +63,19 @@ void UMyUserWidget::NativeConstruct()
 		Btn->OnClicked.AddDynamic(this, &UMyUserWidget::Btn_BuyHero_Clicked);
 	}
 
-	CachedGM = Cast<ABasicGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
-
 	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(GetOwningPlayerPawn());
 	if (MyChar)
 	{
 		MyChar->OnLifeChanged.AddDynamic(this, &UMyUserWidget::UpdateLife);
-
 		UpdateLife(MyChar->Get_PlayerLife());
 	}
 
-	if (CachedGM)
+	APlayState* PS = GetWorld()->GetGameState<APlayState>();
+
+	if (PS)
 	{
-		CachedGM->OnTimerUpdated.AddDynamic(this, &UMyUserWidget::UpdateTimer);
+		PS->OnTimerChanged.AddDynamic(this, &UMyUserWidget::UpdateTimerFromState);
+		PS->OnRoundChanged.AddDynamic(this, &UMyUserWidget::UpdateRoundText);
 
 		UpdateTimer(20.f);
 		ReFreshStore();
@@ -164,8 +167,8 @@ void UMyUserWidget::Btn_Reload_Clicked()
 		if (MyPlayer) {
 			if (MyPlayer->Get_PlayerMoney() >= 2) {
 				MyPlayer->Set_PlayerMoney(-2);
-				ReFreshStore();
 				ReFreshMoney();
+				MyPlayer->Server_RequestShopRefresh();
 			}
 		}
 	}
@@ -236,7 +239,13 @@ void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 void UMyUserWidget::ReFreshStore()
 {
 	AMyBasicCharacter* PC = Cast<AMyBasicCharacter>(GetOwningPlayerPawn());
-	if (!CachedGM || !PC || Img_Portrait_Array.Num() == 0)
+	if (!PC || Img_Portrait_Array.Num() == 0)
+	{
+		return;
+	}
+
+	AMyPlayerState* PS = PC->GetPlayerState<AMyPlayerState>();
+	if (!PS)
 	{
 		return;
 	}
@@ -252,16 +261,15 @@ void UMyUserWidget::ReFreshStore()
 			continue;
 		}
 
-		TSubclassOf<ACharacterBase> HeroBaseClass = CachedGM->GetRandomHeroByChance(PC->CurrentLevelChance);
-		CurrentSlotClasses.Add(HeroBaseClass);
-
-		if (!HeroBaseClass)
+		TSubclassOf<ACharacterBase> HeroClass = PS->MyShopHeroes[i];
+		CurrentSlotClasses.Add(HeroClass);
+		if (!HeroClass)
 		{
 			Img_Portrait_Array[i]->SetBrushFromTexture(nullptr);
 			continue;
 		}
 
-		ACharacterBase* CDO = HeroBaseClass->GetDefaultObject<ACharacterBase>();
+		ACharacterBase* CDO = HeroClass->GetDefaultObject<ACharacterBase>();
 		if (CDO)
 		{
 			if (Btn_BuyHero_Array[i])
@@ -281,6 +289,7 @@ void UMyUserWidget::ReFreshStore()
 				Img_Portrait_Array[i]->SetColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.f));
 			}
 		}
+	
 	}
 }
 
@@ -306,6 +315,13 @@ void UMyUserWidget::UpdateTimer(float Timer)
 {
 	int32 Seconds = FMath::FloorToInt(Timer);
 	RemainTime-> SetText(FText::AsNumber(Seconds));
+
+	ReFreshMoney();
+}
+
+void UMyUserWidget::UpdateTimerFromState(int32 RemainingTime)
+{
+	RemainTime->SetText(FText::AsNumber(RemainingTime));
 
 	ReFreshMoney();
 }

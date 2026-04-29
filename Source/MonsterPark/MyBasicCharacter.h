@@ -6,7 +6,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "CharacterBase.h"
-#include "HeroChanceRow.h"
 #include "MyBasicCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLifeChanged, int32, NewLife);
@@ -52,6 +51,9 @@ public:
 
 	void SetSummonedActor(AActor* InActor);
 
+	UFUNCTION(Server, Reliable)
+	void Server_RequestShopRefresh();
+
 	void OnMouseLeftClick();
 	void HeroMixture();
 protected:
@@ -70,8 +72,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FMixtureHero Mixtured;
-
-	FHeroChanceRow CurrentLevelChance;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TArray<ACharacterBase*> MySummonedHero;

@@ -27,7 +27,6 @@ AMyBasicCharacter::AMyBasicCharacter()
     CurrentLocation.Z = 1000.0f;
     SetActorLocation(CurrentLocation);
 
-    CurrentLevelChance.Cost1 = 100.0f;
 }
 
 // Called when the game starts or when spawned
@@ -146,7 +145,7 @@ bool AMyBasicCharacter::PlayerLevelUp()
     ABasicGameMode* GM = Cast<ABasicGameMode>(GetWorld()->GetAuthGameMode());
     if(GM)
     {
-        GM->OnLevelUp(CurrentLevelChance, PlayerLevel);
+        //GM->OnLevelUp(CurrentLevelChance, PlayerLevel);
     }
 
     return PlayerLevel == 3;
@@ -158,6 +157,15 @@ void AMyBasicCharacter::SetSummonedActor(AActor* InActor)
 	{
 		MySummonedHero.Add(Character);
 	}
+}
+
+void AMyBasicCharacter::Server_RequestShopRefresh_Implementation()
+{
+    ABasicGameMode* GM = GetWorld()->GetAuthGameMode<ABasicGameMode>();
+    if (GM)
+    {
+        GM->RefreshIndividualShop(Cast<APlayerController>(GetController()));
+    }
 }
 
 void AMyBasicCharacter::OnMouseLeftClick()

@@ -18,6 +18,9 @@ class MONSTERPARK_API UMyUserWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	void ReFreshStore();
+
 protected:
 	virtual void NativeConstruct() override;
 
@@ -34,15 +37,17 @@ protected:
 
 	void ProcessHeroPurchase(int32 Btn_Num);
 
-	void ReFreshStore();
-
 	void ReFreshMoney();
+
 
 	UFUNCTION()
 	void UpdateLife(int32 CurrentLife);
 
 	UFUNCTION()
 	void UpdateTimer(float Timer);
+
+	UFUNCTION()
+	void UpdateTimerFromState(int32 RemainingTime);
 
 	UFUNCTION()
 	void UpdateRoundText(int32 NewRound);
