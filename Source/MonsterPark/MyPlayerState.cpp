@@ -18,6 +18,7 @@ void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 	DOREPLIFETIME(AMyPlayerState, CurrentLevelChance);
 	DOREPLIFETIME(AMyPlayerState, MyShopHeroes);
+    DOREPLIFETIME(AMyPlayerState, Money);
 }
 
 void AMyPlayerState::OnRep_ShopHeroes()

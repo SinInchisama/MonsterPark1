@@ -138,9 +138,10 @@ void UMyUserWidget::Btn_LevelUp_Clicked()
 	if (PC)
 	{
 		AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
-		if(MyPlayer){
-			if (MyPlayer->Get_PlayerMoney() >= 2) {
-				MyPlayer->Set_PlayerMoney(-2);
+		AMyPlayerState* PS = PC->GetPlayerState<AMyPlayerState>();
+		if(PS){
+			if (PS->Money >= 2) {
+				PS->Money-=2;
 				ReFreshMoney();
 				if (MyPlayer->CheckLevelUp())
 				{
@@ -164,9 +165,10 @@ void UMyUserWidget::Btn_Reload_Clicked()
 	if (PC)
 	{
 		AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
-		if (MyPlayer) {
-			if (MyPlayer->Get_PlayerMoney() >= 2) {
-				MyPlayer->Set_PlayerMoney(-2);
+		AMyPlayerState* PS = PC->GetPlayerState<AMyPlayerState>();
+		if (PS) {
+			if (PS->Money >= 2) {
+				PS->Money-=2;					// 서버가 돈 관리하게 바꿔야됨.
 				ReFreshMoney();
 				MyPlayer->Server_RequestShopRefresh();
 			}
@@ -192,10 +194,8 @@ void UMyUserWidget::ProcessHeroPurchase(int32 Btn_Num)
 	AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(GetOwningPlayerPawn());
 	if (MyPlayer)
 	{
-		// 서버에 인덱스만 넘김
 		MyPlayer->Server_RequestPurchaseHero(Btn_Num);
 
-		// (선택 사항) 로컬에서 즉시 버튼을 비활성화해서 "광클" 방지
 		if (Btn_BuyHero_Array.IsValidIndex(Btn_Num))
 		{
 			Btn_BuyHero_Array[Btn_Num]->SetIsEnabled(false);
@@ -279,9 +279,10 @@ void UMyUserWidget::ReFreshMoney()
 	if (PC)
 	{
 		AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
-		if (MyPlayer && Money)
+		AMyPlayerState* PS = PC->GetPlayerState<AMyPlayerState>();
+		if (PS && Money)
 		{
-			Money->SetText(FText::AsNumber(MyPlayer->Get_PlayerMoney()));
+			Money->SetText(FText::AsNumber(PS->Money));
 		}
 	}
 }

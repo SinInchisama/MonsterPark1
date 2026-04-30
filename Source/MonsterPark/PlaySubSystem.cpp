@@ -163,7 +163,7 @@ void UPlaySubSystem::EndRound()
             if (PlayerChar)
             {
                 PlayerChar->Miu_PlayerLife(RemainingMonsters);
-				PlayerChar->Set_PlayerMoney(20);
+				//PlayerChar->Set_PlayerMoney(20);
             }
         }
     }

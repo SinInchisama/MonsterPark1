@@ -24,6 +24,9 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_ShopHeroes)
 	TArray<TSubclassOf<ACharacterBase>> MyShopHeroes;
 
+	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Stat")
+	int32 Money = 20;
+
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Shop")
 	FHeroChanceRow CurrentLevelChance;
 

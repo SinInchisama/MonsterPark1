@@ -43,7 +43,7 @@ void ATreasureChest::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
             AMyBasicCharacter* PlayerChar = Cast<AMyBasicCharacter>(PC->GetPawn());
             if (PlayerChar)
             {
-                PlayerChar->Set_PlayerMoney(10);
+                //PlayerChar->Set_PlayerMoney(10);
             }
         }
         Destroy();

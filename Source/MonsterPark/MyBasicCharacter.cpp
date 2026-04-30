@@ -9,6 +9,8 @@
 #include "BasicGameMode.h"
 #include "MyPlayerState.h"
 
+#include "Net/UnrealNetwork.h"
+
 // Sets default values
 AMyBasicCharacter::AMyBasicCharacter()
 {
@@ -59,6 +61,13 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction("HeroMixture", IE_Pressed, this, &AMyBasicCharacter::HeroMixture);
 }
 
+void AMyBasicCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AMyBasicCharacter, MySummonedHero);
+}
+
 void AMyBasicCharacter::GameraMoveForward(float value)
 {
     if ((Controller != nullptr) && (value != 0.0f))
@@ -83,12 +92,30 @@ void AMyBasicCharacter::GameraMoveRight(float value)
     }
 }
 
+void AMyBasicCharacter::Server_HeroMoveForward_Implementation(ACharacterBase* TargetHero, float val)
+{
+    if (TargetHero)
+    {
+        TargetHero->MoveForward(val);
+    }
+}
+
+void AMyBasicCharacter::Server_HeroMoveRight_Implementation(ACharacterBase* TargetHero, float val)
+{
+    if (TargetHero)
+    {
+        TargetHero->MoveRight(val);
+    }
+}
+
 void AMyBasicCharacter::HeroMoveForward(float value)
 {
     if ((Controller != nullptr) && (value != 0.0f))
     {
         if (SelectHero) {
             SelectHero->MoveForward(value);
+
+            Server_HeroMoveForward(SelectHero, value);
         }
     }
 }
@@ -97,20 +124,15 @@ void AMyBasicCharacter::HeroMoveRight(float value)
 {
     if ((Controller != nullptr) && (value != 0.0f))
     {
-        if (SelectHero)
+        if (SelectHero) {
             SelectHero->MoveRight(value);
+
+            Server_HeroMoveRight(SelectHero, value);
+        }
     }
 }
 
-void AMyBasicCharacter::Set_PlayerMoney(int32 value)
-{
-    PlayerMoney += value;
-}
 
-int32 AMyBasicCharacter::Get_PlayerMoney()
-{
-    return PlayerMoney;
-}
 
 int32 AMyBasicCharacter::Get_PlayerLife()
 {
@@ -187,9 +209,9 @@ void AMyBasicCharacter::Server_RequestPurchaseHero_Implementation(int32 SlotInde
         Price = static_cast<int32>(DefaultHero->DefaultCost);
     }
 
-    if (Get_PlayerMoney() >= Price)
+    if (PS->Money >= Price)
     {
-        Set_PlayerMoney(-Price);
+        PS->Money-=Price;
 
         if (ABasicGameMode* GM = GetWorld()->GetAuthGameMode<ABasicGameMode>())
         {
@@ -214,7 +236,10 @@ void AMyBasicCharacter::OnMouseLeftClick()
 
             if (TouchedHero)
             {
-                SelectHero = TouchedHero;
+                if (MySummonedHero.Contains(TouchedHero))
+                {
+                    SelectHero = TouchedHero;
+                }
             }
         }
     }

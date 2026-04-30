@@ -31,14 +31,19 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
+
 	void GameraMoveForward(float value);
 	void GameraMoveRight(float value);
 
+	UFUNCTION(Server, Unreliable)
+	void Server_HeroMoveForward(ACharacterBase* TargetHero, float val);
+	UFUNCTION(Server, Unreliable)
+	void Server_HeroMoveRight(ACharacterBase* TargetHero, float val);
+
 	void HeroMoveForward(float value);
 	void HeroMoveRight(float value);
-
-	void Set_PlayerMoney(int32 value);
-	int32 Get_PlayerMoney();
 
 	int32 Get_PlayerLife ();
 	void Miu_PlayerLife(int32 value);
@@ -76,13 +81,10 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FMixtureHero Mixtured;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(VisibleAnywhere, Replicated, BlueprintReadOnly, Category = "Combat")
 	TArray<ACharacterBase*> MySummonedHero;
 		
 protected:
-	// ���� �÷��̾� ��, ����ġ, ������, ������ �ִ� �������� ����
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
-	int32 PlayerMoney = 20;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerLife = 20;
