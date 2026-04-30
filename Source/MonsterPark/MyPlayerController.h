@@ -16,4 +16,7 @@ class MONSTERPARK_API AMyPlayerController : public APlayerController
 	GENERATED_BODY()
 public:
 	void BeginPlay() override;
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetPawnLocation(FVector NewLocation);
 };

@@ -14,6 +14,7 @@
 #include "Components/Image.h"
 #include "Engine/Texture2D.h"
 
+#include "MyPlayerController.h"
 #include "PlayState.h"
 #include "MyPlayerState.h"
 
@@ -112,15 +113,18 @@ FReply UMyUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const
 				float WorldX = (RatioX - 0.5f) * 25200.0f;
 				float WorldY = (RatioY - 0.5f) * 25200.0f;
 
-				APlayerController* PC = GetOwningPlayer();
+				AMyPlayerController* PC = Cast<AMyPlayerController>(GetOwningPlayer());
 				if (PC)
 				{
 					AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
 					if (MyPlayer)
 					{
 						FVector CurrentLoc = MyPlayer->GetActorLocation();
+						FVector TargetLoc = FVector(WorldX, WorldY, CurrentLoc.Z);
 
-						MyPlayer->SetActorLocation(FVector(WorldX, WorldY, CurrentLoc.Z));
+						MyPlayer->SetActorLocation(TargetLoc);
+
+						PC->Server_SetPawnLocation(TargetLoc);
 					}
 				}
 

@@ -19,3 +19,12 @@ void AMyPlayerController::BeginPlay()
 
 	SetInputMode(InputMode);
 }
+
+void AMyPlayerController::Server_SetPawnLocation_Implementation(FVector NewLocation)
+{
+	APawn* MyPawn = GetPawn();
+	if (MyPawn)
+	{
+		MyPawn->SetActorLocation(NewLocation);
+	}
+}
