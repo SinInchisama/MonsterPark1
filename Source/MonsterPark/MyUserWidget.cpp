@@ -216,7 +216,7 @@ void UMyUserWidget::ReFreshStore()
 	}
 
 	AMyPlayerState* PS = PC->GetPlayerState<AMyPlayerState>();
-	if (!PS)
+	if (!PS|| PS->MyShopHeroes.Num() == 0)
 	{
 		return;
 	}

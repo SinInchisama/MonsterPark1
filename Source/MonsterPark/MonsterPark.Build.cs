@@ -17,6 +17,7 @@ public class MonsterPark : ModuleRules
     "MassRepresentation",
     "MassNavigation",
     "MassActors",
+    "MassReplication",
     "GameplayAbilities",
     "GameplayTasks",
     "GameplayTags",
