@@ -15,6 +15,11 @@
 #include "MonsterPark/PlaySubSystem.h"
 #include "MonsterPark/CharacterBase.h"
 
+#include "MassRepresentationFragments.h"
+#include "MassActorSubsystem.h"
+
+#include "MonsterPark/TeleportActor.h"
+
 UExternalMonsterMove::UExternalMonsterMove() : EntityQuery(*this)
 {
 	ProcessingPhase = EMassProcessingPhase::PrePhysics;
@@ -25,6 +30,8 @@ void UExternalMonsterMove::ConfigureQueries(const TSharedRef<FMassEntityManager>
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FMonsterRandomMoveFragment>(EMassFragmentAccess::ReadWrite);
+
+    EntityQuery.AddRequirement<FMassActorFragment>(EMassFragmentAccess::ReadWrite);
 }
 
 void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -50,6 +57,7 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 
             const TArrayView<FTransformFragment> TransformList = Context.GetMutableFragmentView<FTransformFragment>();
             const TArrayView<FMonsterRandomMoveFragment> MoveList = Context.GetMutableFragmentView<FMonsterRandomMoveFragment>();
+            const TArrayView<FMassActorFragment> ActorList = Context.GetMutableFragmentView<FMassActorFragment>();
 
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
             {
@@ -114,8 +122,17 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 
                         if (MoveData.AttackCooldown <= 0.f && HitInterface)
                         {
-                            AsyncTask(ENamedThreads::GameThread, [HitInterface, CurrentLocation]()
+                            AActor* VisualActor = ActorList[i].GetMutable();
+                            AsyncTask(ENamedThreads::GameThread, [HitInterface, CurrentLocation, VisualActor]()
                                 {
+                                    if (ATeleportActor* TeleportMonster = Cast<ATeleportActor>(VisualActor))
+                                    {
+                                        // 1. 공격 애니메이션 실행
+                                       // TeleportMonster->PlayAttackAnimation();
+                                       
+                                        // 2. bool 변수를 true로 변경 (TriggerDebugFlag 호출)
+                                    }
+
                                     if (HitInterface)
                                     {
  
