@@ -18,7 +18,7 @@
 #include "MassRepresentationFragments.h"
 #include "MassActorSubsystem.h"
 
-#include "MonsterPark/TeleportActor.h"
+#include"MonsterPark/Monster/AttackVisualActor.h"
 
 UExternalMonsterMove::UExternalMonsterMove() : EntityQuery(*this)
 {
@@ -125,11 +125,11 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                             AActor* VisualActor = ActorList[i].GetMutable();
                             AsyncTask(ENamedThreads::GameThread, [HitInterface, CurrentLocation, VisualActor]()
                                 {
-                                    if (ATeleportActor* TeleportMonster = Cast<ATeleportActor>(VisualActor))
+                                    if (AAttackVisualActor* AttackActor = Cast<AAttackVisualActor>(VisualActor))
                                     {
                                         // 1. 공격 애니메이션 실행
                                        // TeleportMonster->PlayAttackAnimation();
-                                       
+                                        AttackActor->PlayAttackAnimation();
                                         // 2. bool 변수를 true로 변경 (TriggerDebugFlag 호출)
                                     }
 
