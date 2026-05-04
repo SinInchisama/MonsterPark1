@@ -43,7 +43,6 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
             const TArrayView<FMonsterStatusFragment> StatusList = Context.GetMutableFragmentView<FMonsterStatusFragment>();
             auto ActorFragments = Context.GetMutableFragmentView<FMassActorFragment>();
 
-
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
             {
                 FTransform& Transform = Transforms[i].GetMutableTransform();

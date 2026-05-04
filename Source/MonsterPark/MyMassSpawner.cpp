@@ -29,15 +29,8 @@ void AMyMassSpawner::SpawnEntityByIndex(int32 Index, int32 Amount)
 		TransformData.Transforms.Add(SpawnerTransform);
 	}
 	CustomResult.SpawnData.InitializeAs<FMassTransformsSpawnData>(TransformData);
-	ENetMode NetMode = GetWorld()->GetNetMode();
-	if (NetMode == NM_Client)
-	{
-		UE_LOG(LogTemp, Error, TEXT("!!! [Client] Spawner is RUNNING. Spawning entities locally. This is likely causing duplicates."));
-	}
-	else if (NetMode == NM_DedicatedServer || NetMode == NM_ListenServer)
-	{
-		UE_LOG(LogTemp, Log, TEXT("[Server] Spawner is RUNNING. Spawning entities on server."));
-	}
+
+
 
 	SpawnGeneratedEntities({ CustomResult });
 }
@@ -62,5 +55,6 @@ int32 AMyMassSpawner::GetAliveCount() const
 			}
 		}
 	}
+
 	return TotalAlive;
 }
