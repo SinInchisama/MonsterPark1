@@ -127,10 +127,7 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                                 {
                                     if (AAttackVisualActor* AttackActor = Cast<AAttackVisualActor>(VisualActor))
                                     {
-                                        // 1. 공격 애니메이션 실행
-                                       // TeleportMonster->PlayAttackAnimation();
                                         AttackActor->PlayAttackAnimation();
-                                        // 2. bool 변수를 true로 변경 (TriggerDebugFlag 호출)
                                     }
 
                                     if (HitInterface)
@@ -200,6 +197,18 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                 Transform.SetLocation(NextLocation);
                 FMassEntityHandle EntityHandle = Context.GetEntity(i);
                 PlaySubsystem->UpdateMonsterLocation(EntityHandle, MoveData.LastGridKey, NextLocation);
+
+                if (ActorList[i].IsValid())
+                {
+                    AActor* VisualActor = ActorList[i].GetMutable();
+
+                    // 주의: 위치 업데이트는 반드시 GameThread에서 안전하게 수행되어야 합니다.
+                    // 혹은 Mass에서 기본으로 제공하는 'MassTranslator' 계열을 사용하는 것이 정석입니다.
+                    if (VisualActor)
+                    {
+                        VisualActor->SetActorTransform(Transform);
+                    }
+                }
             }
         });
 }
