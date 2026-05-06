@@ -19,7 +19,6 @@ void AAttackVisualActor::PlayAttackAnimation()
 {
     if (AttackMontage && MeshComponent)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Target Location Check"));
         UAnimInstance* AnimInstance = MeshComponent->GetAnimInstance();
         if (AnimInstance && !AnimInstance->Montage_IsPlaying(AttackMontage))
         {
