@@ -37,4 +37,7 @@ struct FMonsterRandomMoveFragment : public FMassFragment
 
     // 성벽을 부셔는지 체크
     bool bHasFinishedWall = false;
+
+    // 경사 올라갈 때 각도 보간
+    FVector SmoothedNormal = FVector::UpVector;
 };

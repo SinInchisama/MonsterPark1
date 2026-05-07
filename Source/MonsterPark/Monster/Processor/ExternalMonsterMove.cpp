@@ -189,7 +189,15 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     {
                         FVector OffsetForward(LookDirection.Y, -LookDirection.X, 0.0f);
                         FVector TerrainNormal = HitResult.ImpactNormal;
-                        FQuat FinalQuat = FRotationMatrix::MakeFromXZ(OffsetForward, TerrainNormal).ToQuat();
+
+                        MoveData.SmoothedNormal = FMath::VInterpTo(
+                            MoveData.SmoothedNormal,
+                            HitResult.ImpactNormal,
+                            DeltaTime,
+                            5.0f
+                        );
+
+                        FQuat FinalQuat = FRotationMatrix::MakeFromXZ(OffsetForward, MoveData.SmoothedNormal).ToQuat();
                         Transform.SetRotation(FinalQuat);
                     }
                 }
@@ -202,8 +210,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                 {
                     AActor* VisualActor = ActorList[i].GetMutable();
 
-                    // 주의: 위치 업데이트는 반드시 GameThread에서 안전하게 수행되어야 합니다.
-                    // 혹은 Mass에서 기본으로 제공하는 'MassTranslator' 계열을 사용하는 것이 정석입니다.
                     if (VisualActor)
                     {
                         VisualActor->SetActorTransform(Transform);
