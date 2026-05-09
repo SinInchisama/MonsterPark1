@@ -172,7 +172,10 @@ void AMyBasicCharacter::OnMouseLeftClick()
 
             if (TouchedHero)
             {
+                if(SelectHero)
+                    SelectHero->SetSelectedHero(false);
                 SelectHero = TouchedHero;
+                SelectHero->SetSelectedHero(true);
             }
         }
     }

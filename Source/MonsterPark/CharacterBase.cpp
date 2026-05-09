@@ -9,6 +9,7 @@
 #include "PlaySubSystem.h"
 #include "Async/Async.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Components/DecalComponent.h"
 
 #include "TimerManager.h"
 
@@ -41,9 +42,6 @@ ACharacterBase::ACharacterBase()
 
     AttributeSet = CreateDefaultSubobject<UMonsterAttributeSet>(TEXT("AttributeSet"));
 
-    // ACharacter는 기본적으로 CapsuleComponent가 Root입니다.
-    // 기존 SelectionBox가 충돌 판정용이었다면 캡슐의 크기를 조절합니다.
-
     GetCapsuleComponent()->InitCapsuleSize(50.f, 100.f);
     GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 
@@ -56,6 +54,13 @@ ACharacterBase::ACharacterBase()
     GetCharacterMovement()->SetWalkableFloorAngle(80.0f);
 
     GetCharacterMovement()->MaxStepHeight = 100.0f;
+
+    SelectionDecal = CreateDefaultSubobject<UDecalComponent>(TEXT("SelectionDecal"));
+    SelectionDecal->SetupAttachment(RootComponent);
+
+    SelectionDecal->SetHiddenInGame(true);
+
+    SelectionDecal->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
 }
 
 // Called when the game starts or when spawned
@@ -349,6 +354,14 @@ void ACharacterBase::TakeMonsterDamage(float DamageAmount, FVector AttackerLocat
                 );
             }
         });
+}
+
+void ACharacterBase::SetSelectedHero(bool bIsSelected)
+{
+    if (SelectionDecal)
+    {
+        SelectionDecal->SetHiddenInGame(!bIsSelected);
+    }
 }
 
 void ACharacterBase::MoveForward(float val)

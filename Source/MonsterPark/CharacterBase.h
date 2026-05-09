@@ -92,6 +92,8 @@ public:
 	virtual void TakeMonsterDamage(float Damage, FVector AttackerLocation) override;
 
 	virtual FVector GetTargetLocation(FVector AttackerLocation) override {return GetActorLocation();};
+
+	void SetSelectedHero(bool bIsSelected);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	TSubclassOf<UMyAnimInstance> AnimClass;
@@ -101,6 +103,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
 	UBoxComponent* SelectionBox;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Selection")
+	class UDecalComponent* SelectionDecal;
 
     TArray<FMassEntityHandle> DetectedEnemies;
     FMassEntityQuery EnemyQuery;
