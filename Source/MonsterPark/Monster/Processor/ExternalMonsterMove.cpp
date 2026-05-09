@@ -9,6 +9,7 @@
 #include "MassCommonFragments.h"
 
 #include "MonsterPark/Monster/Fragment/FMonsterRandomMoveFragment.h"
+#include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "Engine/World.h"
 #include "Math/UnrealMathUtility.h"
 
@@ -30,6 +31,7 @@ void UExternalMonsterMove::ConfigureQueries(const TSharedRef<FMassEntityManager>
 {
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FMonsterRandomMoveFragment>(EMassFragmentAccess::ReadWrite);
+    EntityQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
 
     EntityQuery.AddRequirement<FMassActorFragment>(EMassFragmentAccess::ReadWrite);
 }
@@ -58,6 +60,7 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
             const TArrayView<FTransformFragment> TransformList = Context.GetMutableFragmentView<FTransformFragment>();
             const TArrayView<FMonsterRandomMoveFragment> MoveList = Context.GetMutableFragmentView<FMonsterRandomMoveFragment>();
             const TArrayView<FMassActorFragment> ActorList = Context.GetMutableFragmentView<FMassActorFragment>();
+            const TArrayView<FMonsterStatusFragment> StatusList = Context.GetMutableFragmentView<FMonsterStatusFragment>();
 
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
             {
@@ -110,9 +113,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     float DistSqToTarget = FVector::DistSquared(CurrentLocation, TargetPos);
                     if (!bIsFinalRound && DistSqToTarget > LoseRangeSq)
                     {
-                        UE_LOG(LogTemp, Warning, TEXT("Target Location Check - TargetPos: %s, ActorLoc: %s"),
-                            *TargetPos.ToString(),
-                            *CurrentTarget->GetActorLocation().ToString());
                         MoveData.TargetHero = nullptr;
                         CurrentTarget = nullptr;
                     }
@@ -167,9 +167,19 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     }
                 }
 
+                FVector Forward = Transform.GetRotation().GetForwardVector();
+
+                float MonsterSize = StatusList[i].Size;
+
                 FHitResult HitResult;
                 FVector StartTrace = NextLocation + FVector(0, 0, 1000.0f);
                 FVector EndTrace = NextLocation - FVector(0, 0, 1000.0f);
+
+                FHitResult FrontHitResult;
+                FVector FrontPoint = NextLocation + Forward * MonsterSize;
+                FVector FrontStart = FrontPoint + FVector(0, 0, 1000.0f);
+                FVector FrontEnd = FrontPoint - FVector(0, 0, 1000.0f);
+ 
 
                 if (World->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_WorldStatic, QueryParams))
                 {
@@ -187,6 +197,8 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 
                     if (!LookDirection.IsNearlyZero())
                     {
+                        FHitResult FrontHit;
+
                         FVector OffsetForward(LookDirection.Y, -LookDirection.X, 0.0f);
                         FVector TerrainNormal = HitResult.ImpactNormal;
 
@@ -199,6 +211,15 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 
                         FQuat FinalQuat = FRotationMatrix::MakeFromXZ(OffsetForward, MoveData.SmoothedNormal).ToQuat();
                         Transform.SetRotation(FinalQuat);
+                    }
+                }
+
+                if (World->LineTraceSingleByChannel(FrontHitResult, FrontStart, FrontEnd, ECC_WorldStatic, QueryParams))
+                {
+                    AActor* FrontHitActor = FrontHitResult.GetActor();
+                    if (!(FrontHitActor && FrontHitActor->IsA(ACharacterBase::StaticClass())))
+                    {
+                        NextLocation.Z = FMath::Max(NextLocation.Z, FrontHitResult.ImpactPoint.Z);
                     }
                 }
 

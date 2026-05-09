@@ -36,4 +36,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Mass|Stats")
 	float PendingBleedDamage = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Mass|Stats")
+	float Size = 50.0f;
 };
