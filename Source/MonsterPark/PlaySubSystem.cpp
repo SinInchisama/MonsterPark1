@@ -21,7 +21,18 @@ void UPlaySubSystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 
-	MainSpawner = Cast<AMyMassSpawner>(UGameplayStatics::GetActorOfClass(&InWorld, AMyMassSpawner::StaticClass()));
+    TArray<AActor*> FoundActors;
+
+    UGameplayStatics::GetAllActorsOfClass(&InWorld, AMyMassSpawner::StaticClass(), FoundActors);
+
+    MainSpawners.Empty(); // 기존 데이터가 있다면 비워줍니다.
+    for (AActor* Actor : FoundActors)
+    {
+        if (AMyMassSpawner* Spawner = Cast<AMyMassSpawner>(Actor))
+        {
+            MainSpawners.Add(Spawner);
+        }
+    }
 }
 
 void UPlaySubSystem::UpdateHeroLocation(AActor* Hero, int64& InOutLastKey, FVector NewLocation)
@@ -143,18 +154,54 @@ void UPlaySubSystem::OnWallDestroyed(AActor* DestroyedWall)
 
 void UPlaySubSystem::StartRound(int Round,int Scale)
 {
-	if (!MainSpawner) return;
+    if (MainSpawners.Num() == 0) return;
 
-	MainSpawner->SpawnEntityByIndex(CurrentRound ,Scale);
+    FTimerManager& TimerManager = GetWorld()->GetTimerManager();
+
+    for (int32 i = 0; i < MainSpawners.Num(); ++i)
+    {
+        AMyMassSpawner* Spawner = MainSpawners[i];
+
+        if (IsValid(Spawner))
+        {
+            float DelayTime = i * 0.2f;
+
+            if (DelayTime <= 0.0f)
+            {
+                Spawner->SpawnEntityByIndex(CurrentRound, Scale);
+            }
+            else
+            {
+                FTimerHandle TempHandle;
+                TimerManager.SetTimer(TempHandle, [Spawner, Round, Scale]()
+                    {
+                        if (IsValid(Spawner))
+                        {
+                            Spawner->SpawnEntityByIndex(Round, Scale);
+                        }
+                    }, DelayTime, false);
+            }
+        }
+    }
 
 }
 
 void UPlaySubSystem::EndRound()
 {
-	if (!MainSpawner) return;
+    if (MainSpawners.Num() == 0) return;
 
-	int32 RemainingMonsters = MainSpawner->GetAliveCount();
-    if (RemainingMonsters > 0)
+    int32 TotalRemainingMonsters = 0;
+
+    for (AMyMassSpawner* Spawner : MainSpawners)
+    {
+        if (IsValid(Spawner))
+        {
+            TotalRemainingMonsters += Spawner->GetAliveCount();
+            Spawner->DoDespawning();
+        }
+    }
+
+    if (TotalRemainingMonsters > 0)
     {
         APlayerController* PC = GetWorld()->GetFirstPlayerController();
         if (PC)
@@ -162,16 +209,13 @@ void UPlaySubSystem::EndRound()
             AMyBasicCharacter* PlayerChar = Cast<AMyBasicCharacter>(PC->GetPawn());
             if (PlayerChar)
             {
-                PlayerChar->Miu_PlayerLife(RemainingMonsters);
-				PlayerChar->Set_PlayerMoney(20);
+                PlayerChar->Miu_PlayerLife(TotalRemainingMonsters);
+                PlayerChar->Set_PlayerMoney(20);
             }
         }
     }
 
     ++CurrentRound;
-
     OnRoundChanged.Broadcast(CurrentRound);
-
-	MainSpawner->DoDespawning();
 
 }

@@ -275,6 +275,7 @@ void UMyUserWidget::ReFreshStore()
 			if (CDO->UnitPortrait)
 			{
 				Img_Portrait_Array[i]->SetBrushFromTexture(CDO->UnitPortrait);
+				Img_Portrait_Array[i]->SetColorAndOpacity(FLinearColor::White);
 			}
 			else
 			{

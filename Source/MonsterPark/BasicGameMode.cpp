@@ -105,7 +105,7 @@ void ABasicGameMode::UpdateMatchState(EMatchState NewState)
 	else if (CurrentState == EMatchState::Playing)
 	{
 		// 2. ��� ���� ���͵� �����
-		if (MonsterSubsystem->MainSpawner)
+		if (MonsterSubsystem->MainSpawners.Num() > 0)
 		{
 			MonsterSubsystem->StartRound(0,40);
 		}
@@ -145,7 +145,7 @@ void ABasicGameMode::TryStartTimer()
 		return;
 	}
 
-	if (MonsterSubsystem && MonsterSubsystem->MainSpawner)
+	if (MonsterSubsystem->MainSpawners.Num() > 0)
 	{
 		RoundTimer = StayTime;
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &ABasicGameMode::UpdateTimerEverySecond, 1.0f, true);

@@ -37,7 +37,7 @@ protected:
 
 public:
 	UPROPERTY()
-	AMyMassSpawner* MainSpawner;
+	TArray<AMyMassSpawner*> MainSpawners;
 
 	UPROPERTY()
 	int32 CurrentRound;
