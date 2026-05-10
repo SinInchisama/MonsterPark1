@@ -27,8 +27,6 @@ void UMonsterProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& E
     EntityQuery.AddRequirement<FMonsterTargetFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
-    EntityQuery.AddRequirement<FMassActorFragment>(EMassFragmentAccess::ReadWrite);
-    
 }
 
 void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -41,7 +39,6 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
             auto Velocities = Context.GetMutableFragmentView<FMassVelocityFragment>();
             const TArrayView<FMonsterTargetFragment> SimpleMovementsList = Context.GetMutableFragmentView<FMonsterTargetFragment>();
             const TArrayView<FMonsterStatusFragment> StatusList = Context.GetMutableFragmentView<FMonsterStatusFragment>();
-            auto ActorFragments = Context.GetMutableFragmentView<FMassActorFragment>();
 
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
             {
@@ -55,7 +52,20 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                if (Dir.SizeSquared() < 10.0f)
                {
                    Move.TargetIndex = (Move.TargetIndex + 1) % 4;
-                   Move.Target = MonsterTargets[Move.TargetIndex];
+
+                   FVector NextTarget = MonsterTargets[Move.TargetIndex];
+
+                   if (Move.TargetIndex == 1 || Move.TargetIndex == 3)
+                   {
+                       NextTarget.X += Move.MoveLocation;
+                       NextTarget.Y += Move.MoveLocation;
+                   }
+                   else
+                   {
+                       NextTarget.X += Move.MoveLocation;
+                       NextTarget.Y += Move.MoveLocation;
+                   }
+                   Move.Target = NextTarget;
                }
                else
                {
@@ -70,11 +80,6 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
 
                    Velocities[i].Value = Dir.GetSafeNormal() * StatusList[i].SpeedMultiplier;
 
-                   AActor* TargetActor = ActorFragments[i].GetMutable();
-                   if (TargetActor)
-                   {
-                       TargetActor->SetActorTransform(Transforms[i].GetTransform(), false, nullptr, ETeleportType::TeleportPhysics);
-                   }
                }
                
             }

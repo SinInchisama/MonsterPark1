@@ -23,6 +23,7 @@ struct MONSTERPARK_API FMonsterTargetFragment : public FMassFragment
 
     bool Death = false;
 
+    int MoveLocation = 0;
 };
 
 static const FVector MonsterTargets[4] =

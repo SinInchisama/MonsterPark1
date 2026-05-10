@@ -49,7 +49,9 @@ void UMonsterSpawnProcessor::Execute(FMassEntityManager& EntityManager, FMassExe
 
                 if (Move.SpawnTime < 0.f)
                 {
-                    Move.SpawnTime = RoundData.NextSpawnTime + i * 0.5f;
+                    float RandomDelay = FMath::FRandRange(0.0f, 20.0f);
+                    Move.SpawnTime = RoundData.NextSpawnTime + RandomDelay;
+
                     Transform.SetLocation(
                         FVector(0, 0, -100000.f));
                     continue;
@@ -60,8 +62,16 @@ void UMonsterSpawnProcessor::Execute(FMassEntityManager& EntityManager, FMassExe
                     if (CurrentTime >= Move.SpawnTime)
                     {
                         Move.bSpawned = true;
+
+                        Move.MoveLocation = FMath::RandRange(-100, 100);
+
                         Transform.SetLocation(
-                            FVector(-2600, 400, 60.f));
+                            FVector(-2600 + Move.MoveLocation, 400, 60.f));
+
+                        FQuat LeftRotation = FRotator(0.f, 90.f, 0.f).Quaternion();
+                        Transform.SetRotation(LeftRotation);
+
+                        Move.Target = FVector(-2600 + Move.MoveLocation, 2600+Move.MoveLocation, 60.f); 
                         Context.Defer().AddTag<FMonsterTag>(Context.GetEntity(i));
                         Context.Defer().RemoveTag<FMonsterSpawnTag>(Context.GetEntity(i));
                     }
