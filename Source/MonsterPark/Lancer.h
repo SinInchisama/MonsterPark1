@@ -20,10 +20,13 @@ public:
 protected:
 	virtual void FindEnemiesInArea() override;
 	virtual UAnimMontage* GetDetectedMontage() const override;
+	virtual void PlayDetectedMontageIfNeeded() override;
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* LancerFullMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float BleedPercent = 0.02f;
+
+	bool bHasPlayedPassive = false;
 };
