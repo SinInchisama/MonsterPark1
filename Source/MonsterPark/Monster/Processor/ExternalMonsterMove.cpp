@@ -197,9 +197,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 
                     if (!LookDirection.IsNearlyZero())
                     {
-                        FHitResult FrontHit;
-
-                        FVector OffsetForward(LookDirection.Y, -LookDirection.X, 0.0f);
                         FVector TerrainNormal = HitResult.ImpactNormal;
 
                         MoveData.SmoothedNormal = FMath::VInterpTo(
@@ -209,7 +206,27 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                             5.0f
                         );
 
-                        FQuat FinalQuat = FRotationMatrix::MakeFromXZ(OffsetForward, MoveData.SmoothedNormal).ToQuat();
+                        FVector UpVector = FVector::UpVector;
+
+                        float AngleRad = FMath::Acos(FVector::DotProduct(MoveData.SmoothedNormal, UpVector));
+                        float AngleDeg = FMath::RadiansToDegrees(AngleRad);
+
+                        float MaxTiltAngle = 30.0f; // 제한하고 싶은 최대 각도
+
+                        FVector FinalNormal = MoveData.SmoothedNormal;
+
+                        if (AngleDeg > MaxTiltAngle)
+                        {
+                            FVector RotationAxis = FVector::CrossProduct(UpVector, MoveData.SmoothedNormal).GetSafeNormal();
+                            if (!RotationAxis.IsNearlyZero())
+                            {
+                                FQuat LimitQuat = FQuat(RotationAxis, FMath::DegreesToRadians(MaxTiltAngle));
+                                FinalNormal = LimitQuat.RotateVector(UpVector);
+                            }
+                        }
+
+                        FVector OffsetForward(LookDirection.Y, -LookDirection.X, 0.0f);
+                        FQuat FinalQuat = FRotationMatrix::MakeFromXZ(OffsetForward, FinalNormal).ToQuat();
                         Transform.SetRotation(FinalQuat);
                     }
                 }
