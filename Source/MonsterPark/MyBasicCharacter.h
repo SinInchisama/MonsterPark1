@@ -11,6 +11,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLifeChanged, int32, NewLife);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMixtureHero, int32, HeroCost);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnitSelectedSignature, ACharacterBase*, SelectedUnit);
 
 UCLASS()
 class MONSTERPARK_API AMyBasicCharacter : public ACharacter
@@ -70,6 +71,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FMixtureHero Mixtured;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnUnitSelectedSignature OnUnitSelected;
 
 	FHeroChanceRow CurrentLevelChance;
 

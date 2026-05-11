@@ -176,6 +176,7 @@ void AMyBasicCharacter::OnMouseLeftClick()
                     SelectHero->SetSelectedHero(false);
                 SelectHero = TouchedHero;
                 SelectHero->SetSelectedHero(true);
+                OnUnitSelected.Broadcast(SelectHero);
             }
         }
     }

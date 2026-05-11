@@ -39,6 +39,8 @@ protected:
 	void ReFreshMoney();
 
 	UFUNCTION()
+	void OnUnitSelected(ACharacterBase* SelectedUnit);
+	UFUNCTION()
 	void UpdateLife(int32 CurrentLife);
 
 	UFUNCTION()
@@ -131,4 +133,13 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UImage* Img_Minimap;
+
+
+
+	// Hero Information
+	UFUNCTION(BlueprintImplementableEvent, Category = "UI Animation")
+	void K2_PlayUnitInfoAnim();
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* Image_5;
 };

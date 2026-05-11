@@ -66,7 +66,7 @@ void UMyUserWidget::NativeConstruct()
 	if (MyChar)
 	{
 		MyChar->OnLifeChanged.AddDynamic(this, &UMyUserWidget::UpdateLife);
-
+		MyChar->OnUnitSelected.AddDynamic(this,&UMyUserWidget::OnUnitSelected);
 		UpdateLife(MyChar->Get_PlayerLife());
 	}
 
@@ -88,6 +88,7 @@ void UMyUserWidget::NativeConstruct()
 		}
 	}
 	ReFreshMoney();
+
 }
 
 FReply UMyUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -295,6 +296,15 @@ void UMyUserWidget::ReFreshMoney()
 		{
 			Money->SetText(FText::AsNumber(MyPlayer->Get_PlayerMoney()));
 		}
+	}
+}
+
+void UMyUserWidget::OnUnitSelected(ACharacterBase* SelectedUnit)
+{
+	if (Image_5 && Image_5->GetVisibility() == ESlateVisibility::Hidden)
+	{
+		Image_5->SetVisibility(ESlateVisibility::Visible);
+		K2_PlayUnitInfoAnim();
 	}
 }
 
