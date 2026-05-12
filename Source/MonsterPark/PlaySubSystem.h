@@ -14,11 +14,21 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundChanged, int32, NewRound);
  */
 
 USTRUCT()
+struct FMonsterGridInfo
+{
+	GENERATED_BODY()
+
+	FMassEntityHandle MonsterHandle;
+
+	FVector Location;
+};
+
+USTRUCT()
 struct FGridData
 {
 	GENERATED_BODY()
 	TArray<AActor*> HeroesInCell;
-	TArray<FMassEntityHandle> MonsterInCell;
+	TArray<FMonsterGridInfo> MonsterInfos;
 };
 
 UCLASS()

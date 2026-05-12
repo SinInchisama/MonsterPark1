@@ -62,13 +62,32 @@ void UPlaySubSystem::UpdateMonsterLocation(FMassEntityHandle Entity, int64& InOu
         {
             if (FGridData* OldCell = SpatialGrid.Find(InOutLastKey))
             {
-                OldCell->MonsterInCell.RemoveSingleSwap(Entity);
+                OldCell->MonsterInfos.RemoveAll([Entity](const FMonsterGridInfo& Info) {
+                    return Info.MonsterHandle == Entity;
+                    });
             }
         }
 
-        SpatialGrid.FindOrAdd(NewKey).MonsterInCell.AddUnique(Entity);
+        FMonsterGridInfo NewInfo;
+        NewInfo.MonsterHandle = Entity;
+        NewInfo.Location = NewLocation;
+        SpatialGrid.FindOrAdd(NewKey).MonsterInfos.Add(NewInfo);
 
         InOutLastKey = NewKey;
+    }
+    else
+    {
+        if (FGridData* CurrentCell = SpatialGrid.Find(NewKey))
+        {
+            for (FMonsterGridInfo& Info : CurrentCell->MonsterInfos)
+            {
+                if (Info.MonsterHandle == Entity)
+                {
+                    Info.Location = NewLocation; 
+                    break;
+                }
+            }
+        }
     }
 }
 

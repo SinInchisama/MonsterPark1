@@ -39,7 +39,7 @@ struct FMonsterRandomMoveFragment : public FMassFragment
     bool bHasFinishedWall = false;
 
     // 경사 올라갈 때 각도 보간
-    FVector SmoothedNormal = FVector::UpVector;
+    FVector SmoothedNormal = FVector(0,0,1);
 
     float CachedTerrainZ;
 };

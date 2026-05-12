@@ -97,7 +97,7 @@ void AWyvern::FindEnemiesInArea()
 		int32 CenterX = (int32)(MyKey >> 32);
 		int32 CenterY = (int32)(MyKey & 0xFFFFFFFF);
 
-		for (int32 x = -1; x <= 1; ++x)
+		/*for (int32 x = -1; x <= 1; ++x)
 		{
 			for (int32 y = -1; y <= 1; ++y)
 			{
@@ -107,7 +107,7 @@ void AWyvern::FindEnemiesInArea()
 					CandidateMonsters.Append(Cell->MonsterInCell);
 				}
 			}
-		}
+		}*/
 
 		for (FMassEntityHandle MonsterHandle : CandidateMonsters)
 		{

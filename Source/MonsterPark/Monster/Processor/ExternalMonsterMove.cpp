@@ -29,17 +29,14 @@ static FVector GetGridSteeringDirection(
 {
     if (!PlaySubsystem) return DesiredDirection;
 
-    // 1. 정면 격자 확인
     FVector FuturePos = CurrentLocation + (DesiredDirection * LookAheadDistance);
     FIntVector TargetGrid = PlaySubsystem->PosToGrid(FuturePos);
 
-    // 정면이 뚫려있으면 그대로 진행
     if (!PlaySubsystem->IsGridBlocked(TargetGrid))
     {
         return DesiredDirection;
     }
 
-    // 2. 정면이 막혔다면 좌우로 각도를 벌리며 비어있는 격자 탐색 (30도씩 최대 150도까지)
     for (float Angle = 30.f; Angle <= 150.f; Angle += 30.f)
     {
         FVector LeftDir = DesiredDirection.RotateAngleAxis(-Angle, FVector::UpVector);
@@ -52,7 +49,6 @@ static FVector GetGridSteeringDirection(
             return RightDir;
     }
 
-    // 모든 방향이 막혔다면 일단 원래 방향 유지 (벽에 비빔)
     return DesiredDirection;
 }
 
@@ -88,7 +84,7 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
             const float DetectRange = 800.0f;
             const float GridCheckDistance = 150.f;
 
-            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 5;
+            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 10;
 
             FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(MassMonsterTrace), false);
 
@@ -107,7 +103,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                 if (MoveData.AttackCooldown > 0.f) MoveData.AttackCooldown -= DeltaTime;
                 AActor* CurrentTarget = MoveData.TargetHero.Get();
 
-                // --- 타겟팅 로직 (기존 유지) ---
                 if (bIsFinalRound)
                 {
                     if (!IsValid(CurrentTarget) || CurrentTarget->IsA(ACharacterBase::StaticClass()))
@@ -131,7 +126,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     }
                 }
 
-                // --- 타겟 위치 및 공격 판정 ---
                 if (IsValid(CurrentTarget))
                 {
                     IHitInterface* HitInterface = Cast<IHitInterface>(CurrentTarget);
@@ -162,38 +156,45 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     else MoveData.TargetLocation = TargetPos;
                 }
 
-                // --- Wander 로직 ---
                 if (!IsValid(CurrentTarget))
                 {
                     if (MoveData.OriginLocation.IsZero()) MoveData.OriginLocation = CurrentLocation;
-                    if (MoveData.TargetLocation.IsZero() || FVector::DistSquared(CurrentLocation, MoveData.TargetLocation) < ArrivalThresholdSq)
+                    if (MoveData.TargetLocation.IsZero() ||
+                        FVector::DistSquared2D(CurrentLocation, MoveData.TargetLocation) < ArrivalThresholdSq)
                     {
                         FVector2D RandomOffset = FMath::RandPointInCircle(MoveData.WanderRadius);
                         MoveData.TargetLocation = MoveData.OriginLocation + FVector(RandomOffset.X, RandomOffset.Y, 0.0f);
                     }
                 }
 
-                // --- 이동 계산 (격자 회피 적용) ---
                 FVector NextLocation = CurrentLocation;
                 if (!bIsAttacking)
                 {
                     FVector Direction = (MoveData.TargetLocation - CurrentLocation).GetSafeNormal2D();
                     if (!Direction.IsNearlyZero())
                     {
-                        // 격자 기반 방향 수정
-                        FVector SteeredDir = GetGridSteeringDirection(PlaySubsystem, CurrentLocation, Direction, GridCheckDistance);
-                        NextLocation = FMath::VInterpConstantTo(CurrentLocation, CurrentLocation + SteeredDir * 100.f, DeltaTime, MoveData.Speed);
+                        FVector FlatCurrentLocation = FVector(CurrentLocation.X, CurrentLocation.Y, 0.f);
+
+                        const float AdaptiveCheckDistance = 120.f;
+
+                        FVector SteeredDir = GetGridSteeringDirection(PlaySubsystem, FlatCurrentLocation, Direction, AdaptiveCheckDistance);
+
+                        float FinalSpeed = MoveData.Speed;
+                        if (MoveData.SmoothedNormal.Z < 0.8f) 
+                        {
+                            FinalSpeed *= 1.2f; 
+                        }
+
+                        NextLocation = FMath::VInterpConstantTo(CurrentLocation, CurrentLocation + SteeredDir * 50.f, DeltaTime, FinalSpeed);
                     }
                 }
 
-                // --- 지형 트레이스 및 회전 (원래 코드 로직 복구) ---
                 FHitResult HitResult;
                 FVector StartTrace = NextLocation + FVector(0, 0, 1000.0f);
                 FVector EndTrace = NextLocation - FVector(0, 0, 1000.0f);
 
                 FIntVector CurrentGridKey = PlaySubsystem->PosToGrid(NextLocation);
 
-                // 격자가 막히지 않았을 때만 지형 높이 갱신
                 if (!PlaySubsystem->IsGridBlocked(CurrentGridKey))
                 {
                     if (World->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_WorldStatic, QueryParams))
@@ -203,7 +204,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                         {
                             MoveData.CachedTerrainZ = HitResult.ImpactPoint.Z;
 
-                            // 원래의 회전 로직 시작
                             FVector LookTarget = bIsAttacking && IsValid(CurrentTarget) ?
                                 (Cast<IHitInterface>(CurrentTarget) ? Cast<IHitInterface>(CurrentTarget)->GetTargetLocation(CurrentLocation) : CurrentTarget->GetActorLocation())
                                 : MoveData.TargetLocation;
@@ -212,7 +212,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
 
                             if (!LookDirection.IsNearlyZero())
                             {
-                                // Normal 스무딩
                                 MoveData.SmoothedNormal = FMath::VInterpTo(MoveData.SmoothedNormal, HitResult.ImpactNormal, DeltaTime, 5.0f);
 
                                 FVector UpVector = FVector::UpVector;
@@ -230,7 +229,6 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                                     }
                                 }
 
-                                // 원래 쓰시던 방향 계산 방식: LookDirection의 Y, -X를 사용하는 축 정렬
                                 FVector OffsetForward(LookDirection.Y, -LookDirection.X, 0.0f);
                                 FQuat FinalQuat = FRotationMatrix::MakeFromXZ(OffsetForward, FinalNormal).ToQuat();
                                 Transform.SetRotation(FinalQuat);
@@ -239,11 +237,9 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     }
                 }
 
-                // 최종 위치 적용 (Z는 항상 캐시된 지형 높이 사용)
                 NextLocation.Z = MoveData.CachedTerrainZ;
                 Transform.SetLocation(NextLocation);
 
-                // 데이터 동기화
                 FMassEntityHandle EntityHandle = Context.GetEntity(i);
                 PlaySubsystem->UpdateMonsterLocation(EntityHandle, MoveData.LastGridKey, NextLocation);
 

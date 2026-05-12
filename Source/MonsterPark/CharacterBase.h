@@ -138,4 +138,7 @@ protected:
 	bool bIsOutsideWall;
 	UPROPERTY()
 	class UPlaySubSystem* PlaySubsystem;
+
+	float SearchTimer = 0.0f;
+	const float SearchInterval = 0.5f;
 };

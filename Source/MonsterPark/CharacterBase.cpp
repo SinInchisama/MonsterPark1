@@ -31,6 +31,8 @@
 #include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h"
 #include "Monster/Tag/FMonsterTag.h"
 
+#include "MassEntityView.h"
+
 ACharacterBase::ACharacterBase()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -136,7 +138,11 @@ void ACharacterBase::Tick(float DeltaTime)
     }
     else
     {
-        if (Attacking) FindEnemiesInArea();
+        SearchTimer -= DeltaTime;
+        if (Attacking && SearchTimer <= 0.0f) { 
+            FindEnemiesInArea();
+            SearchTimer = SearchInterval;
+        }
         if (bEnemyDetected) Attack();
         UpdateAnimBPSpeed(0);
     }
@@ -226,50 +232,50 @@ void ACharacterBase::FindEnemiesInArea()
             });
     }
     else {
+        // [경우 B] 성벽 바깥쪽: 최적화된 격자 탐색 (개선된 로직)
         int64 MyKey = PlaySubsystem->GetGridKey(MyLocation);
-
-        TArray<FMassEntityHandle> CandidateMonsters;
-
         int32 CenterX = (int32)(MyKey >> 32);
         int32 CenterY = (int32)(MyKey & 0xFFFFFFFF);
 
+        bool bFoundInGrid = false;
+
+        // 주변 3x3 격자 순회
         for (int32 x = -1; x <= 1; ++x)
         {
+            if (bFoundInGrid) break;
+
             for (int32 y = -1; y <= 1; ++y)
             {
                 int64 CheckKey = ((int64)(CenterX + x) << 32) | (uint32)(CenterY + y);
+
                 if (FGridData* Cell = PlaySubsystem->SpatialGrid.Find(CheckKey))
                 {
-                    CandidateMonsters.Append(Cell->MonsterInCell);
-                }
-            }
-        }
-
-        for (FMassEntityHandle MonsterHandle : CandidateMonsters)
-        {
-            if (!EntityManager.IsEntityValid(MonsterHandle)) continue;
-
-            FTransformFragment* Transform = EntityManager.GetFragmentDataPtr<FTransformFragment>(MonsterHandle);
-            FMonsterConditionFragment* Condition = EntityManager.GetFragmentDataPtr<FMonsterConditionFragment>(MonsterHandle);
-
-            if (Transform && Condition)
-            {
-                FVector EnemyLoc = Transform->GetTransform().GetLocation(); // 변수로 빼줌
-                float DistSq = FVector::DistSquared(MyLocation, EnemyLoc);
-                if (DistSq <= RadiusSq)
-                {
-                    Condition->Damage += DefaultAttackPower;
-                    bEnemyDetected = true;
-                    Attacking = false;
-
-                    FVector Direction = (EnemyLoc - MyLocation).GetSafeNormal2D();
-                    if (!Direction.IsNearlyZero())
+                    for (const FMonsterGridInfo& MInfo : Cell->MonsterInfos)
                     {
-                        SetActorRotation(Direction.Rotation());
-                    }
+                        if (FVector::DistSquared(MyLocation, MInfo.Location) <= RadiusSq)
+                        {
+                            if (!EntityManager.IsEntityValid(MInfo.MonsterHandle)) continue;
 
-                    break;
+                            FMassEntityView EntityView(EntityManager, MInfo.MonsterHandle);
+                            if (FMonsterConditionFragment* Condition = EntityView.GetFragmentDataPtr<FMonsterConditionFragment>())
+                            {
+                                Condition->Damage += AttackPowerValue;
+                                bEnemyDetected = true;
+                                Attacking = false;
+
+                                FVector Direction = (MInfo.Location - MyLocation).GetSafeNormal2D();
+                                if (!Direction.IsNearlyZero())
+                                {
+                                    SetActorRotation(Direction.Rotation());
+                                }
+
+                                bFoundInGrid = true;
+                                break;
+                            }
+                        }
+                    }
                 }
+                if (bFoundInGrid) break;
             }
         }
     }
