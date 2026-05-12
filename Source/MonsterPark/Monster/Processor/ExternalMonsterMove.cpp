@@ -21,6 +21,41 @@
 
 #include"MonsterPark/Monster/AttackVisualActor.h"
 
+static FVector GetGridSteeringDirection(
+    const UPlaySubSystem* PlaySubsystem,
+    const FVector& CurrentLocation,
+    const FVector& DesiredDirection,
+    float LookAheadDistance)
+{
+    if (!PlaySubsystem) return DesiredDirection;
+
+    // 1. 정면 격자 확인
+    FVector FuturePos = CurrentLocation + (DesiredDirection * LookAheadDistance);
+    FIntVector TargetGrid = PlaySubsystem->PosToGrid(FuturePos);
+
+    // 정면이 뚫려있으면 그대로 진행
+    if (!PlaySubsystem->IsGridBlocked(TargetGrid))
+    {
+        return DesiredDirection;
+    }
+
+    // 2. 정면이 막혔다면 좌우로 각도를 벌리며 비어있는 격자 탐색 (30도씩 최대 150도까지)
+    for (float Angle = 30.f; Angle <= 150.f; Angle += 30.f)
+    {
+        FVector LeftDir = DesiredDirection.RotateAngleAxis(-Angle, FVector::UpVector);
+        FVector RightDir = DesiredDirection.RotateAngleAxis(Angle, FVector::UpVector);
+
+        if (!PlaySubsystem->IsGridBlocked(PlaySubsystem->PosToGrid(CurrentLocation + LeftDir * LookAheadDistance)))
+            return LeftDir;
+
+        if (!PlaySubsystem->IsGridBlocked(PlaySubsystem->PosToGrid(CurrentLocation + RightDir * LookAheadDistance)))
+            return RightDir;
+    }
+
+    // 모든 방향이 막혔다면 일단 원래 방향 유지 (벽에 비빔)
+    return DesiredDirection;
+}
+
 UExternalMonsterMove::UExternalMonsterMove() : EntityQuery(*this)
 {
 	ProcessingPhase = EMassProcessingPhase::PrePhysics;
@@ -47,20 +82,20 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
             if (!PlaySubsystem) return;
 
             const float DeltaTime = Context.GetDeltaTimeSeconds();
-
             const float LoseRangeSq = FMath::Square(1000.0f);
             const float AttackRangeSq = FMath::Square(300.0f);
             const float ArrivalThresholdSq = FMath::Square(500.0f);
             const float DetectRange = 800.0f;
+            const float GridCheckDistance = 150.f;
 
-            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 5; 
+            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 5;
 
             FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(MassMonsterTrace), false);
 
-            const TArrayView<FTransformFragment> TransformList = Context.GetMutableFragmentView<FTransformFragment>();
-            const TArrayView<FMonsterRandomMoveFragment> MoveList = Context.GetMutableFragmentView<FMonsterRandomMoveFragment>();
-            const TArrayView<FMassActorFragment> ActorList = Context.GetMutableFragmentView<FMassActorFragment>();
-            const TArrayView<FMonsterStatusFragment> StatusList = Context.GetMutableFragmentView<FMonsterStatusFragment>();
+            auto TransformList = Context.GetMutableFragmentView<FTransformFragment>();
+            auto MoveList = Context.GetMutableFragmentView<FMonsterRandomMoveFragment>();
+            auto ActorList = Context.GetMutableFragmentView<FMassActorFragment>();
+            auto StatusList = Context.GetMutableFragmentView<FMonsterStatusFragment>();
 
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
             {
@@ -72,32 +107,22 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                 if (MoveData.AttackCooldown > 0.f) MoveData.AttackCooldown -= DeltaTime;
                 AActor* CurrentTarget = MoveData.TargetHero.Get();
 
+                // --- 타겟팅 로직 (기존 유지) ---
                 if (bIsFinalRound)
                 {
                     if (!IsValid(CurrentTarget) || CurrentTarget->IsA(ACharacterBase::StaticClass()))
                     {
-                        if (MoveData.bHasFinishedWall)
-                        {
-                            CurrentTarget = PlaySubsystem->Nexus;
-                        }
+                        if (MoveData.bHasFinishedWall) CurrentTarget = PlaySubsystem->Nexus;
                         else
                         {
                             CurrentTarget = PlaySubsystem->FindFinalRoundTarget(CurrentLocation);
-
-                            if (CurrentTarget)
-                            {
-
-                                MoveData.bHasFinishedWall = true;
-                            }
-                            else
-                            {
-                                CurrentTarget = PlaySubsystem->Nexus;
-                            }
+                            if (CurrentTarget) MoveData.bHasFinishedWall = true;
+                            else CurrentTarget = PlaySubsystem->Nexus;
                         }
                         MoveData.TargetHero = CurrentTarget;
                     }
                 }
-                else 
+                else
                 {
                     if (!IsValid(CurrentTarget))
                     {
@@ -105,6 +130,8 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                         if (CurrentTarget) MoveData.TargetHero = CurrentTarget;
                     }
                 }
+
+                // --- 타겟 위치 및 공격 판정 ---
                 if (IsValid(CurrentTarget))
                 {
                     IHitInterface* HitInterface = Cast<IHitInterface>(CurrentTarget);
@@ -119,139 +146,111 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     else if (DistSqToTarget <= AttackRangeSq)
                     {
                         bIsAttacking = true;
-
                         if (MoveData.AttackCooldown <= 0.f && HitInterface)
                         {
                             AActor* VisualActor = ActorList[i].GetMutable();
                             AsyncTask(ENamedThreads::GameThread, [HitInterface, CurrentLocation, VisualActor]()
                                 {
                                     if (AAttackVisualActor* AttackActor = Cast<AAttackVisualActor>(VisualActor))
-                                    {
                                         AttackActor->PlayAttackAnimation();
-                                    }
-
                                     if (HitInterface)
-                                    {
- 
                                         HitInterface->TakeMonsterDamage(10.0f, CurrentLocation);
-                                    }
                                 });
                             MoveData.AttackCooldown = 1.0f;
                         }
                     }
-                    else
-                    {
-                        MoveData.TargetLocation = TargetPos;
-                    }
+                    else MoveData.TargetLocation = TargetPos;
                 }
 
+                // --- Wander 로직 ---
                 if (!IsValid(CurrentTarget))
                 {
                     if (MoveData.OriginLocation.IsZero()) MoveData.OriginLocation = CurrentLocation;
-
-                    float DistSqToWanderTarget = FVector::DistSquared(CurrentLocation, MoveData.TargetLocation);
-                    if (MoveData.TargetLocation.IsZero() || DistSqToWanderTarget < ArrivalThresholdSq)
+                    if (MoveData.TargetLocation.IsZero() || FVector::DistSquared(CurrentLocation, MoveData.TargetLocation) < ArrivalThresholdSq)
                     {
                         FVector2D RandomOffset = FMath::RandPointInCircle(MoveData.WanderRadius);
                         MoveData.TargetLocation = MoveData.OriginLocation + FVector(RandomOffset.X, RandomOffset.Y, 0.0f);
                     }
                 }
 
+                // --- 이동 계산 (격자 회피 적용) ---
                 FVector NextLocation = CurrentLocation;
                 if (!bIsAttacking)
                 {
                     FVector Direction = (MoveData.TargetLocation - CurrentLocation).GetSafeNormal2D();
                     if (!Direction.IsNearlyZero())
                     {
-                        NextLocation = FMath::VInterpConstantTo(CurrentLocation, MoveData.TargetLocation, DeltaTime, MoveData.Speed);
+                        // 격자 기반 방향 수정
+                        FVector SteeredDir = GetGridSteeringDirection(PlaySubsystem, CurrentLocation, Direction, GridCheckDistance);
+                        NextLocation = FMath::VInterpConstantTo(CurrentLocation, CurrentLocation + SteeredDir * 100.f, DeltaTime, MoveData.Speed);
                     }
                 }
 
-                FVector Forward = Transform.GetRotation().GetForwardVector();
-
-                float MonsterSize = StatusList[i].Size;
-
+                // --- 지형 트레이스 및 회전 (원래 코드 로직 복구) ---
                 FHitResult HitResult;
                 FVector StartTrace = NextLocation + FVector(0, 0, 1000.0f);
                 FVector EndTrace = NextLocation - FVector(0, 0, 1000.0f);
 
-                FHitResult FrontHitResult;
-                FVector FrontPoint = NextLocation + Forward * MonsterSize;
-                FVector FrontStart = FrontPoint + FVector(0, 0, 1000.0f);
-                FVector FrontEnd = FrontPoint - FVector(0, 0, 1000.0f);
- 
+                FIntVector CurrentGridKey = PlaySubsystem->PosToGrid(NextLocation);
 
-                if (World->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_WorldStatic, QueryParams))
+                // 격자가 막히지 않았을 때만 지형 높이 갱신
+                if (!PlaySubsystem->IsGridBlocked(CurrentGridKey))
                 {
-                    AActor* HitActor = HitResult.GetActor();
-                    if (!(HitActor && HitActor->IsA(ACharacterBase::StaticClass())))
+                    if (World->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_WorldStatic, QueryParams))
                     {
-                        NextLocation.Z = HitResult.ImpactPoint.Z;
-                    }
-
-                    FVector LookTarget = bIsAttacking && IsValid(CurrentTarget) ?
-                        (Cast<IHitInterface>(CurrentTarget) ? Cast<IHitInterface>(CurrentTarget)->GetTargetLocation(CurrentLocation) : CurrentTarget->GetActorLocation())
-                        : MoveData.TargetLocation;
-
-                    FVector LookDirection = (LookTarget - CurrentLocation).GetSafeNormal2D();
-
-                    if (!LookDirection.IsNearlyZero())
-                    {
-                        FVector TerrainNormal = HitResult.ImpactNormal;
-
-                        MoveData.SmoothedNormal = FMath::VInterpTo(
-                            MoveData.SmoothedNormal,
-                            HitResult.ImpactNormal,
-                            DeltaTime,
-                            5.0f
-                        );
-
-                        FVector UpVector = FVector::UpVector;
-
-                        float AngleRad = FMath::Acos(FVector::DotProduct(MoveData.SmoothedNormal, UpVector));
-                        float AngleDeg = FMath::RadiansToDegrees(AngleRad);
-
-                        float MaxTiltAngle = 30.0f; // 제한하고 싶은 최대 각도
-
-                        FVector FinalNormal = MoveData.SmoothedNormal;
-
-                        if (AngleDeg > MaxTiltAngle)
+                        AActor* HitActor = HitResult.GetActor();
+                        if (!(HitActor && HitActor->IsA(ACharacterBase::StaticClass())))
                         {
-                            FVector RotationAxis = FVector::CrossProduct(UpVector, MoveData.SmoothedNormal).GetSafeNormal();
-                            if (!RotationAxis.IsNearlyZero())
+                            MoveData.CachedTerrainZ = HitResult.ImpactPoint.Z;
+
+                            // 원래의 회전 로직 시작
+                            FVector LookTarget = bIsAttacking && IsValid(CurrentTarget) ?
+                                (Cast<IHitInterface>(CurrentTarget) ? Cast<IHitInterface>(CurrentTarget)->GetTargetLocation(CurrentLocation) : CurrentTarget->GetActorLocation())
+                                : MoveData.TargetLocation;
+
+                            FVector LookDirection = (LookTarget - CurrentLocation).GetSafeNormal2D();
+
+                            if (!LookDirection.IsNearlyZero())
                             {
-                                FQuat LimitQuat = FQuat(RotationAxis, FMath::DegreesToRadians(MaxTiltAngle));
-                                FinalNormal = LimitQuat.RotateVector(UpVector);
+                                // Normal 스무딩
+                                MoveData.SmoothedNormal = FMath::VInterpTo(MoveData.SmoothedNormal, HitResult.ImpactNormal, DeltaTime, 5.0f);
+
+                                FVector UpVector = FVector::UpVector;
+                                float AngleDeg = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(MoveData.SmoothedNormal, UpVector)));
+                                float MaxTiltAngle = 30.0f;
+
+                                FVector FinalNormal = MoveData.SmoothedNormal;
+                                if (AngleDeg > MaxTiltAngle)
+                                {
+                                    FVector RotationAxis = FVector::CrossProduct(UpVector, MoveData.SmoothedNormal).GetSafeNormal();
+                                    if (!RotationAxis.IsNearlyZero())
+                                    {
+                                        FQuat LimitQuat = FQuat(RotationAxis, FMath::DegreesToRadians(MaxTiltAngle));
+                                        FinalNormal = LimitQuat.RotateVector(UpVector);
+                                    }
+                                }
+
+                                // 원래 쓰시던 방향 계산 방식: LookDirection의 Y, -X를 사용하는 축 정렬
+                                FVector OffsetForward(LookDirection.Y, -LookDirection.X, 0.0f);
+                                FQuat FinalQuat = FRotationMatrix::MakeFromXZ(OffsetForward, FinalNormal).ToQuat();
+                                Transform.SetRotation(FinalQuat);
                             }
                         }
-
-                        FVector OffsetForward(LookDirection.Y, -LookDirection.X, 0.0f);
-                        FQuat FinalQuat = FRotationMatrix::MakeFromXZ(OffsetForward, FinalNormal).ToQuat();
-                        Transform.SetRotation(FinalQuat);
                     }
                 }
 
-                if (World->LineTraceSingleByChannel(FrontHitResult, FrontStart, FrontEnd, ECC_WorldStatic, QueryParams))
-                {
-                    AActor* FrontHitActor = FrontHitResult.GetActor();
-                    if (!(FrontHitActor && FrontHitActor->IsA(ACharacterBase::StaticClass())))
-                    {
-                        NextLocation.Z = FMath::Max(NextLocation.Z, FrontHitResult.ImpactPoint.Z);
-                    }
-                }
-
+                // 최종 위치 적용 (Z는 항상 캐시된 지형 높이 사용)
+                NextLocation.Z = MoveData.CachedTerrainZ;
                 Transform.SetLocation(NextLocation);
+
+                // 데이터 동기화
                 FMassEntityHandle EntityHandle = Context.GetEntity(i);
                 PlaySubsystem->UpdateMonsterLocation(EntityHandle, MoveData.LastGridKey, NextLocation);
 
                 if (ActorList[i].IsValid())
                 {
-                    AActor* VisualActor = ActorList[i].GetMutable();
-
-                    if (VisualActor)
-                    {
+                    if (AActor* VisualActor = ActorList[i].GetMutable())
                         VisualActor->SetActorTransform(Transform);
-                    }
                 }
             }
         });
