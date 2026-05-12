@@ -152,6 +152,30 @@ void UPlaySubSystem::OnWallDestroyed(AActor* DestroyedWall)
     ActiveWalls.RemoveSingleSwap(DestroyedWall);
 }
 
+FIntVector UPlaySubSystem::PosToGrid(const FVector& Pos) const
+{
+    return FIntVector(
+        FMath::FloorToInt(Pos.X / 100.f),
+        FMath::FloorToInt(Pos.Y / 100.f),
+        0
+    );
+}
+
+bool UPlaySubSystem::IsGridBlocked(const FIntVector& GridKey) const
+{
+    const int32* OccupyCount = ObstacleMap.Find(GridKey);
+    return OccupyCount && (*OccupyCount > 0);
+}
+
+void UPlaySubSystem::RegisterObstacle(const TArray<FIntVector>& GridKeys)
+{
+    for (const FIntVector& Key : GridKeys)
+    {
+        int32& Count = ObstacleMap.FindOrAdd(Key);
+        Count++;
+    }
+}
+
 void UPlaySubSystem::StartRound(int Round,int Scale)
 {
     if (MainSpawners.Num() == 0) return;

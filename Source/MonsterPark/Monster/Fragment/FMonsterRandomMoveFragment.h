@@ -40,4 +40,6 @@ struct FMonsterRandomMoveFragment : public FMassFragment
 
     // 경사 올라갈 때 각도 보간
     FVector SmoothedNormal = FVector::UpVector;
+
+    float CachedTerrainZ;
 };

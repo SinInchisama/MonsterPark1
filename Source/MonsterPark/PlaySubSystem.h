@@ -62,6 +62,8 @@ public:
 		return ((int64)X << 32) | (uint32)Y; // X, Y를 합쳐 하나의 키로 만듦
 	}
 
+	TMap<FIntVector, int32> ObstacleMap;
+
 	void UpdateHeroLocation(AActor* Hero, int64& InOutLastKey, FVector NewLocation);
 	void UpdateMonsterLocation(FMassEntityHandle Entity, int64& InOutLastKey, FVector NewLocation);
 	void RemoveHeroFromGrid(AActor* Hero, int64& InOutLastKey);
@@ -69,4 +71,8 @@ public:
 
 	AActor*  FindFinalRoundTarget(FVector MonsterLocation);
 	void OnWallDestroyed(AActor* DestroyedWall);
+
+	FIntVector PosToGrid(const FVector& Pos) const;
+	bool IsGridBlocked(const FIntVector& GridKey) const;
+	void RegisterObstacle(const TArray<FIntVector>& GridKeys);
 };
