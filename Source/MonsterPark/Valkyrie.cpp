@@ -105,7 +105,7 @@ void AValkyrie::FindEnemiesInArea()
 				int64 CheckKey = ((int64)(CenterX + x) << 32) | (uint32)(CenterY + y);
 				if (FGridData* Cell = PlaySubsystem->SpatialGrid.Find(CheckKey))
 				{
-					CandidateMonsters.Append(Cell->MonsterInCell);
+					//CandidateMonsters.Append(Cell->MonsterInCell);
 				}
 			}
 		}
