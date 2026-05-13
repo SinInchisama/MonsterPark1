@@ -4,6 +4,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "MonsterPark/PlaySubSystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "MonsterPark/BasicGameMode.h"
 
 ANexusActor::ANexusActor()
 {
@@ -58,8 +59,11 @@ FVector ANexusActor::GetTargetLocation(FVector AttackerLocation)
 
 void ANexusActor::HandleNexusDestruction()
 {
-	UKismetSystemLibrary::PrintString(this, TEXT("NEXUS DESTROYED! GAME OVER"), true, true, FLinearColor::Red, 5.f);
-	Destroy();
-	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	UKismetSystemLibrary::QuitGame(GetWorld(), PC, EQuitPreference::Quit, false);
+	ABasicGameMode* GM = Cast<ABasicGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (GM)
+	{
+		GM->GameOver(false); // 패배했다는 인자를 보냄
+	}
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
 }

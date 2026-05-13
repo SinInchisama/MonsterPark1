@@ -35,6 +35,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void OnLevelUp(FHeroChanceRow& CurrentChane, int Level);
 
+	UFUNCTION()
+	void GameOver(bool bVictory);
+
 	UFUNCTION(BlueprintCallable)
 	TSubclassOf<ACharacterBase>GetRandomHeroByChance(const FHeroChanceRow& ChanceData);
 
@@ -83,4 +86,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Data")
 	UDataTable* HeroChanceTable;
+
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> GameOverWidgetClass;
 };

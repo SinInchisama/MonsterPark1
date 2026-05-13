@@ -6,6 +6,8 @@
 #include "MyBasicCharacter.h"
 #include "PlaySubSystem.h"
 #include "Engine/Engine.h"
+#include "Kismet/GameplayStatics.h"
+#include "Blueprint/UserWidget.h"
 
 ABasicGameMode::ABasicGameMode()
 {
@@ -44,6 +46,26 @@ void ABasicGameMode::OnLevelUp(FHeroChanceRow& CurrentChane,int Level)
 	if (HeroChanceTable)
 	{
 		CurrentChane =  *FoundRow;
+	}
+}
+
+void ABasicGameMode::GameOver(bool bVictory)
+{
+	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (PC && GameOverWidgetClass)
+	{
+		UUserWidget* GameOverUI = CreateWidget<UUserWidget>(GetWorld(), GameOverWidgetClass);
+		if (GameOverUI)
+		{
+			GameOverUI->AddToViewport();
+
+			FInputModeUIOnly InputMode;
+			InputMode.SetWidgetToFocus(GameOverUI->TakeWidget());
+			PC->SetInputMode(InputMode);
+			PC->bShowMouseCursor = true;
+		}
+
+		UGameplayStatics::SetGamePaused(GetWorld(), true);
 	}
 }
 
