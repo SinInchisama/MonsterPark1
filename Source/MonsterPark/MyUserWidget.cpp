@@ -299,12 +299,49 @@ void UMyUserWidget::ReFreshMoney()
 	}
 }
 
-void UMyUserWidget::OnUnitSelected(ACharacterBase* SelectedUnit)
+void UMyUserWidget::OnUnitSelected(ACharacterBase* SelectedUnit,bool Select)
 {
-	if (Image_5 && Image_5->GetVisibility() == ESlateVisibility::Hidden)
-	{
-		Image_5->SetVisibility(ESlateVisibility::Visible);
-		K2_PlayUnitInfoAnim();
+	if (Select) {
+	
+			if (Img_Portrait && SelectedUnit->UnitPortrait)
+			{
+				Img_Portrait->SetBrushFromTexture(SelectedUnit->UnitPortrait);
+			}
+
+			if (HeroName)
+			{
+				HeroName->SetText(SelectedUnit->UnitName);
+			}
+
+			if (SelectedUnit)
+			{
+				Attack->SetText(FText::Format(NSLOCTEXT("MyUI", "AttackText", "Attack : {0}"), FText::AsNumber(SelectedUnit->DefaultAttackPower)));
+
+				AS->SetText(FText::Format(FText::FromString("AS : {0}"), FText::AsNumber(SelectedUnit->DefaultAttackSpeed)));
+
+				Range->SetText(FText::Format(FText::FromString("Range : {0}"), FText::AsNumber(SelectedUnit->DefaultRange)));
+			}
+
+
+			
+			if (Image_5->GetVisibility() == ESlateVisibility::Hidden) {
+				Image_5->SetVisibility(ESlateVisibility::Visible);
+				Img_Portrait->SetVisibility(ESlateVisibility::Visible);
+				HeroName->SetVisibility(ESlateVisibility::Visible);
+				Attack->SetVisibility(ESlateVisibility::Visible);
+				AS->SetVisibility(ESlateVisibility::Visible);
+				Range->SetVisibility(ESlateVisibility::Visible);
+				K2_PlayUnitInfoAnim();
+			}
+		
+	}
+	else {
+		Image_5->SetVisibility(ESlateVisibility::Hidden);
+		Img_Portrait->SetVisibility(ESlateVisibility::Hidden);
+		HeroName->SetVisibility(ESlateVisibility::Hidden);
+		Attack->SetVisibility(ESlateVisibility::Hidden);
+		AS->SetVisibility(ESlateVisibility::Hidden);
+		Range->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
 

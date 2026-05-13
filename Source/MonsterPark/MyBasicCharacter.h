@@ -11,7 +11,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLifeChanged, int32, NewLife);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMixtureHero, int32, HeroCost);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUnitSelectedSignature, ACharacterBase*, SelectedUnit);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUnitSelectedSignature, ACharacterBase*, SelectedUnit,bool,Select);
 
 UCLASS()
 class MONSTERPARK_API AMyBasicCharacter : public ACharacter

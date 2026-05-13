@@ -39,7 +39,7 @@ protected:
 	void ReFreshMoney();
 
 	UFUNCTION()
-	void OnUnitSelected(ACharacterBase* SelectedUnit);
+	void OnUnitSelected(ACharacterBase* SelectedUnit, bool Select);
 	UFUNCTION()
 	void UpdateLife(int32 CurrentLife);
 
@@ -142,4 +142,16 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	UImage* Image_5;
+
+	UPROPERTY(meta = (BindWidget))
+	UImage* Img_Portrait;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* HeroName;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Attack;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Range;
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* AS;
 };
