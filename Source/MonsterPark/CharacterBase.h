@@ -78,7 +78,7 @@ public:
 	
 	void Attack_Melee();
 	void Attack_End();
-	void UseSkill();
+	virtual void UseSkill();
 	
 	virtual void FindEnemiesInArea();
 

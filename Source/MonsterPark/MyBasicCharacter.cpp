@@ -7,6 +7,7 @@
 #include "GameFramework/DefaultPawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "BasicGameMode.h"
+#include "InputCoreTypes.h"
 
 // Sets default values
 AMyBasicCharacter::AMyBasicCharacter()
@@ -57,6 +58,7 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
     PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AMyBasicCharacter::OnMouseLeftClick);
     PlayerInputComponent->BindAction("HeroMixture", IE_Pressed, this, &AMyBasicCharacter::HeroMixture);
+	PlayerInputComponent->BindKey(EKeys::Q, IE_Pressed, this, &AMyBasicCharacter::OnSkillPressed);
 }
 
 void AMyBasicCharacter::GameraMoveForward(float value)
@@ -100,6 +102,14 @@ void AMyBasicCharacter::HeroMoveRight(float value)
         if (SelectHero)
             SelectHero->MoveRight(value);
     }
+}
+
+void AMyBasicCharacter::OnSkillPressed()
+{
+	if (SelectHero)
+	{
+		SelectHero->UseSkill();
+	}
 }
 
 void AMyBasicCharacter::Set_PlayerMoney(int32 value)

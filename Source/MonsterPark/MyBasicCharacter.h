@@ -38,6 +38,7 @@ public:
 
 	void HeroMoveForward(float value);
 	void HeroMoveRight(float value);
+	void OnSkillPressed();
 
 	void Set_PlayerMoney(int32 value);
 	int32 Get_PlayerMoney();
