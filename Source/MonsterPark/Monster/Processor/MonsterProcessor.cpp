@@ -46,42 +46,43 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                 FVector CurrentLocation = Transform.GetLocation();
 
                 auto& Move = SimpleMovementsList[i];
-      
-               FVector Dir = Move.Target - CurrentLocation;
 
-               if (Dir.SizeSquared() < 10.0f)
-               {
-                   Move.TargetIndex = (Move.TargetIndex + 1) % 4;
+                FVector Dir = Move.Target - CurrentLocation;
+                float DistSq = Dir.SizeSquared();
 
-                   FVector NextTarget = MonsterTargets[Move.TargetIndex];
+                if (DistSq < 2500.0f)
+                {
+                    Move.TargetIndex = (Move.TargetIndex + 1) % 4;
 
-                   if (Move.TargetIndex == 1 || Move.TargetIndex == 3)
-                   {
-                       NextTarget.X += Move.MoveLocation;
-                       NextTarget.Y += Move.MoveLocation;
-                   }
-                   else
-                   {
-                       NextTarget.X += Move.MoveLocation;
-                       NextTarget.Y += Move.MoveLocation;
-                   }
-                   Move.Target = NextTarget;
-               }
-               else
-               {
+                    FVector NextTarget = MonsterTargets[Move.TargetIndex];
 
-                   FVector NormalDir = Dir.GetSafeNormal();
+                    NextTarget.X += Move.MoveLocation;
+                    NextTarget.Y += Move.MoveLocation;
 
-                   FRotator CurrentRot = NormalDir.Rotation();
+                    Move.Target = NextTarget;
 
-                   CurrentRot.Pitch = 0.f;
-                   CurrentRot.Roll = 0.f;
-                   Transform.SetRotation(CurrentRot.Quaternion());
 
-                   Velocities[i].Value = Dir.GetSafeNormal() * StatusList[i].SpeedMultiplier;
+                    FVector NewDir = Move.Target - CurrentLocation;
+                    FVector NormalNewDir = NewDir.GetSafeNormal();
 
-               }
-               
+                    Velocities[i].Value = NormalNewDir * StatusList[i].SpeedMultiplier;
+
+                    FRotator NewRot = NormalNewDir.Rotation();
+                    NewRot.Pitch = 0.f;
+                    NewRot.Roll = 0.f;
+                    Transform.SetRotation(NewRot.Quaternion());
+                }
+                else
+                {
+                    FVector NormalDir = Dir.GetSafeNormal();
+                    FRotator CurrentRot = NormalDir.Rotation();
+
+                    CurrentRot.Pitch = 0.f;
+                    CurrentRot.Roll = 0.f;
+                    Transform.SetRotation(CurrentRot.Quaternion());
+
+                    Velocities[i].Value = NormalDir * StatusList[i].SpeedMultiplier;
+                }
             }
         });
 }
