@@ -9,6 +9,9 @@
 /**
  * 
  */
+
+class UNiagaraSystem;
+
 UCLASS()
 class MONSTERPARK_API AWizard : public ACharacterBase
 {
@@ -29,4 +32,7 @@ protected:
 	float SplashRadius = 250.0f;
 
     bool bHasPlayedPassive = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+    UNiagaraSystem* FirePillarTemplate;
 };

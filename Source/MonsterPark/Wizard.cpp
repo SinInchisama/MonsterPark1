@@ -12,6 +12,9 @@
 #include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MassCommonFragments.h"
 
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+
 void AWizard::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -67,6 +70,29 @@ void AWizard::FindEnemiesInArea()
 
 		if (bFoundTarget)
 		{
+			if (FirePillarTemplate)
+			{
+				UNiagaraComponent* SpawnedEffect = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+					GetWorld(), FirePillarTemplate, TargetLocation, FRotator::ZeroRotator, FVector(1.0f)
+				);
+
+				if (SpawnedEffect)
+				{
+					TWeakObjectPtr<UNiagaraComponent> WeakEffect = SpawnedEffect;
+
+					FTimerHandle EffectTimerHandle;
+					GetWorld()->GetTimerManager().SetTimer(EffectTimerHandle, [WeakEffect]()
+						{
+							if (WeakEffect.IsValid())
+							{
+								WeakEffect->Deactivate();
+								WeakEffect->DestroyComponent();
+							}
+						}, 0.3f, false);
+				}
+			}
+
+
 			FMassExecutionContext DamageContext(EntityManager, 0.0f);
 			TargetQueryPtr->ForEachEntityChunk(DamageContext, [this, TargetLocation, SplashRadiusSq, AttackPowerValue](FMassExecutionContext& Context)
 				{
@@ -127,6 +153,27 @@ void AWizard::FindEnemiesInArea()
 
 		if (bFoundTarget)
 		{
+			if (FirePillarTemplate)
+			{
+				UNiagaraComponent* SpawnedEffect = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+					GetWorld(), FirePillarTemplate, TargetLocation, FRotator::ZeroRotator, FVector(1.0f)
+				);
+
+				if (SpawnedEffect)
+				{
+					TWeakObjectPtr<UNiagaraComponent> WeakEffect = SpawnedEffect;
+
+					FTimerHandle EffectTimerHandle;
+					GetWorld()->GetTimerManager().SetTimer(EffectTimerHandle, [WeakEffect]()
+						{
+							if (WeakEffect.IsValid())
+							{
+								WeakEffect->Deactivate();
+								WeakEffect->DestroyComponent();
+							}
+						}, 0.3f, false);
+				}
+			}
 			for (FMassEntityHandle MonsterHandle : CandidateMonsters)
 			{
 				if (!EntityManager.IsEntityValid(MonsterHandle))
