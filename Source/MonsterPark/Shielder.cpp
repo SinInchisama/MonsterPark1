@@ -9,10 +9,39 @@
 #include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MassCommonFragments.h"   
 
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+
+AShielder::AShielder()
+{
+    AuraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("AuraComponent"));
+    if (AuraComponent)
+    {
+        AuraComponent->SetupAttachment(GetRootComponent());
+        AuraComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        AuraComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+        AuraComponent->bAutoActivate = false; 
+
+        AuraComponent->SetRelativeLocation(FVector::ZeroVector);
+    }
+}
+
 void AShielder::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-};
+}
+
+void AShielder::BeginPlay()
+{
+    Super::BeginPlay();
+
+    if (AuraComponent && AuraTemplate)
+    {
+        AuraComponent->SetAsset(AuraTemplate);
+        AuraComponent->Activate(true);
+    }
+}
+
 
 UAnimMontage* AShielder::GetDetectedMontage() const
 {

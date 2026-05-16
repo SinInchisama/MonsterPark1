@@ -9,13 +9,21 @@
 /**
  * 
  */
+
+class UNiagaraComponent;
+class UNiagaraSystem;
+
 UCLASS()
 class MONSTERPARK_API AShielder : public ACharacterBase
 {
 	GENERATED_BODY()
 	
 public:
+    AShielder();
+
 	virtual void Tick(float DeltaTime) override;
+
+    virtual void BeginPlay() override;
 
 protected:
     // 1. 부모의 적 감지 로직에 슬로우 효과를 추가하기 위해 오버라이드
@@ -35,4 +43,10 @@ protected:
 	virtual void PlayDetectedMontageIfNeeded() override;
 
     bool bHasPlayedPassive = false;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+    UNiagaraSystem* AuraTemplate;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VFX")
+    UNiagaraComponent* AuraComponent;
 };

@@ -9,13 +9,20 @@
 /**
  * 
  */
+
+class UNiagaraComponent;
+class UNiagaraSystem;
+
 UCLASS()
 class MONSTERPARK_API ABerserker : public ACharacterBase
 {
 	GENERATED_BODY()
 
 public:
+	ABerserker();
+
 	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
 
 protected:
 	virtual void FindEnemiesInArea() override;
@@ -26,4 +33,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float DefenseReductionMultiplier = 0.7f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VFX")
+	UNiagaraComponent* AuraComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+	UNiagaraSystem* AuraTemplate;
 };

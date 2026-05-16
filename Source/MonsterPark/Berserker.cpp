@@ -10,10 +10,38 @@
 #include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MassCommonFragments.h"
 
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+
+ABerserker::ABerserker()
+{
+	AuraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("AuraComponent"));
+	if (AuraComponent)
+	{
+		AuraComponent->SetupAttachment(GetRootComponent());
+		AuraComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		AuraComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+		AuraComponent->bAutoActivate = false;
+
+		AuraComponent->SetRelativeLocation(FVector::ZeroVector);
+	}
+}
+
 void ABerserker::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-};
+}
+void ABerserker::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (AuraComponent && AuraTemplate)
+	{
+		AuraComponent->SetAsset(AuraTemplate);
+		AuraComponent->Activate(true);
+	}
+}
+
 
 void ABerserker::FindEnemiesInArea()
 {
