@@ -93,6 +93,38 @@ TSubclassOf<ACharacterBase> ABasicGameMode::GetRandomHeroByChance(const FHeroCha
 }
 
 
+void ABasicGameMode::ToggleMenuUI()
+{
+	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (!PC) return;
+
+	if (CurrentMenuWidget && CurrentMenuWidget->IsInViewport())
+	{
+		CurrentMenuWidget->RemoveFromParent();
+
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
+		PC->bShowMouseCursor = false;
+	}
+	else if (MenuWidgetClass)
+	{
+		if (!CurrentMenuWidget)
+		{
+			CurrentMenuWidget = CreateWidget<UUserWidget>(GetWorld(), MenuWidgetClass);
+		}
+
+		if (CurrentMenuWidget)
+		{
+			CurrentMenuWidget->AddToViewport();
+
+			FInputModeGameAndUI InputMode; 
+			InputMode.SetWidgetToFocus(CurrentMenuWidget->TakeWidget());
+			PC->SetInputMode(InputMode);
+			PC->bShowMouseCursor = true;
+		}
+	}
+}
+
 void ABasicGameMode::BeginPlay()
 {
 	Super::BeginPlay();

@@ -59,6 +59,8 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AMyBasicCharacter::OnMouseLeftClick);
     PlayerInputComponent->BindAction("HeroMixture", IE_Pressed, this, &AMyBasicCharacter::HeroMixture);
 	PlayerInputComponent->BindKey(EKeys::Q, IE_Pressed, this, &AMyBasicCharacter::OnSkillPressed);
+
+    PlayerInputComponent->BindAction("Menu", IE_Pressed, this, &AMyBasicCharacter::OpenMenu);
 }
 
 void AMyBasicCharacter::GameraMoveForward(float value)
@@ -230,6 +232,16 @@ void AMyBasicCharacter::HeroMixture()
             }
             Mixtured.Broadcast(1);
         }
+    }
+}
+
+void AMyBasicCharacter::OpenMenu()
+{
+    ABasicGameMode* GM = Cast<ABasicGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+    if (GM)
+    {
+        // 토글(Toggle) 방식으로 켜고 끄기 함수 호출
+        GM->ToggleMenuUI();
     }
 }
 

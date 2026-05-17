@@ -56,6 +56,8 @@ public:
 
 	void OnMouseLeftClick();
 	void HeroMixture();
+
+	void OpenMenu();
 protected:
 	FTimerHandle TH_Attack_End;
 

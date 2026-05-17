@@ -211,16 +211,17 @@ void UPlaySubSystem::StartRound(int Round,int Scale)
 
             if (DelayTime <= 0.0f)
             {
-                Spawner->SpawnEntityByIndex(CurrentRound, Scale);
+                Spawner->SpawnEntityByIndex(CurrentRound, 10);
             }
             else
             {
+                int R = CurrentRound;
                 FTimerHandle TempHandle;
-                TimerManager.SetTimer(TempHandle, [Spawner, Round, Scale]()
+                TimerManager.SetTimer(TempHandle, [Spawner, R, Scale]()
                     {
                         if (IsValid(Spawner))
                         {
-                            Spawner->SpawnEntityByIndex(Round, Scale);
+                            Spawner->SpawnEntityByIndex(R, 10);
                         }
                     }, DelayTime, false);
             }

@@ -53,6 +53,8 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "GameRules")
 	FOnTimerUpdated OnTimerUpdated;
 
+	void ToggleMenuUI();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -89,4 +91,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> GameOverWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> MenuWidgetClass;
+
+	UPROPERTY()
+	UUserWidget* CurrentMenuWidget;
 };

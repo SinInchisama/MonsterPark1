@@ -84,7 +84,7 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
             const float DetectRange = 800.0f;
             const float GridCheckDistance = 150.f;
 
-            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 1;
+            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 20;
 
             FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(MassMonsterTrace), false);
 

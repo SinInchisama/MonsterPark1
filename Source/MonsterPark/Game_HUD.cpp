@@ -8,7 +8,8 @@
 AGame_HUD::AGame_HUD()
 {
 
-	static ConstructorHelpers::FClassFinder<UUserWidget>ui(TEXT("/Game/UI/Store.Store_C"));
+	static ConstructorHelpers::FClassFinder<UUserWidget>ui(TEXT("/Game/UI/Play/Store.Store_C"));
+
 	if (ui.Succeeded())
 	{
 		uiBPClass = ui.Class;

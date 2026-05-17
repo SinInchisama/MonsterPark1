@@ -71,6 +71,9 @@ void UMonsterSpawnProcessor::Execute(FMassEntityManager& EntityManager, FMassExe
                         FQuat LeftRotation = FRotator(0.f, 90.f, 0.f).Quaternion();
                         Transform.SetRotation(LeftRotation);
 
+                        float RandomScale = FMath::RandRange(0.8, 1.5);
+                        Transform.SetScale3D(FVector(RandomScale));
+
                         Move.Target = FVector(-2600 + Move.MoveLocation, 2600+Move.MoveLocation, 60.f); 
                         Context.Defer().AddTag<FMonsterTag>(Context.GetEntity(i));
                         Context.Defer().RemoveTag<FMonsterSpawnTag>(Context.GetEntity(i));
