@@ -13,9 +13,19 @@ void ULobbyWidget::NativeConstruct()
 	{
 		StartButton->OnClicked.AddDynamic(this, &ULobbyWidget::OnStartClicked);
 	}
+
+	if (GameOff)
+	{
+		GameOff->OnClicked.AddDynamic(this, &ULobbyWidget::OnGameOffClicked);
+	}
 }
 
 void ULobbyWidget::OnStartClicked()
 {
 	UGameplayStatics::OpenLevel(GetWorld(), FName("LoadingLevel"));
+}
+
+void ULobbyWidget::OnGameOffClicked()
+{
+	UKismetSystemLibrary::QuitGame(this, nullptr, EQuitPreference::Quit, false);
 }

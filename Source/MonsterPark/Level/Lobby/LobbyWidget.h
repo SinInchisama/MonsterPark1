@@ -18,8 +18,14 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* StartButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* GameOff;
+
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
 	void OnStartClicked();
+
+	UFUNCTION()
+	void OnGameOffClicked();
 };

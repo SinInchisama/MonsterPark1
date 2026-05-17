@@ -83,7 +83,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TArray<ACharacterBase*> MySummonedHero;
 		
-protected:
+public:
 	// ���� �÷��̾� ��, ����ġ, ������, ������ �ִ� �������� ����
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerMoney = 20;
@@ -95,7 +95,7 @@ protected:
 	int32 PlayerExp = 0;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
-	int32 PlayerMaxExp = 2;
+	int32 PlayerMaxExp = 8;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerLevel = 1;

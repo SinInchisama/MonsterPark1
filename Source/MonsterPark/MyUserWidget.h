@@ -154,4 +154,12 @@ protected:
 	class UTextBlock* Range;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* AS;
+
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* Exp_ProgressBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Exp_Text;
+
+	void ReFreshExpAndLevel();
 };

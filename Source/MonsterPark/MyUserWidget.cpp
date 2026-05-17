@@ -13,6 +13,7 @@
 
 #include "Components/Image.h"
 #include "Engine/Texture2D.h"
+#include "Components/ProgressBar.h"
 
 void UMyUserWidget::NativeConstruct()
 {
@@ -88,7 +89,7 @@ void UMyUserWidget::NativeConstruct()
 		}
 	}
 	ReFreshMoney();
-
+	ReFreshExpAndLevel();
 }
 
 FReply UMyUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -151,6 +152,7 @@ void UMyUserWidget::Btn_LevelUp_Clicked()
 				{
 					MyPlayer->Set_PlayerExp(2);
 				}
+				ReFreshExpAndLevel();
 			}
 		}
 	}
@@ -363,6 +365,35 @@ void UMyUserWidget::UpdateRoundText(int32 NewRound)
 	if (CurrentRound)
 	{
 		CurrentRound->SetText(FText::AsNumber(NewRound + 1));
+	}
+}
+
+void UMyUserWidget::ReFreshExpAndLevel()
+{
+	APlayerController* PC = GetOwningPlayer();
+	if (!PC) return;
+
+	AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
+	if (!MyPlayer) return;
+
+	float CurrentExp = static_cast<float>(MyPlayer->PlayerExp);
+	float MaxExp = static_cast<float>(MyPlayer->PlayerMaxExp);
+
+	if (Exp_ProgressBar && MaxExp > 0.f)
+	{
+		float ExpPercent = CurrentExp / MaxExp;
+		Exp_ProgressBar->SetPercent(ExpPercent);
+	}
+
+	if (Exp_Text)
+	{
+		FText ExpFormat = FText::Format(
+			NSLOCTEXT("MyUI", "ExpLevelFormat", "LV. {0} ({1} / {2})"),
+			FText::AsNumber(MyPlayer->PlayerLevel),
+			FText::AsNumber(MyPlayer->PlayerExp),
+			FText::AsNumber(MyPlayer->PlayerMaxExp)
+		);
+		Exp_Text->SetText(ExpFormat);
 	}
 }
 
