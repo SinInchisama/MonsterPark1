@@ -103,8 +103,8 @@ void ABasicGameMode::ToggleMenuUI()
 		CurrentMenuWidget->RemoveFromParent();
 
 		FInputModeGameOnly InputMode;
+		InputMode.SetConsumeCaptureMouseDown(false);
 		PC->SetInputMode(InputMode);
-		PC->bShowMouseCursor = false;
 	}
 	else if (MenuWidgetClass)
 	{
@@ -120,7 +120,6 @@ void ABasicGameMode::ToggleMenuUI()
 			FInputModeGameAndUI InputMode; 
 			InputMode.SetWidgetToFocus(CurrentMenuWidget->TakeWidget());
 			PC->SetInputMode(InputMode);
-			PC->bShowMouseCursor = true;
 		}
 	}
 }
