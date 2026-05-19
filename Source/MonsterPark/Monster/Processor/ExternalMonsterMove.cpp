@@ -10,6 +10,9 @@
 
 #include "MonsterPark/Monster/Fragment/FMonsterRandomMoveFragment.h"
 #include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
+#include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
+#include "MonsterPark/Monster/Tag/KilledTag.h"
+#include "MonsterPark/Monster/Tag/MonsterDyingTag.h"
 #include "Engine/World.h"
 #include "Math/UnrealMathUtility.h"
 
@@ -60,6 +63,10 @@ UExternalMonsterMove::UExternalMonsterMove() : EntityQuery(*this)
 
 void UExternalMonsterMove::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
+    EntityQuery.AddTagRequirement<FKilledTag>(EMassFragmentPresence::None);
+    EntityQuery.AddTagRequirement<FMonsterDyingTag>(EMassFragmentPresence::None);
+
+
 	EntityQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 	EntityQuery.AddRequirement<FMonsterRandomMoveFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);

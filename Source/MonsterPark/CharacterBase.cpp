@@ -30,6 +30,8 @@
 #include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h"
 #include "Monster/Tag/FMonsterTag.h"
+#include "MonsterPark/Monster/Tag/MonsterDyingTag.h"
+#include "MonsterPark/Monster/Tag/KilledTag.h"
 
 #include "MassEntityView.h"
 
@@ -100,6 +102,9 @@ void ACharacterBase::BeginPlay()
     EnemyQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
     EnemyQuery.AddRequirement<FMonsterConditionFragment>(EMassFragmentAccess::ReadWrite);
     EnemyQuery.AddTagRequirement<FMonsterTag>(EMassFragmentPresence::All);
+
+    EnemyQuery.AddTagRequirement<FKilledTag>(EMassFragmentPresence::None);
+    EnemyQuery.AddTagRequirement<FMonsterDyingTag>(EMassFragmentPresence::None);
 
     TargetQueryPtr = &EnemyQuery;
 }

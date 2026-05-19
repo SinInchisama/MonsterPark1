@@ -14,6 +14,7 @@
 #include "MonsterPark/Monster/Tag/FMonsterTag.h"
 #include "MonsterPark/Monster/Tag/KilledTag.h"
 #include "MonsterPark/Monster/Tag/MonsterDamagedTag.h"
+#include "MonsterPark/Monster/Tag/MonsterDyingTag.h"
 
 UDamageCheckProcessor::UDamageCheckProcessor() :DamageCheckQuery(*this)
 {
@@ -24,11 +25,12 @@ UDamageCheckProcessor::UDamageCheckProcessor() :DamageCheckQuery(*this)
 void UDamageCheckProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
 {
 	DamageCheckQuery.AddTagRequirement<FKilledTag>(EMassFragmentPresence::None);
+	DamageCheckQuery.AddTagRequirement<FMonsterDyingTag>(EMassFragmentPresence::None);
 
 	DamageCheckQuery.AddRequirement<FMonsterConditionFragment>(EMassFragmentAccess::ReadWrite);
 	DamageCheckQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
 
-	DamageCheckQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite); // static mesh�� ����� ����� ��� �ϴ� ��ġ �������� �� ���̰� ����
+	DamageCheckQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
 }
 
 void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -60,7 +62,7 @@ void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 					Context.Defer().AddTag<FMonsterDamagedTag>(Context.GetEntity(i));
 				}
 				if (StatusList[i].CurrentHealth <= 0) {
-					Context.Defer().AddTag<FKilledTag>(Context.GetEntity(i));
+					Context.Defer().AddTag<FMonsterDyingTag>(Context.GetEntity(i));
 				}
 			}
 

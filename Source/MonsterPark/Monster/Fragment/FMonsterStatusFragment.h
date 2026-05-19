@@ -39,4 +39,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Mass|Stats")
 	float Size = 50.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Mass|Stats")
+	float DeathDelayTimer = 1.0f;
 };
