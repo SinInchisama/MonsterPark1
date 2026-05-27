@@ -57,6 +57,7 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAxis("HeroMoveRight", this, &AMyBasicCharacter::HeroMoveRight);
 
     PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AMyBasicCharacter::OnMouseLeftClick);
+    PlayerInputComponent->BindAction("RightClick", IE_Pressed, this, &AMyBasicCharacter::OnMouseRightClick);
     PlayerInputComponent->BindAction("HeroMixture", IE_Pressed, this, &AMyBasicCharacter::HeroMixture);
 	PlayerInputComponent->BindKey(EKeys::Q, IE_Pressed, this, &AMyBasicCharacter::OnSkillPressed);
 
@@ -199,6 +200,25 @@ void AMyBasicCharacter::OnMouseLeftClick()
             }
         }
        
+    }
+}
+
+void AMyBasicCharacter::OnMouseRightClick()
+{
+    if (!SelectHero)
+    {
+        return;
+    }
+
+    APlayerController* PC = Cast<APlayerController>(GetController());
+
+    if (PC)
+    {
+        FHitResult HitResult; 
+        if (PC->GetHitResultUnderCursor(ECC_Visibility, false, HitResult))
+        {
+            SelectHero->CommandMoveToLocation(HitResult.Location);
+        }
     }
 }
 

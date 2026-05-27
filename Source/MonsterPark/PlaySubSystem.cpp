@@ -6,6 +6,7 @@
 #include "Map/WallActor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/BoxComponent.h"
+#include "Algo/Reverse.h"
 
 void UPlaySubSystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -193,6 +194,183 @@ void UPlaySubSystem::RegisterObstacle(const TArray<FIntVector>& GridKeys)
         int32& Count = ObstacleMap.FindOrAdd(Key);
         Count++;
     }
+}
+
+FVector UPlaySubSystem::GridToPos(const FIntVector& GridKey) const
+{
+    return FVector(
+        (GridKey.X + 0.5f) * 100.f,
+        (GridKey.Y + 0.5f) * 100.f,
+        0.f 
+    );
+}
+
+TArray<FIntVector> UPlaySubSystem::FindPath(const FIntVector& StartGrid, const FIntVector& TargetGrid)
+{
+    TArray<FIntVector> Path;
+
+    if (IsGridBlocked(TargetGrid) || IsGridBlocked(StartGrid) || StartGrid == TargetGrid)
+    {
+        return Path;
+    }
+
+    TArray<FIntVector> OpenList;          
+    TSet<FIntVector> ClosedSet;           
+    TMap<FIntVector, FIntVector> ParentMap; 
+    TMap<FIntVector, int32> GCostMap;     
+    TMap<FIntVector, int32> FCostMap;     
+
+    OpenList.Add(StartGrid);
+    GCostMap.Add(StartGrid, 0);
+    FCostMap.Add(StartGrid, 0); 
+
+    while (OpenList.Num() > 0)
+    {
+        int32 LowestIndex = 0;
+        int32 LowestFCost = FCostMap[OpenList[0]];
+
+        for (int32 i = 1; i < OpenList.Num(); ++i)
+        {
+            int32 Cost = FCostMap[OpenList[i]];
+            if (Cost < LowestFCost)
+            {
+                LowestFCost = Cost;
+                LowestIndex = i;
+            }
+        }
+
+        FIntVector Current = OpenList[LowestIndex];
+        OpenList.RemoveAt(LowestIndex);
+
+        if (Current == TargetGrid)
+        {
+            FIntVector Trace = Current;
+            while (ParentMap.Contains(Trace))
+            {
+                Path.Add(Trace);
+                Trace = ParentMap[Trace];
+            }
+            Algo::Reverse(Path);
+            return Path;
+        }
+
+        ClosedSet.Add(Current);
+
+        TArray<FIntVector> Directions = {
+            FIntVector(1, 0, 0), FIntVector(-1, 0, 0), FIntVector(0, 1, 0), FIntVector(0, -1, 0),  
+            FIntVector(1, 1, 0), FIntVector(1, -1, 0), FIntVector(-1, 1, 0), FIntVector(-1, -1, 0) 
+        };
+
+        for (const FIntVector& Dir : Directions)
+        {
+            FIntVector Neighbor = Current + Dir;
+
+            if (ClosedSet.Contains(Neighbor) || IsGridBlocked(Neighbor))
+            {
+                continue;
+            }
+
+            int32 MoveCost = (Dir.X != 0 && Dir.Y != 0) ? 14 : 10;
+
+            if (MoveCost == 14)
+            {
+                if (IsGridBlocked(FIntVector(Current.X + Dir.X, Current.Y, 0)) &&
+                    IsGridBlocked(FIntVector(Current.X, Current.Y + Dir.Y, 0)))
+                {
+                    continue;
+                }
+            }
+
+            int32 TentativeGCost = GCostMap[Current] + MoveCost;
+            int32* ExistingGCost = GCostMap.Find(Neighbor);
+
+            if (!ExistingGCost || TentativeGCost < *ExistingGCost)
+            {
+                ParentMap.Add(Neighbor, Current);
+                GCostMap.Add(Neighbor, TentativeGCost);
+
+                int32 dx = FMath::Abs(Neighbor.X - TargetGrid.X);
+                int32 dy = FMath::Abs(Neighbor.Y - TargetGrid.Y);
+
+                int32 HCost = 10 * (dx + dy) + (14 - 20) * FMath::Min(dx, dy);
+
+                FCostMap.Add(Neighbor, TentativeGCost + HCost);
+
+                if (!OpenList.Contains(Neighbor))
+                {
+                    OpenList.Add(Neighbor);
+                }
+            }
+        }
+    }
+
+    return Path;
+}
+
+bool UPlaySubSystem::HasLineOfSight(const FIntVector& Start, const FIntVector& End) const
+{
+    int32 x1 = Start.X; int32 y1 = Start.Y;
+    int32 x2 = End.X;   int32 y2 = End.Y;
+
+    int32 dx = FMath::Abs(x2 - x1);
+    int32 dy = FMath::Abs(y2 - y1);
+    int32 sx = (x1 < x2) ? 1 : -1;
+    int32 sy = (y1 < y2) ? 1 : -1;
+    int32 err = dx - dy;
+
+    while (true)
+    {
+        if (IsGridBlocked(FIntVector(x1, y1, 0)))
+        {
+            return false; 
+        }
+
+        if (x1 == x2 && y1 == y2) break;
+
+        int32 e2 = 2 * err;
+        if (e2 > -dy)
+        {
+            err -= dy;
+            x1 += sx;
+        }
+        if (e2 < dx)
+        {
+            err += dx;
+            y1 += sy;
+        }
+    }
+    return true; 
+}
+
+TArray<FIntVector> UPlaySubSystem::SmoothPath(const TArray<FIntVector>& InPath)
+{
+    if (InPath.Num() <= 2) return InPath;
+
+    TArray<FIntVector> SmoothedPath;
+    SmoothedPath.Add(InPath[0]); 
+
+    int32 CurrentIndex = 0;
+    while (CurrentIndex < InPath.Num() - 1)
+    {
+        int32 FurthestVisibleIndex = CurrentIndex + 1;
+
+        for (int32 i = CurrentIndex + 2; i < InPath.Num(); ++i)
+        {
+            if (HasLineOfSight(InPath[CurrentIndex], InPath[i]))
+            {
+                FurthestVisibleIndex = i; 
+            }
+            else
+            {
+                break; 
+            }
+        }
+
+        SmoothedPath.Add(InPath[FurthestVisibleIndex]);
+        CurrentIndex = FurthestVisibleIndex;
+    }
+
+    return SmoothedPath;
 }
 
 void UPlaySubSystem::StartRound(int Round,int Scale)

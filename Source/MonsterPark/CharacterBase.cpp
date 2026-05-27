@@ -132,6 +132,9 @@ void ACharacterBase::Tick(float DeltaTime)
 
     if (!MoveDirection.IsNearlyZero() && Attacking)
     {
+        bIsMovingOnPath = false;
+        PathToFollow.Empty();
+
         AddMovementInput(MoveDirection.GetSafeNormal(), 1.0f);
 
         if (PlaySubsystem)
@@ -141,15 +144,47 @@ void ACharacterBase::Tick(float DeltaTime)
 
         UpdateAnimBPSpeed(1);
     }
+    else if (bIsMovingOnPath && Attacking && PathToFollow.IsValidIndex(CurrentPathIndex))
+    {
+        FVector TargetPoint = PlaySubsystem->GridToPos(PathToFollow[CurrentPathIndex]);
+        TargetPoint.Z = GetActorLocation().Z; 
+
+        FVector Direction = (TargetPoint - GetActorLocation());
+        float DistanceToTarget = Direction.Size2D();
+
+        if (DistanceToTarget <= 20.f) 
+        {
+            CurrentPathIndex++;
+            if (CurrentPathIndex >= PathToFollow.Num())
+            {
+                bIsMovingOnPath = false;
+                UpdateAnimBPSpeed(0);
+            }
+        }
+        else
+        {
+            AddMovementInput(Direction.GetSafeNormal(), 1.0f);
+            UpdateAnimBPSpeed(1);
+
+            if (PlaySubsystem)
+            {
+                PlaySubsystem->UpdateHeroLocation(this, LastGridKey, GetActorLocation());
+            }
+        }
+    }
     else
     {
         SearchTimer -= DeltaTime;
-        if (Attacking && SearchTimer <= 0.0f) { 
+        if (Attacking && SearchTimer <= 0.0f) {
             FindEnemiesInArea();
             SearchTimer = SearchInterval;
         }
         if (bEnemyDetected) Attack();
-        UpdateAnimBPSpeed(0);
+
+        if (!bIsMovingOnPath)
+        {
+            UpdateAnimBPSpeed(0);
+        }
     }
 
     CurrentForwardInput = 0.0f;
@@ -372,6 +407,31 @@ void ACharacterBase::SetSelectedHero(bool bIsSelected)
     if (SelectionDecal)
     {
         SelectionDecal->SetHiddenInGame(!bIsSelected);
+    }
+}
+
+void ACharacterBase::CommandMoveToLocation(FVector TargetLocation)
+{
+    if (!PlaySubsystem)
+    {
+        return;
+    }
+
+    FIntVector StartGrid = PlaySubsystem->PosToGrid(GetActorLocation());
+    FIntVector TargetGrid = PlaySubsystem->PosToGrid(TargetLocation);
+    PathToFollow = PlaySubsystem->FindPath(StartGrid, TargetGrid);
+
+    PathToFollow = PlaySubsystem->SmoothPath(PathToFollow);
+
+    if (PathToFollow.Num() > 0)
+    {
+        CurrentPathIndex = 0;
+        bIsMovingOnPath = true;
+    }
+    else
+    {
+        bIsMovingOnPath = false;
+        PathToFollow.Empty();
     }
 }
 

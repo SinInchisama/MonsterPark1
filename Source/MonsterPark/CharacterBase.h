@@ -94,6 +94,8 @@ public:
 	virtual FVector GetTargetLocation(FVector AttackerLocation) override {return GetActorLocation();};
 
 	void SetSelectedHero(bool bIsSelected);
+
+	void CommandMoveToLocation(FVector TargetLocation);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	TSubclassOf<UMyAnimInstance> AnimClass;
@@ -141,4 +143,8 @@ protected:
 
 	float SearchTimer = 0.0f;
 	const float SearchInterval = 0.5f;
+
+	TArray<FIntVector> PathToFollow;
+	int32 CurrentPathIndex = 0;
+	bool bIsMovingOnPath = false;
 };
