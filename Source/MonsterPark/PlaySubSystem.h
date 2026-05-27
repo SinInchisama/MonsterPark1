@@ -85,4 +85,9 @@ public:
 	FIntVector PosToGrid(const FVector& Pos) const;
 	bool IsGridBlocked(const FIntVector& GridKey) const;
 	void RegisterObstacle(const TArray<FIntVector>& GridKeys);
+
+	FVector GridToPos(const FIntVector& GridKey) const;
+	TArray<FIntVector> FindPath(const FIntVector& StartGrid, const FIntVector& TargetGrid);
+	bool HasLineOfSight(const FIntVector& Start, const FIntVector& End) const;
+	TArray<FIntVector> SmoothPath(const TArray<FIntVector>& InPath);
 };

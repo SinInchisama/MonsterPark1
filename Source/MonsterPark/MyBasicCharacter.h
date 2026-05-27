@@ -55,6 +55,7 @@ public:
 	void SetSummonedActor(AActor* InActor);
 
 	void OnMouseLeftClick();
+	void OnMouseRightClick();
 	void HeroMixture();
 
 	void OpenMenu();
