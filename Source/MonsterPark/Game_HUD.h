@@ -19,6 +19,10 @@ public:
 
 	void BeginPlay() override;
 
+	virtual void DrawHUD() override;
+
+	FVector2D StartDrawPoint;
+	bool bIsDrawing;
 private:
 	TSubclassOf<class UUserWidget> uiBPClass;
 	class UUserWidget* uiWidget;

@@ -67,6 +67,8 @@ public:
 protected:
 	FTimerHandle TH_Attack_End;
 
+	UPROPERTY()
+	class AGame_HUD* MyHUD;
 public:
 	// ���� ī�޶� �κ�
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)

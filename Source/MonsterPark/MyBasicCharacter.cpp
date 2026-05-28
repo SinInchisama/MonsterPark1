@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "BasicGameMode.h"
 #include "InputCoreTypes.h"
+#include "Game_HUD.h"
 
 // Sets default values
 AMyBasicCharacter::AMyBasicCharacter()
@@ -36,6 +37,11 @@ void AMyBasicCharacter::BeginPlay()
 {
     Super::BeginPlay();
 
+    APlayerController* PC = Cast<APlayerController>(GetController());
+    if (PC)
+    {
+        MyHUD = Cast<AGame_HUD>(PC->GetHUD());
+    }
 }
 
 // Called every frame
@@ -183,6 +189,12 @@ void AMyBasicCharacter::OnLeftClickPressed()
     if (PC)
     {
         PC->GetMousePosition(StartMousePosition.X, StartMousePosition.Y);
+
+        if (MyHUD)
+        {
+            MyHUD->StartDrawPoint = StartMousePosition;
+            MyHUD->bIsDrawing = true;
+        }
     }
 }
 
@@ -190,6 +202,11 @@ void AMyBasicCharacter::OnLeftClickReleased()
 {
     APlayerController* PC = Cast<APlayerController>(GetController());
     if (!PC) return;
+
+    if (MyHUD)
+    {
+        MyHUD->bIsDrawing = false;
+    }
 
     PC->GetMousePosition(EndMousePosition.X, EndMousePosition.Y);
 
