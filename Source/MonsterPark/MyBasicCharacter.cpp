@@ -8,21 +8,22 @@
 #include "Kismet/GameplayStatics.h"
 #include "BasicGameMode.h"
 #include "InputCoreTypes.h"
+#include "Game_HUD.h"
 
 // Sets default values
 AMyBasicCharacter::AMyBasicCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+    // Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    PrimaryActorTick.bCanEverTick = true;
 
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 800.0f;
-	CameraBoom->bUsePawnControlRotation = true;
+    CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+    CameraBoom->SetupAttachment(RootComponent);
+    CameraBoom->TargetArmLength = 800.0f;
+    CameraBoom->bUsePawnControlRotation = true;
 
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	FollowCamera->bUsePawnControlRotation = true;
+    FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+    FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+    FollowCamera->bUsePawnControlRotation = true;
 
     FVector CurrentLocation = GetActorLocation();
     CurrentLocation.Z = 1000.0f;
@@ -34,32 +35,38 @@ AMyBasicCharacter::AMyBasicCharacter()
 // Called when the game starts or when spawned
 void AMyBasicCharacter::BeginPlay()
 {
-	Super::BeginPlay();
-	
+    Super::BeginPlay();
+
+    APlayerController* PC = Cast<APlayerController>(GetController());
+    if (PC)
+    {
+        MyHUD = Cast<AGame_HUD>(PC->GetHUD());
+    }
 }
 
 // Called every frame
 void AMyBasicCharacter::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
 
 }
 
 // Called to bind functionality to input
 void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+    Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("GameraMoveForward",this,&AMyBasicCharacter::GameraMoveForward);
-	PlayerInputComponent->BindAxis("GameraMoveRight", this, &AMyBasicCharacter::GameraMoveRight);
+    PlayerInputComponent->BindAxis("GameraMoveForward", this, &AMyBasicCharacter::GameraMoveForward);
+    PlayerInputComponent->BindAxis("GameraMoveRight", this, &AMyBasicCharacter::GameraMoveRight);
 
     PlayerInputComponent->BindAxis("HeroMoveForward", this, &AMyBasicCharacter::HeroMoveForward);
     PlayerInputComponent->BindAxis("HeroMoveRight", this, &AMyBasicCharacter::HeroMoveRight);
 
-    PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AMyBasicCharacter::OnMouseLeftClick);
+    PlayerInputComponent->BindAction("LeftClick", IE_Pressed, this, &AMyBasicCharacter::OnLeftClickPressed);
+    PlayerInputComponent->BindAction("LeftClick", IE_Released, this, &AMyBasicCharacter::OnLeftClickReleased);
     PlayerInputComponent->BindAction("RightClick", IE_Pressed, this, &AMyBasicCharacter::OnMouseRightClick);
     PlayerInputComponent->BindAction("HeroMixture", IE_Pressed, this, &AMyBasicCharacter::HeroMixture);
-	PlayerInputComponent->BindKey(EKeys::Q, IE_Pressed, this, &AMyBasicCharacter::OnSkillPressed);
+    PlayerInputComponent->BindKey(EKeys::Q, IE_Pressed, this, &AMyBasicCharacter::OnSkillPressed);
 
     PlayerInputComponent->BindAction("Menu", IE_Pressed, this, &AMyBasicCharacter::OpenMenu);
 }
@@ -92,8 +99,9 @@ void AMyBasicCharacter::HeroMoveForward(float value)
 {
     if ((Controller != nullptr) && (value != 0.0f))
     {
-        if (SelectHero) {
-            SelectHero->MoveForward(value);
+        for (ACharacterBase* Hero : SelectedHeroes)
+        {
+            if (IsValid(Hero)) Hero->MoveForward(value);
         }
     }
 }
@@ -102,17 +110,19 @@ void AMyBasicCharacter::HeroMoveRight(float value)
 {
     if ((Controller != nullptr) && (value != 0.0f))
     {
-        if (SelectHero)
-            SelectHero->MoveRight(value);
+        for (ACharacterBase* Hero : SelectedHeroes)
+        {
+            if (IsValid(Hero)) Hero->MoveRight(value);
+        }
     }
 }
 
 void AMyBasicCharacter::OnSkillPressed()
 {
-	if (SelectHero)
-	{
-		SelectHero->UseSkill();
-	}
+    if (SelectHero)
+    {
+        SelectHero->UseSkill();
+    }
 }
 
 void AMyBasicCharacter::Set_PlayerMoney(int32 value)
@@ -148,7 +158,7 @@ void AMyBasicCharacter::Set_PlayerExp(int32 value)
 
 bool AMyBasicCharacter::CheckLevelUp()
 {
-    return  (PlayerExp+2) == PlayerMaxExp;
+    return  (PlayerExp + 2) == PlayerMaxExp;
 }
 
 bool AMyBasicCharacter::PlayerLevelUp()
@@ -157,7 +167,7 @@ bool AMyBasicCharacter::PlayerLevelUp()
     PlayerLevel += 1;
 
     ABasicGameMode* GM = Cast<ABasicGameMode>(GetWorld()->GetAuthGameMode());
-    if(GM)
+    if (GM)
     {
         GM->OnLevelUp(CurrentLevelChance, PlayerLevel);
     }
@@ -167,57 +177,129 @@ bool AMyBasicCharacter::PlayerLevelUp()
 
 void AMyBasicCharacter::SetSummonedActor(AActor* InActor)
 {
-	if (ACharacterBase* Character = Cast<ACharacterBase>(InActor))
-	{
-		MySummonedHero.Add(Character);
-	}
+    if (ACharacterBase* Character = Cast<ACharacterBase>(InActor))
+    {
+        MySummonedHero.Add(Character);
+    }
 }
 
-void AMyBasicCharacter::OnMouseLeftClick()
+void AMyBasicCharacter::OnLeftClickPressed()
 {
     APlayerController* PC = Cast<APlayerController>(GetController());
     if (PC)
+    {
+        PC->GetMousePosition(StartMousePosition.X, StartMousePosition.Y);
+
+        if (MyHUD)
+        {
+            MyHUD->StartDrawPoint = StartMousePosition;
+            MyHUD->bIsDrawing = true;
+        }
+    }
+}
+
+void AMyBasicCharacter::OnLeftClickReleased()
+{
+    APlayerController* PC = Cast<APlayerController>(GetController());
+    if (!PC) return;
+
+    if (MyHUD)
+    {
+        MyHUD->bIsDrawing = false;
+    }
+
+    PC->GetMousePosition(EndMousePosition.X, EndMousePosition.Y);
+
+    for (ACharacterBase* Hero : SelectedHeroes)
+    {
+        if (IsValid(Hero))
+        {
+            Hero->SetSelectedHero(false);
+        }
+    }
+    SelectedHeroes.Empty();
+    SelectHero = nullptr;
+
+    float DragDistance = FVector2D::Distance(StartMousePosition, EndMousePosition);
+    const float DragThreshold = 15.0f;
+
+    if (DragDistance < DragThreshold)
     {
         FHitResult HitResult;
         if (PC->GetHitResultUnderCursor(ECC_Pawn, false, HitResult))
         {
             ACharacterBase* TouchedHero = Cast<ACharacterBase>(HitResult.GetActor());
-
             if (TouchedHero)
             {
-                if(SelectHero)
-                    SelectHero->SetSelectedHero(false);
                 SelectHero = TouchedHero;
                 SelectHero->SetSelectedHero(true);
-                OnUnitSelected.Broadcast(SelectHero,true);
+                SelectedHeroes.Add(SelectHero);
+                OnUnitSelected.Broadcast(SelectHero, true);
             }
             else
             {
-                if (SelectHero)
-                    SelectHero->SetSelectedHero(false);
-                SelectHero = nullptr;
-                OnUnitSelected.Broadcast(SelectHero, false);
+                OnUnitSelected.Broadcast(nullptr, false);
             }
         }
-       
+        else
+        {
+            OnUnitSelected.Broadcast(nullptr, false);
+        }
+    }
+    else
+    {
+        float MinX = FMath::Min(StartMousePosition.X, EndMousePosition.X);
+        float MaxX = FMath::Max(StartMousePosition.X, EndMousePosition.X);
+        float MinY = FMath::Min(StartMousePosition.Y, EndMousePosition.Y);
+        float MaxY = FMath::Max(StartMousePosition.Y, EndMousePosition.Y);
+
+        for (ACharacterBase* Hero : MySummonedHero)
+        {
+            if (!IsValid(Hero)) continue;
+
+            FVector2D ScreenPosition;
+            if (PC->ProjectWorldLocationToScreen(Hero->GetActorLocation(), ScreenPosition))
+            {
+                if (ScreenPosition.X >= MinX && ScreenPosition.X <= MaxX &&
+                    ScreenPosition.Y >= MinY && ScreenPosition.Y <= MaxY)
+                {
+                    Hero->SetSelectedHero(true);
+                    SelectedHeroes.Add(Hero);
+                }
+            }
+        }
+        if (SelectedHeroes.Num() > 0)
+        {
+            SelectHero = SelectedHeroes[0];
+            OnUnitSelected.Broadcast(SelectHero, true);
+        }
+        else
+        {
+            OnUnitSelected.Broadcast(nullptr, false);
+        }
     }
 }
 
 void AMyBasicCharacter::OnMouseRightClick()
 {
-    if (!SelectHero)
+    if (SelectedHeroes.Num() == 0)
     {
         return;
     }
 
     APlayerController* PC = Cast<APlayerController>(GetController());
-
     if (PC)
     {
-        FHitResult HitResult; 
+        FHitResult HitResult;
         if (PC->GetHitResultUnderCursor(ECC_Visibility, false, HitResult))
         {
-            SelectHero->CommandMoveToLocation(HitResult.Location);
+            for (ACharacterBase* Hero : SelectedHeroes)
+            {
+                if (IsValid(Hero))
+                {
+                    Hero->CommandMoveToLocation(HitResult.Location);
+                }
+            }
         }
     }
 }
@@ -260,7 +342,7 @@ void AMyBasicCharacter::OpenMenu()
     ABasicGameMode* GM = Cast<ABasicGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
     if (GM)
     {
-        // 토글(Toggle) 방식으로 켜고 끄기 함수 호출
+        // ???(Toggle) ??????? ??? ???? ??? ???
         GM->ToggleMenuUI();
     }
 }

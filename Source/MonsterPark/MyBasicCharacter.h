@@ -11,7 +11,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLifeChanged, int32, NewLife);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMixtureHero, int32, HeroCost);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUnitSelectedSignature, ACharacterBase*, SelectedUnit,bool,Select);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUnitSelectedSignature, ACharacterBase*, SelectedUnit, bool, Select);
 
 UCLASS()
 class MONSTERPARK_API AMyBasicCharacter : public ACharacter
@@ -26,7 +26,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -43,7 +43,7 @@ public:
 	void Set_PlayerMoney(int32 value);
 	int32 Get_PlayerMoney();
 
-	int32 Get_PlayerLife ();
+	int32 Get_PlayerLife();
 	void Miu_PlayerLife(int32 value);
 
 	int32 Get_PlayerExp();
@@ -54,17 +54,24 @@ public:
 
 	void SetSummonedActor(AActor* InActor);
 
-	void OnMouseLeftClick();
+	void OnLeftClickPressed();
+	void OnLeftClickReleased();
 	void OnMouseRightClick();
+
+
 	void HeroMixture();
+	FVector2D StartMousePosition;
+	FVector2D EndMousePosition;
 
 	void OpenMenu();
 protected:
 	FTimerHandle TH_Attack_End;
 
+	UPROPERTY()
+	class AGame_HUD* MyHUD;
 public:
 	// ���� ī�޶� �κ�
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category=Camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	class USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
@@ -83,7 +90,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TArray<ACharacterBase*> MySummonedHero;
-		
+
 public:
 	// ���� �÷��̾� ��, ����ġ, ������, ������ �ִ� �������� ����
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
@@ -100,6 +107,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerLevel = 1;
+
+	UPROPERTY()
+	TArray<class ACharacterBase*> SelectedHeroes;
 
 	ACharacterBase* SelectHero;
 };
