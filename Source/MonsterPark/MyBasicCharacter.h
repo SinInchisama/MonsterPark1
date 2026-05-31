@@ -58,6 +58,8 @@ public:
 	void OnLeftClickReleased();
 	void OnMouseRightClick();
 
+	UFUNCTION(BlueprintCallable)
+	void SetPrimarySelectedHero(ACharacterBase* NewPrimaryHero);
 
 	void HeroMixture();
 	FVector2D StartMousePosition;

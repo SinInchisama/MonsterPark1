@@ -303,39 +303,58 @@ void UMyUserWidget::ReFreshMoney()
 
 void UMyUserWidget::OnUnitSelected(ACharacterBase* SelectedUnit,bool Select)
 {
-	if (Select) {
-	
-			if (Img_Portrait && SelectedUnit->UnitPortrait)
-			{
-				Img_Portrait->SetBrushFromTexture(SelectedUnit->UnitPortrait);
-			}
+	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(GetOwningPlayerPawn());
+	if (!MyChar) return;
 
-			if (HeroName)
-			{
-				HeroName->SetText(SelectedUnit->UnitName);
-			}
+	if (Select && SelectedUnit) {
+
+		if (MyChar->SelectedHeroes.Num() > 1) {
+
+			Image_5->SetVisibility(ESlateVisibility::Visible);
+			Attack->SetVisibility(ESlateVisibility::Collapsed);
+			AS->SetVisibility(ESlateVisibility::Collapsed);
+			Range->SetVisibility(ESlateVisibility::Collapsed);
+			HeroName->SetVisibility(ESlateVisibility::Collapsed);
+			Img_Portrait->SetVisibility(ESlateVisibility::Collapsed);
+
+
+			UpdateMultiSelectUI(true, MyChar->SelectedHeroes);
+			//K2_PlayUnitInfoAnim();
+		}
+		else {
+
+			Image_5->SetVisibility(ESlateVisibility::Visible);
+			Attack->SetVisibility(ESlateVisibility::Visible);
+			AS->SetVisibility(ESlateVisibility::Visible);
+			Range->SetVisibility(ESlateVisibility::Visible);
+			HeroName->SetVisibility(ESlateVisibility::Visible);
+			Img_Portrait->SetVisibility(ESlateVisibility::Visible);
 
 			if (SelectedUnit)
 			{
+				if (Img_Portrait && SelectedUnit->UnitPortrait)
+				{
+					Img_Portrait->SetBrushFromTexture(SelectedUnit->UnitPortrait);
+				}
+
+				if (HeroName)
+				{
+					HeroName->SetText(SelectedUnit->UnitName);
+				}
+
 				Attack->SetText(FText::Format(NSLOCTEXT("MyUI", "AttackText", "Attack : {0}"), FText::AsNumber(SelectedUnit->DefaultAttackPower)));
-
 				AS->SetText(FText::Format(FText::FromString("AS : {0}"), FText::AsNumber(SelectedUnit->DefaultAttackSpeed)));
-
 				Range->SetText(FText::Format(FText::FromString("Range : {0}"), FText::AsNumber(SelectedUnit->DefaultRange)));
+
+				if (SelectedUnit->UnitPortrait) 
+				{
+					Img_Portrait->SetBrushFromTexture(SelectedUnit->UnitPortrait);
+				}
 			}
 
-
-			
-			if (Image_5->GetVisibility() == ESlateVisibility::Hidden) {
-				Image_5->SetVisibility(ESlateVisibility::Visible);
-				Img_Portrait->SetVisibility(ESlateVisibility::Visible);
-				HeroName->SetVisibility(ESlateVisibility::Visible);
-				Attack->SetVisibility(ESlateVisibility::Visible);
-				AS->SetVisibility(ESlateVisibility::Visible);
-				Range->SetVisibility(ESlateVisibility::Visible);
-				K2_PlayUnitInfoAnim();
-			}
-		
+			UpdateMultiSelectUI(false, MyChar->SelectedHeroes);
+			//K2_PlayUnitInfoAnim();
+		}
 	}
 	else {
 		Image_5->SetVisibility(ESlateVisibility::Hidden);
@@ -344,6 +363,7 @@ void UMyUserWidget::OnUnitSelected(ACharacterBase* SelectedUnit,bool Select)
 		Attack->SetVisibility(ESlateVisibility::Hidden);
 		AS->SetVisibility(ESlateVisibility::Hidden);
 		Range->SetVisibility(ESlateVisibility::Hidden);
+		UpdateMultiSelectUI(false, MyChar->SelectedHeroes);
 	}
 }
 
@@ -367,6 +387,8 @@ void UMyUserWidget::UpdateRoundText(int32 NewRound)
 		CurrentRound->SetText(FText::AsNumber(NewRound + 1));
 	}
 }
+
+
 
 void UMyUserWidget::ReFreshExpAndLevel()
 {

@@ -304,6 +304,16 @@ void AMyBasicCharacter::OnMouseRightClick()
     }
 }
 
+void AMyBasicCharacter::SetPrimarySelectedHero(ACharacterBase* NewPrimaryHero)
+{
+    if (SelectedHeroes.Contains(NewPrimaryHero))
+    {
+        SelectHero = NewPrimaryHero;
+
+       // OnUnitSelected.Broadcast(SelectHero, true);
+    }
+}
+
 void AMyBasicCharacter::HeroMixture()
 {
     if (SelectHero)

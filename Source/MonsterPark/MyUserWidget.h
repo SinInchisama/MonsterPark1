@@ -48,6 +48,9 @@ protected:
 
 	UFUNCTION()
 	void UpdateRoundText(int32 NewRound);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Selection")
+	void UpdateMultiSelectUI(bool bIsMultiSelect, const TArray<ACharacterBase*>& SelectedList);
 protected:
 	UPROPERTY()
 	class ABasicGameMode* CachedGM;
