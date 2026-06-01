@@ -204,27 +204,5 @@ UAnimMontage* AWizard::GetDetectedMontage() const
 
 void AWizard::PlayDetectedMontageIfNeeded()
 {
-    if (!bEnemyDetected) return;
-
-    USkeletalMeshComponent* CharacterMesh = GetMesh();
-    if (CharacterMesh)
-    {
-        if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
-        {
-            if (WizardFullMontage && !AnimInst->Montage_IsPlaying(WizardFullMontage))
-            {
-                AnimInst->Montage_Play(WizardFullMontage);
-
-                if (!bHasPlayedPassive)
-                {
-                    AnimInst->Montage_JumpToSection(FName("Passive"), WizardFullMontage);
-                    bHasPlayedPassive = true;
-                }
-                else
-                {
-                    AnimInst->Montage_JumpToSection(FName("Attack"), WizardFullMontage);
-                }
-            }
-        }
-    }
+    PlayDetectedMontageSection(WizardFullMontage, bHasPlayedPassive);
 }

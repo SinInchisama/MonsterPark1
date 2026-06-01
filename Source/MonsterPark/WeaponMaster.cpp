@@ -319,31 +319,6 @@ UAnimMontage* AWeaponMaster::GetDetectedMontage() const
 
 void AWeaponMaster::PlayDetectedMontageIfNeeded()
 {
-	if (!bEnemyDetected)
-	{
-		return;
-	}
-
-	USkeletalMeshComponent* CharacterMesh = GetMesh();
-	if (CharacterMesh)
-	{
-		if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
-		{
-			if (WeaponMasterFullMontage && !AnimInst->Montage_IsPlaying(WeaponMasterFullMontage))
-			{
-				AnimInst->Montage_Play(WeaponMasterFullMontage);
-
-				if (!bHasPlayedPassive)
-				{
-					AnimInst->Montage_JumpToSection(FName("Passive"), WeaponMasterFullMontage);
-					bHasPlayedPassive = true;
-				}
-				else
-				{
-					AnimInst->Montage_JumpToSection(FName("Attack"), WeaponMasterFullMontage);
-				}
-			}
-		}
-	}
+	PlayDetectedMontageSection(WeaponMasterFullMontage, bHasPlayedPassive);
 }
 

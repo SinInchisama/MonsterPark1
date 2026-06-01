@@ -205,27 +205,5 @@ void AShielder::FindEnemiesInArea()
 
 void AShielder::PlayDetectedMontageIfNeeded()
 {
-    if (!bEnemyDetected) return;
-
-    if (USkeletalMeshComponent* CharacterMesh = FindComponentByClass<USkeletalMeshComponent>())
-    {
-        if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
-        {
-            if (ShielderFullMontage && !AnimInst->Montage_IsPlaying(ShielderFullMontage))
-            {
-                AnimInst->Montage_Play(ShielderFullMontage);
-
-                if (!bHasPlayedPassive)
-                {
-  
-                    AnimInst->Montage_JumpToSection(FName("Passive"), ShielderFullMontage);
-                    bHasPlayedPassive = true; 
-                }
-                else
-                {
-                    AnimInst->Montage_JumpToSection(FName("Attack"), ShielderFullMontage);
-                }
-            }
-        }
-    }
+    PlayDetectedMontageSection(ShielderFullMontage, bHasPlayedPassive);
 }

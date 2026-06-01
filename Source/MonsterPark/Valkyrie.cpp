@@ -178,29 +178,5 @@ UAnimMontage* AValkyrie::GetDetectedMontage() const
 
 void AValkyrie::PlayDetectedMontageIfNeeded()
 {
-	if (!bEnemyDetected)
-	{
-		return;
-	}
-
-	if (USkeletalMeshComponent* CharacterMesh = FindComponentByClass<USkeletalMeshComponent>())
-	{
-		if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
-		{
-			if (ValkyrieFullMontage && !AnimInst->Montage_IsPlaying(ValkyrieFullMontage))
-			{
-				AnimInst->Montage_Play(ValkyrieFullMontage);
-
-				if (!bHasPlayedPassive)
-				{
-					AnimInst->Montage_JumpToSection(FName("Passive"), ValkyrieFullMontage);
-					bHasPlayedPassive = true;
-				}
-				else
-				{
-					AnimInst->Montage_JumpToSection(FName("Attack"), ValkyrieFullMontage);
-				}
-			}
-		}
-	}
+	PlayDetectedMontageSection(ValkyrieFullMontage, bHasPlayedPassive);
 }

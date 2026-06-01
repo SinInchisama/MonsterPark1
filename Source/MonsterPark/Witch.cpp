@@ -65,29 +65,5 @@ UAnimMontage* AWitch::GetDetectedMontage() const
 
 void AWitch::PlayDetectedMontageIfNeeded()
 {
-	if (!bEnemyDetected)
-	{
-		return;
-	}
-
-	if (USkeletalMeshComponent* CharacterMesh = FindComponentByClass<USkeletalMeshComponent>())
-	{
-		if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
-		{
-			if (WitchFullMontage && !AnimInst->Montage_IsPlaying(WitchFullMontage))
-			{
-				AnimInst->Montage_Play(WitchFullMontage);
-
-				if (!bHasPlayedPassive)
-				{
-					AnimInst->Montage_JumpToSection(FName("Passive"), WitchFullMontage);
-					bHasPlayedPassive = true;
-				}
-				else
-				{
-					AnimInst->Montage_JumpToSection(FName("Attack"), WitchFullMontage);
-				}
-			}
-		}
-	}
+	PlayDetectedMontageSection(WitchFullMontage, bHasPlayedPassive);
 }

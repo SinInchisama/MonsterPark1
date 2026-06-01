@@ -178,29 +178,5 @@ UAnimMontage* AWyvern::GetDetectedMontage() const
 
 void AWyvern::PlayDetectedMontageIfNeeded()
 {
-	if (!bEnemyDetected)
-	{
-		return;
-	}
-
-	if (USkeletalMeshComponent* CharacterMesh = FindComponentByClass<USkeletalMeshComponent>())
-	{
-		if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
-		{
-			if (WyvernFullMontage && !AnimInst->Montage_IsPlaying(WyvernFullMontage))
-			{
-				AnimInst->Montage_Play(WyvernFullMontage);
-
-				if (!bHasPlayedPassive)
-				{
-					AnimInst->Montage_JumpToSection(FName("Passive"), WyvernFullMontage);
-					bHasPlayedPassive = true;
-				}
-				else
-				{
-					AnimInst->Montage_JumpToSection(FName("Attack"), WyvernFullMontage);
-				}
-			}
-		}
-	}
+	PlayDetectedMontageSection(WyvernFullMontage, bHasPlayedPassive);
 }

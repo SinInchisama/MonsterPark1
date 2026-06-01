@@ -128,6 +128,8 @@ protected:
 	bool bEnemyDetected = false;
 
 	virtual void PlayDetectedMontageIfNeeded();
+	void PlayDetectedMontageSection(UAnimMontage* TargetMontage, bool& bHasPlayedPassive);
+	TSubclassOf<UMyAnimInstance> LoadDefaultAnimClass() const;
 	void SetMoveAnimClassIfNeeded();
 	void Attack();
 	void ResetAttack();

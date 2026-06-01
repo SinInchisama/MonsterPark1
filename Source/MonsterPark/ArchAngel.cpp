@@ -148,31 +148,6 @@ UAnimMontage* AArchAngel::GetDetectedMontage() const
 
 void AArchAngel::PlayDetectedMontageIfNeeded()
 {
-	if (!bEnemyDetected)
-	{
-		return;
-	}
-
-	USkeletalMeshComponent* CharacterMesh = GetMesh();
-	if (CharacterMesh)
-	{
-		if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
-		{
-			if (ArchAngelFullMontage && !AnimInst->Montage_IsPlaying(ArchAngelFullMontage))
-			{
-				AnimInst->Montage_Play(ArchAngelFullMontage);
-
-				if (!bHasPlayedPassive)
-				{
-					AnimInst->Montage_JumpToSection(FName("Passive"), ArchAngelFullMontage);
-					bHasPlayedPassive = true;
-				}
-				else
-				{
-					AnimInst->Montage_JumpToSection(FName("Attack"), ArchAngelFullMontage);
-				}
-			}
-		}
-	}
+	PlayDetectedMontageSection(ArchAngelFullMontage, bHasPlayedPassive);
 }
 
