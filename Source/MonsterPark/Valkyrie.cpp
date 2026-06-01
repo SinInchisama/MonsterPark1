@@ -8,8 +8,14 @@
 #include "MassEntitySubsystem.h"
 #include "MassExecutionContext.h"
 #include "MassEntityManager.h"
-#include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MassCommonFragments.h"
+#include "MassEntityView.h"
+#include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
+#include "MonsterPark/Monster/Tag/KilledTag.h"
+#include "MonsterPark/Monster/Tag/MonsterDyingTag.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 
 void AValkyrie::Tick(float DeltaTime)
 {
@@ -19,7 +25,7 @@ void AValkyrie::Tick(float DeltaTime)
 void AValkyrie::FindEnemiesInArea()
 {
 	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	if (!EntitySubsystem)
+	if (!EntitySubsystem || !PlaySubsystem)
 	{
 		return;
 	}
@@ -38,6 +44,7 @@ void AValkyrie::FindEnemiesInArea()
 	FVector MyLocation = GetActorLocation();
 	const float RangeSq = FMath::Square(RangeValue);
 	const float SplashRadiusSq = FMath::Square(SplashRadius);
+
 	FVector TargetLocation = FVector::ZeroVector;
 	bool bFoundTarget = false;
 
@@ -46,10 +53,7 @@ void AValkyrie::FindEnemiesInArea()
 		FMassExecutionContext ExecContext(EntityManager, 0.0f);
 		TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, MyLocation, RangeSq, &TargetLocation, &bFoundTarget](FMassExecutionContext& Context)
 			{
-				if (bFoundTarget)
-				{
-					return;
-				}
+				if (bFoundTarget) return;
 
 				const int32 NumEntities = Context.GetNumEntities();
 				TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
@@ -88,61 +92,66 @@ void AValkyrie::FindEnemiesInArea()
 	}
 	else
 	{
-		int64 MyKey = PlaySubsystem ? PlaySubsystem->GetGridKey(MyLocation) : -1;
-		if (MyKey == -1)
-		{
-			return;
-		}
-
-		TArray<FMassEntityHandle> CandidateMonsters;
+		int64 MyKey = PlaySubsystem->GetGridKey(MyLocation);
 		int32 CenterX = (int32)(MyKey >> 32);
 		int32 CenterY = (int32)(MyKey & 0xFFFFFFFF);
 
 		for (int32 x = -1; x <= 1; ++x)
 		{
+			if (bFoundTarget) break;
+
 			for (int32 y = -1; y <= 1; ++y)
 			{
 				int64 CheckKey = ((int64)(CenterX + x) << 32) | (uint32)(CenterY + y);
 				if (FGridData* Cell = PlaySubsystem->SpatialGrid.Find(CheckKey))
 				{
-					//CandidateMonsters.Append(Cell->MonsterInCell);
+					for (const FMonsterGridInfo& MInfo : Cell->MonsterInfos)
+					{
+						if (FVector::DistSquared(MyLocation, MInfo.Location) <= RangeSq)
+						{
+							if (!EntityManager.IsEntityValid(MInfo.MonsterHandle)) continue;
+
+							FMassEntityView View(EntityManager, MInfo.MonsterHandle);
+							if (View.HasTag<FKilledTag>() || View.HasTag<FMonsterDyingTag>()) continue;
+
+							TargetLocation = MInfo.Location;
+							bFoundTarget = true;
+							break;
+						}
+					}
 				}
-			}
-		}
-
-		for (FMassEntityHandle MonsterHandle : CandidateMonsters)
-		{
-			if (!EntityManager.IsEntityValid(MonsterHandle))
-			{
-				continue;
-			}
-
-			FTransformFragment* Transform = EntityManager.GetFragmentDataPtr<FTransformFragment>(MonsterHandle);
-			if (Transform && FVector::DistSquared(MyLocation, Transform->GetTransform().GetLocation()) <= RangeSq)
-			{
-				TargetLocation = Transform->GetTransform().GetLocation();
-				bFoundTarget = true;
-				break;
+				if (bFoundTarget) break;
 			}
 		}
 
 		if (bFoundTarget)
 		{
-			for (FMassEntityHandle MonsterHandle : CandidateMonsters)
-			{
-				if (!EntityManager.IsEntityValid(MonsterHandle))
-				{
-					continue;
-				}
+			int64 TargetKey = PlaySubsystem->GetGridKey(TargetLocation);
+			int32 TargetCenterX = (int32)(TargetKey >> 32);
+			int32 TargetCenterY = (int32)(TargetKey & 0xFFFFFFFF);
 
-				FTransformFragment* Transform = EntityManager.GetFragmentDataPtr<FTransformFragment>(MonsterHandle);
-				FMonsterStatusFragment* Status = EntityManager.GetFragmentDataPtr<FMonsterStatusFragment>(MonsterHandle);
-				if (Transform && Status)
+			for (int32 x = -1; x <= 1; ++x)
+			{
+				for (int32 y = -1; y <= 1; ++y)
 				{
-					float DistSq = FVector::DistSquared(TargetLocation, Transform->GetTransform().GetLocation());
-					if (DistSq <= SplashRadiusSq)
+					int64 CheckKey = ((int64)(TargetCenterX + x) << 32) | (uint32)(TargetCenterY + y);
+					if (FGridData* Cell = PlaySubsystem->SpatialGrid.Find(CheckKey))
 					{
-						Status->PendingAoEDamage += AttackPowerValue;
+						for (const FMonsterGridInfo& MInfo : Cell->MonsterInfos)
+						{
+							if (FVector::DistSquared(TargetLocation, MInfo.Location) <= SplashRadiusSq)
+							{
+								if (!EntityManager.IsEntityValid(MInfo.MonsterHandle)) continue;
+
+								FMassEntityView EntityView(EntityManager, MInfo.MonsterHandle);
+								if (EntityView.HasTag<FKilledTag>() || EntityView.HasTag<FMonsterDyingTag>()) continue;
+
+								if (FMonsterStatusFragment* Status = EntityView.GetFragmentDataPtr<FMonsterStatusFragment>())
+								{
+									Status->PendingAoEDamage += AttackPowerValue;
+								}
+							}
+						}
 					}
 				}
 			}
