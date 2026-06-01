@@ -5,6 +5,7 @@ DerivedDataCache/
 Intermediate/
 Saved/
 Build/
+Plugins/
 
 # 소스 코드 관련 (VS, VSCode)
 .vs/
