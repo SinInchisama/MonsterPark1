@@ -53,7 +53,7 @@ ACharacterBase::ACharacterBase()
     GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
     GetCharacterMovement()->MaxWalkSpeed = 200.f;
-    GetCharacterMovement()->bOrientRotationToMovement = true; // 이동 방향으로 자동 회전
+    GetCharacterMovement()->bOrientRotationToMovement = true; 
 
     GetCharacterMovement()->SetWalkableFloorAngle(80.0f);
 
@@ -243,12 +243,15 @@ void ACharacterBase::FindEnemiesInArea()
 
     if (!bIsOutsideWall) {
         FMassExecutionContext ExecContext(EntityManager, 0.0f);
+        bool bFoundInChunk = false;
 
-        TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, MyLocation, RadiusSq, AttackPowerValue](FMassExecutionContext& Context)
+        TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, MyLocation, RadiusSq, AttackPowerValue, &bFoundInChunk](FMassExecutionContext& Context)
             {
+                if (bFoundInChunk) return; 
+
                 const int32 NumEntities = Context.GetNumEntities();
-                TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
-                TArrayView<FMonsterConditionFragment> Condtions = Context.GetMutableFragmentView<FMonsterConditionFragment>();
+                auto Transforms = Context.GetMutableFragmentView<FTransformFragment>();
+                auto Conditions = Context.GetMutableFragmentView<FMonsterConditionFragment>();
 
                 for (int32 i = 0; i < NumEntities; ++i)
                 {
@@ -257,15 +260,16 @@ void ACharacterBase::FindEnemiesInArea()
                     if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)
                     {
                         bEnemyDetected = true;
-                        Condtions[i].Damage += AttackPowerValue;
+                        Conditions[i].Damage += AttackPowerValue;
                         Attacking = false;
 
-                        FVector Direction = (EnemyLoc - MyLocation).GetSafeNormal2D(); 
+                        FVector Direction = (EnemyLoc - MyLocation).GetSafeNormal2D();
                         if (!Direction.IsNearlyZero())
                         {
                             SetActorRotation(Direction.Rotation());
                         }
 
+                        bFoundInChunk = true; 
                         break;
                     }
                 }

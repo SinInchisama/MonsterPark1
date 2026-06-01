@@ -90,6 +90,8 @@ void UMyUserWidget::NativeConstruct()
 	}
 	ReFreshMoney();
 	ReFreshExpAndLevel();
+
+	this->SetVisibility(ESlateVisibility::Visible);
 }
 
 FReply UMyUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -129,6 +131,25 @@ FReply UMyUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const
 	}
 
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+}
+
+FReply UMyUserWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		if (Img_Minimap)
+		{
+			FGeometry MinimapGeometry = Img_Minimap->GetCachedGeometry();
+
+            // 마우스를 뗄 때도 미니맵 위라면, 이벤트를 Handled 처리하여 게임으로 넘기지 않음
+			if (MinimapGeometry.IsUnderLocation(InMouseEvent.GetScreenSpacePosition()))
+			{
+				return FReply::Handled();
+			}
+		}
+	}
+
+	return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
 }
 
 void UMyUserWidget::Btn_LevelUp_Clicked()
@@ -303,39 +324,58 @@ void UMyUserWidget::ReFreshMoney()
 
 void UMyUserWidget::OnUnitSelected(ACharacterBase* SelectedUnit,bool Select)
 {
-	if (Select) {
-	
-			if (Img_Portrait && SelectedUnit->UnitPortrait)
-			{
-				Img_Portrait->SetBrushFromTexture(SelectedUnit->UnitPortrait);
-			}
+	AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(GetOwningPlayerPawn());
+	if (!MyChar) return;
 
-			if (HeroName)
-			{
-				HeroName->SetText(SelectedUnit->UnitName);
-			}
+	if (Select && SelectedUnit) {
+
+		if (MyChar->SelectedHeroes.Num() > 1) {
+
+			Image_5->SetVisibility(ESlateVisibility::Visible);
+			Attack->SetVisibility(ESlateVisibility::Collapsed);
+			AS->SetVisibility(ESlateVisibility::Collapsed);
+			Range->SetVisibility(ESlateVisibility::Collapsed);
+			HeroName->SetVisibility(ESlateVisibility::Collapsed);
+			Img_Portrait->SetVisibility(ESlateVisibility::Collapsed);
+
+
+			UpdateMultiSelectUI(true, MyChar->SelectedHeroes);
+			//K2_PlayUnitInfoAnim();
+		}
+		else {
+
+			Image_5->SetVisibility(ESlateVisibility::Visible);
+			Attack->SetVisibility(ESlateVisibility::Visible);
+			AS->SetVisibility(ESlateVisibility::Visible);
+			Range->SetVisibility(ESlateVisibility::Visible);
+			HeroName->SetVisibility(ESlateVisibility::Visible);
+			Img_Portrait->SetVisibility(ESlateVisibility::Visible);
 
 			if (SelectedUnit)
 			{
+				if (Img_Portrait && SelectedUnit->UnitPortrait)
+				{
+					Img_Portrait->SetBrushFromTexture(SelectedUnit->UnitPortrait);
+				}
+
+				if (HeroName)
+				{
+					HeroName->SetText(SelectedUnit->UnitName);
+				}
+
 				Attack->SetText(FText::Format(NSLOCTEXT("MyUI", "AttackText", "Attack : {0}"), FText::AsNumber(SelectedUnit->DefaultAttackPower)));
-
 				AS->SetText(FText::Format(FText::FromString("AS : {0}"), FText::AsNumber(SelectedUnit->DefaultAttackSpeed)));
-
 				Range->SetText(FText::Format(FText::FromString("Range : {0}"), FText::AsNumber(SelectedUnit->DefaultRange)));
+
+				if (SelectedUnit->UnitPortrait) 
+				{
+					Img_Portrait->SetBrushFromTexture(SelectedUnit->UnitPortrait);
+				}
 			}
 
-
-			
-			if (Image_5->GetVisibility() == ESlateVisibility::Hidden) {
-				Image_5->SetVisibility(ESlateVisibility::Visible);
-				Img_Portrait->SetVisibility(ESlateVisibility::Visible);
-				HeroName->SetVisibility(ESlateVisibility::Visible);
-				Attack->SetVisibility(ESlateVisibility::Visible);
-				AS->SetVisibility(ESlateVisibility::Visible);
-				Range->SetVisibility(ESlateVisibility::Visible);
-				K2_PlayUnitInfoAnim();
-			}
-		
+			UpdateMultiSelectUI(false, MyChar->SelectedHeroes);
+			//K2_PlayUnitInfoAnim();
+		}
 	}
 	else {
 		Image_5->SetVisibility(ESlateVisibility::Hidden);
@@ -344,6 +384,7 @@ void UMyUserWidget::OnUnitSelected(ACharacterBase* SelectedUnit,bool Select)
 		Attack->SetVisibility(ESlateVisibility::Hidden);
 		AS->SetVisibility(ESlateVisibility::Hidden);
 		Range->SetVisibility(ESlateVisibility::Hidden);
+		UpdateMultiSelectUI(false, MyChar->SelectedHeroes);
 	}
 }
 
@@ -367,6 +408,8 @@ void UMyUserWidget::UpdateRoundText(int32 NewRound)
 		CurrentRound->SetText(FText::AsNumber(NewRound + 1));
 	}
 }
+
+
 
 void UMyUserWidget::ReFreshExpAndLevel()
 {

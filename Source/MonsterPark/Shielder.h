@@ -49,4 +49,6 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VFX")
     UNiagaraComponent* AuraComponent;
+
+    TArray<FMassEntityHandle> SlowedMonsters;
 };

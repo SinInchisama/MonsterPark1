@@ -14,6 +14,7 @@ ABasicGameMode::ABasicGameMode()
 	HUDClass = AGame_HUD::StaticClass();
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup = TG_PostPhysics;
+
 }
 
 void ABasicGameMode::SpawnHeroFromShop(TSubclassOf<ACharacterBase> HeroClass, ACharacter* PlayerChar)

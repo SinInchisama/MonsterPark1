@@ -23,6 +23,8 @@ protected:
 
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 
+	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+
 	UFUNCTION()
 	void Btn_LevelUp_Clicked();
 
@@ -48,6 +50,9 @@ protected:
 
 	UFUNCTION()
 	void UpdateRoundText(int32 NewRound);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Selection")
+	void UpdateMultiSelectUI(bool bIsMultiSelect, const TArray<ACharacterBase*>& SelectedList);
 protected:
 	UPROPERTY()
 	class ABasicGameMode* CachedGM;

@@ -39,4 +39,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
 	UNiagaraSystem* AuraTemplate;
+
+	TArray<FMassEntityHandle> DebuffedMonsters;
 };
