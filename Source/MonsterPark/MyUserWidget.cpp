@@ -90,6 +90,8 @@ void UMyUserWidget::NativeConstruct()
 	}
 	ReFreshMoney();
 	ReFreshExpAndLevel();
+
+	this->SetVisibility(ESlateVisibility::Visible);
 }
 
 FReply UMyUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -129,6 +131,25 @@ FReply UMyUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const
 	}
 
 	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+}
+
+FReply UMyUserWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		if (Img_Minimap)
+		{
+			FGeometry MinimapGeometry = Img_Minimap->GetCachedGeometry();
+
+            // 마우스를 뗄 때도 미니맵 위라면, 이벤트를 Handled 처리하여 게임으로 넘기지 않음
+			if (MinimapGeometry.IsUnderLocation(InMouseEvent.GetScreenSpacePosition()))
+			{
+				return FReply::Handled();
+			}
+		}
+	}
+
+	return Super::NativeOnMouseButtonUp(InGeometry, InMouseEvent);
 }
 
 void UMyUserWidget::Btn_LevelUp_Clicked()
