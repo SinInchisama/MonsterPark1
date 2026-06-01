@@ -193,32 +193,7 @@ UAnimMontage* ASage::GetDetectedMontage() const
 
 void ASage::PlayDetectedMontageIfNeeded()
 {
-	if (!bEnemyDetected)
-	{
-		return;
-	}
-
-	USkeletalMeshComponent* CharacterMesh = GetMesh();
-	if (CharacterMesh)
-	{
-		if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
-		{
-			if (SageFullMontage && !AnimInst->Montage_IsPlaying(SageFullMontage))
-			{
-				AnimInst->Montage_Play(SageFullMontage);
-
-				if (!bHasPlayedPassive)
-				{
-					AnimInst->Montage_JumpToSection(FName("Passive"), SageFullMontage);
-					bHasPlayedPassive = true;
-				}
-				else
-				{
-					AnimInst->Montage_JumpToSection(FName("Attack"), SageFullMontage);
-				}
-			}
-		}
-	}
+	PlayDetectedMontageSection(SageFullMontage, bHasPlayedPassive);
 }
 
 void ASage::ApplyStun()

@@ -99,32 +99,7 @@ UAnimMontage* ADragonKnight::GetDetectedMontage() const
 
 void ADragonKnight::PlayDetectedMontageIfNeeded()
 {
-	if (!bEnemyDetected)
-	{
-		return;
-	}
-
-	USkeletalMeshComponent* CharacterMesh = GetMesh();
-	if (CharacterMesh)
-	{
-		if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
-		{
-			if (DragonKnightFullMontage && !AnimInst->Montage_IsPlaying(DragonKnightFullMontage))
-			{
-				AnimInst->Montage_Play(DragonKnightFullMontage);
-
-				if (!bHasPlayedPassive)
-				{
-					AnimInst->Montage_JumpToSection(FName("Passive"), DragonKnightFullMontage);
-					bHasPlayedPassive = true;
-				}
-				else
-				{
-					AnimInst->Montage_JumpToSection(FName("Attack"), DragonKnightFullMontage);
-				}
-			}
-		}
-	}
+	PlayDetectedMontageSection(DragonKnightFullMontage, bHasPlayedPassive);
 }
 
 void ADragonKnight::StartBreathDamage()

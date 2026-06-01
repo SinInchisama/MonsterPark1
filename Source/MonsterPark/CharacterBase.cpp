@@ -107,6 +107,13 @@ void ACharacterBase::BeginPlay()
     EnemyQuery.AddTagRequirement<FMonsterDyingTag>(EMassFragmentPresence::None);
 
     TargetQueryPtr = &EnemyQuery;
+
+    if (!AnimClass)
+    {
+        AnimClass = LoadDefaultAnimClass();
+    }
+
+    SetMoveAnimClassIfNeeded();
 }
 
 void ACharacterBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -337,12 +344,41 @@ void ACharacterBase::PlayDetectedMontageIfNeeded()
         if (UAnimInstance* AnimInstance = SkeletalMesh->GetAnimInstance())
         {
             UAnimMontage* TargetMontage = GetDetectedMontage();
-            if (TargetMontage && !AnimInstance->Montage_IsPlaying(TargetMontage))
+            if (TargetMontage)
             {
                 AnimInstance->Montage_Play(TargetMontage);
             }
         }
     }
+}
+
+void ACharacterBase::PlayDetectedMontageSection(UAnimMontage* TargetMontage, bool& bHasPlayedPassive)
+{
+    if (!bEnemyDetected || !TargetMontage)
+    {
+        return;
+    }
+
+    USkeletalMeshComponent* CharacterMesh = GetMesh();
+    if (!CharacterMesh)
+    {
+        return;
+    }
+
+    UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance();
+    if (!AnimInst)
+    {
+        return;
+    }
+
+    const FName SectionName = bHasPlayedPassive ? FName("Attack") : FName("Passive");
+    if (!AnimInst->Montage_IsPlaying(TargetMontage))
+    {
+        AnimInst->Montage_Play(TargetMontage);
+    }
+
+    AnimInst->Montage_JumpToSection(SectionName, TargetMontage);
+    bHasPlayedPassive = true;
 }
 
 void ACharacterBase::SetMoveAnimClassIfNeeded()
@@ -355,6 +391,89 @@ void ACharacterBase::SetMoveAnimClassIfNeeded()
             SkeletalMesh->SetAnimInstanceClass(MoveAnimClass);
         }
     }
+}
+
+TSubclassOf<UMyAnimInstance> ACharacterBase::LoadDefaultAnimClass() const
+{
+    const FString ClassName = GetClass()->GetName();
+    const TCHAR* AnimPath = nullptr;
+
+    if (ClassName.Contains(TEXT("ArchAngelMinion")))
+    {
+        AnimPath = TEXT("/Game/Hero/ArchAngel/ArchAngelOrb_AnimBP.ArchAngelOrb_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("ArchAngel")))
+    {
+        AnimPath = TEXT("/Game/Hero/ArchAngel/ArchAngel_AnimBP.ArchAngel_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Archer")))
+    {
+        AnimPath = TEXT("/Game/Hero/Archer/Archer_AnimBP.Archer_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Berserker")))
+    {
+        AnimPath = TEXT("/Game/Hero/Berserker/Berserker_AnimBP.Berserker_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Cat")) || ClassName.Contains(TEXT("BlackCat")))
+    {
+        AnimPath = TEXT("/Game/Hero/BlackCat/BlackCat_AnimBP.BlackCat_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("DragonKnight")))
+    {
+        AnimPath = TEXT("/Game/Hero/DragonKnight/DragonKnight_AnimBP.DragonKnight_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Fighter")))
+    {
+        AnimPath = TEXT("/Game/Hero/Fighter/Fighter_AnimBP.Fighter_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Knight")))
+    {
+        AnimPath = TEXT("/Game/Hero/Knight/Knight_AnimBP.Knight_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Lancer")))
+    {
+        AnimPath = TEXT("/Game/Hero/Lancer/Lancer_AnimBP.Lancer_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Sage")))
+    {
+        AnimPath = TEXT("/Game/Hero/Sage/Sage_AnimBP.Sage_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Shielder")))
+    {
+        AnimPath = TEXT("/Game/Hero/Shielder/Shielder_AnimBPP.Shielder_AnimBPP_C");
+    }
+    else if (ClassName.Contains(TEXT("Thief")))
+    {
+        AnimPath = TEXT("/Game/Hero/Thief/Thief_AnimBP.Thief_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Valkyrie")))
+    {
+        AnimPath = TEXT("/Game/Hero/Valkyrie/Valkyrie_AnimBP.Valkyrie_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("WeaponMaster")))
+    {
+        AnimPath = TEXT("/Game/Hero/WeaponMaster/WeaponMaster_AnimBP.WeaponMaster_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Witch")))
+    {
+        AnimPath = TEXT("/Game/Hero/Witch/Witch_AnimBP.Witch_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Wizard")))
+    {
+        AnimPath = TEXT("/Game/Hero/Wizard/Wizard_AnimBP.Wizard_AnimBP_C");
+    }
+    else if (ClassName.Contains(TEXT("Wyvern")))
+    {
+        AnimPath = TEXT("/Game/Hero/Wyvern/Wyvern_AnimBP.Wyvern_AnimBP_C");
+    }
+
+    if (!AnimPath)
+    {
+        return nullptr;
+    }
+
+    UClass* LoadedClass = StaticLoadClass(UMyAnimInstance::StaticClass(), nullptr, AnimPath);
+    return LoadedClass ? TSubclassOf<UMyAnimInstance>(LoadedClass) : nullptr;
 }
 
 void ACharacterBase::Attack()

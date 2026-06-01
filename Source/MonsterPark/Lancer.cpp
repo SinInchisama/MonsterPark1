@@ -56,29 +56,5 @@ UAnimMontage* ALancer::GetDetectedMontage() const
 
 void ALancer::PlayDetectedMontageIfNeeded()
 {
-	if (!bEnemyDetected)
-	{
-		return;
-	}
-
-	if (USkeletalMeshComponent* CharacterMesh = FindComponentByClass<USkeletalMeshComponent>())
-	{
-		if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
-		{
-			if (LancerFullMontage && !AnimInst->Montage_IsPlaying(LancerFullMontage))
-			{
-				AnimInst->Montage_Play(LancerFullMontage);
-
-				if (!bHasPlayedPassive)
-				{
-					AnimInst->Montage_JumpToSection(FName("Passive"), LancerFullMontage);
-					bHasPlayedPassive = true;
-				}
-				else
-				{
-					AnimInst->Montage_JumpToSection(FName("Attack"), LancerFullMontage);
-				}
-			}
-		}
-	}
+	PlayDetectedMontageSection(LancerFullMontage, bHasPlayedPassive);
 }
