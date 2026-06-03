@@ -316,33 +316,55 @@ void AMyBasicCharacter::SetPrimarySelectedHero(ACharacterBase* NewPrimaryHero)
 
 void AMyBasicCharacter::HeroMixture()
 {
-    if (SelectHero)
+    if (!IsValid(SelectHero)) return;
+
+    int32 Cost = SelectHero->DefaultCost; 
+    if (Cost == 2 || Cost == 3)
     {
-        FString Name = SelectHero->UnitName.ToString();
+        FString TargetNameStr = SelectHero->UnitName.ToString();
         TArray<ACharacterBase*> Mixture;
-        for (auto Hero : MySummonedHero)
+
+        for (ACharacterBase* Hero : MySummonedHero)
         {
-            if (Name == Hero->UnitName.ToString())
+            if (IsValid(Hero) && Hero->UnitName.ToString() == TargetNameStr)
             {
                 Mixture.Add(Hero);
             }
         }
+
         if (Mixture.Num() >= 3)
         {
             for (int32 i = 0; i < 3; ++i)
             {
                 ACharacterBase* TargetHero = Mixture[i];
-
                 if (IsValid(TargetHero))
                 {
                     MySummonedHero.Remove(TargetHero);
-
+                    SelectedHeroes.Remove(TargetHero);
                     TargetHero->Destroy();
                 }
-
-                SelectHero = nullptr;
             }
-            Mixtured.Broadcast(1);
+
+            if (SelectedHeroes.Num() > 0)
+            {
+                SelectHero = SelectedHeroes[0];
+                OnUnitSelected.Broadcast(SelectHero, true);
+            }
+            else
+            {
+                SelectHero = nullptr;
+                OnUnitSelected.Broadcast(nullptr, false);
+            }
+
+            Mixtured.Broadcast(Cost);
+        }
+    }
+    else if (Cost == 4)
+    {
+        ABasicGameMode* GM = Cast<ABasicGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+        if (GM)
+        {
+            GM->TrySpecialMixture(this, SelectHero);
         }
     }
 }

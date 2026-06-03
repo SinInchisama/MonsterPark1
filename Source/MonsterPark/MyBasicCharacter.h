@@ -96,7 +96,7 @@ public:
 public:
 	// ���� �÷��̾� ��, ����ġ, ������, ������ �ִ� �������� ����
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
-	int32 PlayerMoney = 20;
+	int32 PlayerMoney = 100;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerLife = 20;

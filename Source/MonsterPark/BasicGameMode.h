@@ -21,6 +21,27 @@ enum class EMatchState : uint8
 	GameOver    // ���� ����
 };
 
+USTRUCT(BlueprintType)
+struct FSpecialRecipe
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recipe")
+	FString MainHeroName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recipe")
+	int32 MainHeroCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recipe")
+	FString SubHeroName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recipe")
+	int32 SubHeroCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Recipe")
+	TSubclassOf<class ACharacterBase> ResultHeroClass;
+};
+
 UCLASS()
 class MONSTERPARK_API ABasicGameMode : public AGameModeBase
 {
@@ -52,6 +73,11 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "GameRules")
 	FOnTimerUpdated OnTimerUpdated;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Spawning")
+	TArray<FSpecialRecipe> SpecialRecipes;
+
+	void TrySpecialMixture(class AMyBasicCharacter* Player, class ACharacterBase* SelectedHero);
 
 	void ToggleMenuUI();
 

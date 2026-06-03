@@ -94,6 +94,61 @@ TSubclassOf<ACharacterBase> ABasicGameMode::GetRandomHeroByChance(const FHeroCha
 }
 
 
+void ABasicGameMode::TrySpecialMixture(AMyBasicCharacter* Player, ACharacterBase* SelectedHero)
+{
+	if (!Player || !SelectedHero) return;
+
+	FString SelectedNameStr = SelectedHero->UnitName.ToString();
+
+	for (const FSpecialRecipe& Recipe : SpecialRecipes)
+	{
+		if (SelectedNameStr != Recipe.MainHeroName && SelectedNameStr != Recipe.SubHeroName)
+		{
+			continue;
+		}
+
+		TArray<ACharacterBase*> FoundMains;
+		TArray<ACharacterBase*> FoundSubs;
+
+		for (ACharacterBase* Hero : Player->MySummonedHero)
+		{
+			if (IsValid(Hero))
+			{
+				FString HeroNameStr = Hero->UnitName.ToString();
+
+				if (HeroNameStr == Recipe.MainHeroName) FoundMains.Add(Hero);
+				else if (HeroNameStr == Recipe.SubHeroName) FoundSubs.Add(Hero);
+			}
+		}
+
+		if (FoundMains.Num() >= Recipe.MainHeroCount && FoundSubs.Num() >= Recipe.SubHeroCount)
+		{
+			for (int32 i = 0; i < Recipe.MainHeroCount; ++i)
+			{
+				Player->MySummonedHero.Remove(FoundMains[i]);
+				Player->SelectedHeroes.Remove(FoundMains[i]);
+				FoundMains[i]->Destroy();
+			}
+
+			for (int32 i = 0; i < Recipe.SubHeroCount; ++i)
+			{
+				Player->MySummonedHero.Remove(FoundSubs[i]);
+				Player->SelectedHeroes.Remove(FoundSubs[i]);
+				FoundSubs[i]->Destroy();
+			}
+
+			Player->SelectHero = nullptr;
+			Player->OnUnitSelected.Broadcast(nullptr, false);
+
+			if (Recipe.ResultHeroClass)
+			{
+				SpawnHeroFromShop(Recipe.ResultHeroClass, Player);
+			}
+			return;
+		}
+	}
+}
+
 void ABasicGameMode::ToggleMenuUI()
 {
 	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
