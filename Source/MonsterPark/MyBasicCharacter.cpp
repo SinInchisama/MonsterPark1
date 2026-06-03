@@ -163,8 +163,13 @@ bool AMyBasicCharacter::CheckLevelUp()
 
 bool AMyBasicCharacter::PlayerLevelUp()
 {
-    PlayerExp = 0;
     PlayerLevel += 1;
+
+    if (PlayerLevel < 3)
+    {
+        PlayerMaxExp = LevelRequiredExp[PlayerLevel];
+        PlayerExp = 0;
+    }
 
     ABasicGameMode* GM = Cast<ABasicGameMode>(GetWorld()->GetAuthGameMode());
     if (GM)
@@ -172,7 +177,7 @@ bool AMyBasicCharacter::PlayerLevelUp()
         GM->OnLevelUp(CurrentLevelChance, PlayerLevel);
     }
 
-    return PlayerLevel == 3;
+    return PlayerLevel >= 3;
 }
 
 void AMyBasicCharacter::SetSummonedActor(AActor* InActor)

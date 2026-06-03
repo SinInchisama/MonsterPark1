@@ -166,7 +166,9 @@ void UMyUserWidget::Btn_LevelUp_Clicked()
 				{
 					if (MyPlayer->PlayerLevelUp())
 					{
+						MyPlayer->Set_PlayerExp(2);
 						Btn_LevelUp->SetIsEnabled(false);
+						Btn_LevelUp->SetRenderOpacity(0.5f);
 					}
 				}
 				else

@@ -110,6 +110,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerLevel = 1;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Leveling")
+	TArray<int32> LevelRequiredExp;
+
 	UPROPERTY()
 	TArray<class ACharacterBase*> SelectedHeroes;
 
