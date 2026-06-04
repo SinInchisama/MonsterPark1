@@ -120,8 +120,15 @@ FReply UMyUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const
 					if (MyPlayer)
 					{
 						FVector CurrentLoc = MyPlayer->GetActorLocation();
+						FVector TargetLoc = FVector(WorldX, WorldY, CurrentLoc.Z);
 
-						MyPlayer->SetActorLocation(FVector(WorldX, WorldY, CurrentLoc.Z));
+						if (PC->PlayerCameraManager)
+						{
+
+							PC->PlayerCameraManager->StartCameraFade(1.0f, 0.0f, 0.3f, FLinearColor::Black, false, true);
+						}
+
+						MyPlayer->SetActorLocation(TargetLoc);
 					}
 				}
 
