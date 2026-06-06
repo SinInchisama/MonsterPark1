@@ -12,6 +12,11 @@
 #include "MassCommonFragments.h"
 #include "Animation/AnimInstance.h"
 
+#include "MassEntityView.h"
+#include "MonsterPark/Monster/Tag/KilledTag.h"
+#include "MonsterPark/Monster/Tag/MonsterDyingTag.h"
+#include "PlaySubSystem.h" 
+
 ASage::ASage()
 {
 	SkillAbilityClass = USageSkillAbility::StaticClass();
@@ -20,12 +25,42 @@ ASage::ASage()
 void ASage::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (StunnedEntities.Num() > 0)
+	{
+		UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
+		if (EntitySubsystem)
+		{
+			FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
+
+			for (int32 i = StunnedEntities.Num() - 1; i >= 0; --i)
+			{
+				FMassEntityHandle Handle = StunnedEntities[i];
+
+				if (!EntityManager.IsEntityValid(Handle))
+				{
+					StunnedEntities.RemoveAtSwap(i);
+					continue;
+				}
+
+				FMassEntityView View(EntityManager, Handle);
+				if (View.HasTag<FKilledTag>() || View.HasTag<FMonsterDyingTag>())
+				{
+					if (FMonsterStatusFragment* Status = View.GetFragmentDataPtr<FMonsterStatusFragment>())
+					{
+						Status->SpeedMultiplier = 400.0f;
+					}
+					StunnedEntities.RemoveAtSwap(i);
+				}
+			}
+		}
+	}
 }
 
 void ASage::FindEnemiesInArea()
 {
 	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	if (!EntitySubsystem)
+	if (!EntitySubsystem || !PlaySubsystem) 
 	{
 		return;
 	}
@@ -50,10 +85,7 @@ void ASage::FindEnemiesInArea()
 		FMassExecutionContext ExecContext(EntityManager, 0.0f);
 		TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, MyLocation, RangeSq, &TargetLocation, &bFoundTarget](FMassExecutionContext& Context)
 			{
-				if (bFoundTarget)
-				{
-					return;
-				}
+				if (bFoundTarget) return;
 
 				const int32 NumEntities = Context.GetNumEntities();
 				TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
@@ -90,6 +122,70 @@ void ASage::FindEnemiesInArea()
 				});
 		}
 	}
+	else
+	{
+		int64 MyKey = PlaySubsystem->GetGridKey(MyLocation);
+		int32 CenterX = (int32)(MyKey >> 32);
+		int32 CenterY = (int32)(MyKey & 0xFFFFFFFF);
+
+		for (int32 x = -1; x <= 1; ++x)
+		{
+			if (bFoundTarget) break;
+			for (int32 y = -1; y <= 1; ++y)
+			{
+				int64 CheckKey = ((int64)(CenterX + x) << 32) | (uint32)(CenterY + y);
+				if (FGridData* Cell = PlaySubsystem->SpatialGrid.Find(CheckKey))
+				{
+					for (const FMonsterGridInfo& MInfo : Cell->MonsterInfos)
+					{
+						if (FVector::DistSquared(MyLocation, MInfo.Location) <= RangeSq)
+						{
+							if (!EntityManager.IsEntityValid(MInfo.MonsterHandle)) continue;
+							FMassEntityView View(EntityManager, MInfo.MonsterHandle);
+							if (View.HasTag<FKilledTag>() || View.HasTag<FMonsterDyingTag>()) continue;
+
+							TargetLocation = MInfo.Location;
+							bFoundTarget = true;
+							break;
+						}
+					}
+				}
+				if (bFoundTarget) break;
+			}
+		}
+
+		if (bFoundTarget)
+		{
+			int64 TargetKey = PlaySubsystem->GetGridKey(TargetLocation);
+			int32 TargetCenterX = (int32)(TargetKey >> 32);
+			int32 TargetCenterY = (int32)(TargetKey & 0xFFFFFFFF);
+
+			for (int32 x = -1; x <= 1; ++x)
+			{
+				for (int32 y = -1; y <= 1; ++y)
+				{
+					int64 CheckKey = ((int64)(TargetCenterX + x) << 32) | (uint32)(TargetCenterY + y);
+					if (FGridData* Cell = PlaySubsystem->SpatialGrid.Find(CheckKey))
+					{
+						for (const FMonsterGridInfo& MInfo : Cell->MonsterInfos)
+						{
+							if (FVector::DistSquared(TargetLocation, MInfo.Location) <= SplashRadiusSq)
+							{
+								if (!EntityManager.IsEntityValid(MInfo.MonsterHandle)) continue;
+								FMassEntityView View(EntityManager, MInfo.MonsterHandle);
+								if (View.HasTag<FKilledTag>() || View.HasTag<FMonsterDyingTag>()) continue;
+
+								if (FMonsterStatusFragment* Status = View.GetFragmentDataPtr<FMonsterStatusFragment>())
+								{
+									Status->PendingAoEDamage += AttackPowerValue;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 	if (bFoundTarget)
 	{
@@ -106,95 +202,6 @@ void ASage::FindEnemiesInArea()
 	ApplyStun();
 }
 
-void ASage::UseSkill()
-{
-	if (!AbilitySystemComponent || !SkillAbilityClass)
-	{
-		return;
-	}
-
-	FGameplayAbilitySpec* SkillSpec = AbilitySystemComponent->FindAbilitySpecFromClass(SkillAbilityClass);
-	USageSkillAbility* SkillAbility = SkillSpec
-		? Cast<USageSkillAbility>(SkillSpec->GetPrimaryInstance())
-		: nullptr;
-	if (!SkillAbility || !SkillAbility->IsCooldownReady(GetWorld()))
-	{
-		return;
-	}
-
-	bSkillRequested = true;
-
-	const bool bActivated = AbilitySystemComponent->TryActivateAbilityByClass(SkillAbilityClass);
-	if (!bActivated)
-	{
-		bSkillRequested = false;
-		return;
-	}
-
-	if (SkillMontage)
-	{
-		if (USkeletalMeshComponent* CharacterMesh = GetMesh())
-		{
-			if (UAnimInstance* AnimInst = CharacterMesh->GetAnimInstance())
-			{
-				AnimInst->Montage_Play(SkillMontage);
-				AnimInst->Montage_JumpToSection(FName("Skill"), SkillMontage);
-			}
-		}
-	}
-}
-
-bool ASage::ExecuteSkill()
-{
-	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	if (!EntitySubsystem)
-	{
-		return false;
-	}
-
-	FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
-	const FVector MyLocation = GetActorLocation();
-	const float SkillRadiusSq = FMath::Square(SkillRadius);
-
-	FMassExecutionContext ExecContext(EntityManager, 0.0f);
-	TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, MyLocation, SkillRadiusSq](FMassExecutionContext& Context)
-		{
-			const int32 NumEntities = Context.GetNumEntities();
-			TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
-			TArrayView<FMonsterStatusFragment> Statuses = Context.GetMutableFragmentView<FMonsterStatusFragment>();
-
-			for (int32 i = 0; i < NumEntities; ++i)
-			{
-				FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
-				if (FVector::DistSquared(MyLocation, EnemyLoc) <= SkillRadiusSq)
-				{
-					Statuses[i].PendingAoEDamage += SkillDamage;
-				}
-			}
-		});
-
-	return true;
-}
-
-bool ASage::IsSkillRequested() const
-{
-	return bSkillRequested;
-}
-
-void ASage::ClearSkillRequest()
-{
-	bSkillRequested = false;
-}
-
-UAnimMontage* ASage::GetDetectedMontage() const
-{
-	return SageFullMontage;
-}
-
-void ASage::PlayDetectedMontageIfNeeded()
-{
-	PlayDetectedMontageSection(SageFullMontage, bHasPlayedPassive);
-}
 
 void ASage::ApplyStun()
 {
@@ -215,6 +222,7 @@ void ASage::ApplyStun()
 
 	StunnedEntities.Reset();
 	FMassExecutionContext ExecContext(EntityManager, 0.0f);
+
 	EnemyQuery.ForEachEntityChunk(ExecContext, [this, MyLocation, StunRadiusSq](FMassExecutionContext& Context)
 		{
 			const int32 NumEntities = Context.GetNumEntities();
@@ -225,7 +233,7 @@ void ASage::ApplyStun()
 			{
 				if (FVector::DistSquared(MyLocation, Transforms[i].GetTransform().GetLocation()) <= StunRadiusSq)
 				{
-					Statuses[i].SpeedMultiplier = StunSpeedMultiplier;
+					Statuses[i].SpeedMultiplier = StunSpeedMultiplier; 
 					StunnedEntities.Add(Context.GetEntity(i));
 				}
 			}
@@ -263,4 +271,3 @@ void ASage::ResetStun()
 
 	StunnedEntities.Reset();
 }
-
