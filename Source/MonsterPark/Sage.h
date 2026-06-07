@@ -6,6 +6,9 @@
 #include "CharacterBase.h"
 #include "Sage.generated.h"
 
+class ASageMeteorProjectile;
+class UNiagaraSystem;
+
 /**
  * 
  */
@@ -16,6 +19,7 @@ class MONSTERPARK_API ASage : public ACharacterBase
 
 public:
 	ASage();
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void UseSkill() override;
 	bool ExecuteSkill();
@@ -36,6 +40,15 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float SplashRadius = 250.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Combat|VFX")
+	UNiagaraSystem* BasicAttackFirePillarTemplate = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Combat|VFX")
+	float BasicAttackFirePillarDuration = 0.5f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat|VFX")
+	float BasicAttackFirePillarZOffset = 20.0f;
+
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float StunRadius = 300.0f;
 
@@ -51,13 +64,24 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Skill")
 	float SkillRadius = 500.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	TSubclassOf<ASageMeteorProjectile> MeteorClass;
+
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	int32 MeteorPoolSize = 5;
+
 	bool bHasPlayedPassive = false;
 	bool bSkillRequested = false;
 
 private:
+	ASageMeteorProjectile* GetAvailableMeteor();
+	void SpawnBasicAttackFirePillar(const FVector& TargetLocation);
 	void ApplyStun();
 	void ResetStun();
 
 	FTimerHandle StunResetHandle;
 	TArray<FMassEntityHandle> StunnedEntities;
+
+	UPROPERTY()
+	TArray<ASageMeteorProjectile*> MeteorPool;
 };

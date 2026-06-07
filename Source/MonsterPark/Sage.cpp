@@ -2,6 +2,7 @@
 
 
 #include "Sage.h"
+#include "MonsterPark/Hero/SageMeteorProjectile.h"
 #include "SageSkillAbility.h"
 #include "AbilitySystemComponent.h"
 #include "MonsterAttributeSet.h"
@@ -11,8 +12,12 @@
 #include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MassCommonFragments.h"
 #include "Animation/AnimInstance.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
+#include "UObject/ConstructorHelpers.h"
 
-// [추가된 헤더들] 죽은 몬스터 판별 및 격자 탐색에 필요
+// Extra Mass entity checks for dead or dying monsters.
 #include "MassEntityView.h"
 #include "MonsterPark/Monster/Tag/KilledTag.h"
 #include "MonsterPark/Monster/Tag/MonsterDyingTag.h"
@@ -21,6 +26,42 @@
 ASage::ASage()
 {
 	SkillAbilityClass = USageSkillAbility::StaticClass();
+	MeteorClass = ASageMeteorProjectile::StaticClass();
+
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> FirePillarAsset(TEXT("/Game/Hero/Sage/Effect/NS_Sage_BasicAttack_FirePillar.NS_Sage_BasicAttack_FirePillar"));
+	if (FirePillarAsset.Succeeded())
+	{
+		BasicAttackFirePillarTemplate = FirePillarAsset.Object;
+	}
+}
+
+void ASage::BeginPlay()
+{
+	if (!SkillAbilityClass)
+	{
+		SkillAbilityClass = USageSkillAbility::StaticClass();
+	}
+
+	Super::BeginPlay();
+
+	if (!MeteorClass || !GetWorld())
+	{
+		return;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = this;
+
+	for (int32 i = 0; i < MeteorPoolSize; ++i)
+	{
+		ASageMeteorProjectile* NewMeteor = GetWorld()->SpawnActor<ASageMeteorProjectile>(MeteorClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+		if (NewMeteor)
+		{
+			NewMeteor->DeactivateProjectile();
+			MeteorPool.Add(NewMeteor);
+		}
+	}
 }
 
 void ASage::Tick(float DeltaTime)
@@ -98,7 +139,7 @@ void ASage::FindEnemiesInArea()
 	}
 	else
 	{
-		// [수정된 부분] 성벽 밖에 있을 때 격자(Grid) 시스템을 통한 탐색 로직 추가
+		// Outside-wall search uses the spatial grid.
 		int64 MyKey = PlaySubsystem->GetGridKey(MyLocation);
 		int32 CenterX = (int32)(MyKey >> 32);
 		int32 CenterY = (int32)(MyKey & 0xFFFFFFFF);
@@ -164,6 +205,8 @@ void ASage::FindEnemiesInArea()
 
 	if (bFoundTarget)
 	{
+		SpawnBasicAttackFirePillar(TargetLocation);
+
 		bEnemyDetected = true;
 		Attacking = false;
 
@@ -179,12 +222,23 @@ void ASage::FindEnemiesInArea()
 
 void ASage::UseSkill()
 {
+	if (!SkillAbilityClass)
+	{
+		SkillAbilityClass = USageSkillAbility::StaticClass();
+	}
+
 	if (!AbilitySystemComponent || !SkillAbilityClass)
 	{
 		return;
 	}
 
 	FGameplayAbilitySpec* SkillSpec = AbilitySystemComponent->FindAbilitySpecFromClass(SkillAbilityClass);
+	if (!SkillSpec && HasAuthority())
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(SkillAbilityClass, 1, 1, this));
+		SkillSpec = AbilitySystemComponent->FindAbilitySpecFromClass(SkillAbilityClass);
+	}
+
 	USageSkillAbility* SkillAbility = SkillSpec
 		? Cast<USageSkillAbility>(SkillSpec->GetPrimaryInstance())
 		: nullptr;
@@ -218,7 +272,7 @@ void ASage::UseSkill()
 bool ASage::ExecuteSkill()
 {
 	UMassEntitySubsystem* EntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
-	if (!EntitySubsystem)
+	if (!EntitySubsystem || !PlaySubsystem)
 	{
 		return false;
 	}
@@ -226,27 +280,109 @@ bool ASage::ExecuteSkill()
 	FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
 	const FVector MyLocation = GetActorLocation();
 	const float SkillRadiusSq = FMath::Square(SkillRadius);
+	FMassEntityHandle TargetHandle;
+	FVector TargetLocation = FVector::ZeroVector;
+	bool bFoundTarget = false;
 
-	FMassExecutionContext ExecContext(EntityManager, 0.0f);
-	TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, MyLocation, SkillRadiusSq](FMassExecutionContext& Context)
-		{
-			const int32 NumEntities = Context.GetNumEntities();
-			TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
-			TArrayView<FMonsterStatusFragment> Statuses = Context.GetMutableFragmentView<FMonsterStatusFragment>();
-
-			for (int32 i = 0; i < NumEntities; ++i)
+	if (!bIsOutsideWall)
+	{
+		FMassExecutionContext ExecContext(EntityManager, 0.0f);
+		TargetQueryPtr->ForEachEntityChunk(ExecContext, [MyLocation, SkillRadiusSq, &TargetHandle, &TargetLocation, &bFoundTarget](FMassExecutionContext& Context)
 			{
-				FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
-				if (FVector::DistSquared(MyLocation, EnemyLoc) <= SkillRadiusSq)
+				if (bFoundTarget)
 				{
-					Statuses[i].PendingAoEDamage += SkillDamage;
+					return;
+				}
+
+				const int32 NumEntities = Context.GetNumEntities();
+				TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
+
+				for (int32 i = 0; i < NumEntities; ++i)
+				{
+					const FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
+					if (FVector::DistSquared(MyLocation, EnemyLoc) <= SkillRadiusSq)
+					{
+						TargetHandle = Context.GetEntity(i);
+						TargetLocation = EnemyLoc;
+						bFoundTarget = true;
+						break;
+					}
+				}
+			});
+	}
+	else
+	{
+		const int64 MyKey = PlaySubsystem->GetGridKey(MyLocation);
+		const int32 CenterX = static_cast<int32>(MyKey >> 32);
+		const int32 CenterY = static_cast<int32>(MyKey & 0xFFFFFFFF);
+
+		for (int32 x = -1; x <= 1; ++x)
+		{
+			if (bFoundTarget)
+			{
+				break;
+			}
+
+			for (int32 y = -1; y <= 1; ++y)
+			{
+				const int64 CheckKey = (static_cast<int64>(CenterX + x) << 32) | static_cast<uint32>(CenterY + y);
+				if (FGridData* Cell = PlaySubsystem->SpatialGrid.Find(CheckKey))
+				{
+					for (const FMonsterGridInfo& MInfo : Cell->MonsterInfos)
+					{
+						if (FVector::DistSquared(MyLocation, MInfo.Location) > SkillRadiusSq)
+						{
+							continue;
+						}
+
+						if (!EntityManager.IsEntityValid(MInfo.MonsterHandle))
+						{
+							continue;
+						}
+
+						FMassEntityView View(EntityManager, MInfo.MonsterHandle);
+						if (View.HasTag<FKilledTag>() || View.HasTag<FMonsterDyingTag>())
+						{
+							continue;
+						}
+
+						TargetHandle = MInfo.MonsterHandle;
+						TargetLocation = MInfo.Location;
+						bFoundTarget = true;
+						break;
+					}
+				}
+
+				if (bFoundTarget)
+				{
+					break;
 				}
 			}
-		});
+		}
+	}
+
+	if (!bFoundTarget || !TargetHandle.IsValid())
+	{
+		return false;
+	}
+
+	ASageMeteorProjectile* Meteor = GetAvailableMeteor();
+	if (!Meteor)
+	{
+		return false;
+	}
+
+	const FVector Direction = (TargetLocation - MyLocation).GetSafeNormal2D();
+	if (!Direction.IsNearlyZero())
+	{
+		SetActorRotation(Direction.Rotation());
+	}
+
+	const FVector SpawnLocation = TargetLocation + FVector(0.0f, 0.0f, 450.0f);
+	Meteor->ActivateProjectile(SpawnLocation, GetActorRotation(), TargetHandle, SkillDamage);
 
 	return true;
 }
-
 bool ASage::IsSkillRequested() const
 {
 	return bSkillRequested;
@@ -255,6 +391,80 @@ bool ASage::IsSkillRequested() const
 void ASage::ClearSkillRequest()
 {
 	bSkillRequested = false;
+}
+
+ASageMeteorProjectile* ASage::GetAvailableMeteor()
+{
+	for (ASageMeteorProjectile* Meteor : MeteorPool)
+	{
+		if (IsValid(Meteor) && !Meteor->IsMeteorActive())
+		{
+			return Meteor;
+		}
+	}
+
+	if (!MeteorClass || !GetWorld())
+	{
+		return nullptr;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = this;
+
+	ASageMeteorProjectile* NewMeteor = GetWorld()->SpawnActor<ASageMeteorProjectile>(MeteorClass, FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
+	if (NewMeteor)
+	{
+		NewMeteor->DeactivateProjectile();
+		MeteorPool.Add(NewMeteor);
+	}
+
+	return NewMeteor;
+}
+
+void ASage::SpawnBasicAttackFirePillar(const FVector& TargetLocation)
+{
+	if (!BasicAttackFirePillarTemplate || !GetWorld())
+	{
+		return;
+	}
+
+	const FVector SpawnLocation = TargetLocation + FVector(0.0f, 0.0f, BasicAttackFirePillarZOffset);
+	UNiagaraComponent* FirePillar = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		GetWorld(),
+		BasicAttackFirePillarTemplate,
+		SpawnLocation,
+		FRotator::ZeroRotator,
+		FVector(1.15f),
+		true,
+		true
+	);
+
+	if (!FirePillar)
+	{
+		return;
+	}
+
+	FirePillar->SetVariableFloat(TEXT("User.PillarHeight"), 520.0f);
+	FirePillar->SetVariableFloat(TEXT("User.PillarRadius"), SplashRadius);
+	FirePillar->SetVariableFloat(TEXT("User.Lifetime"), BasicAttackFirePillarDuration);
+	FirePillar->SetVariableFloat(TEXT("User.DamageRadius"), SplashRadius);
+	FirePillar->SetVariableFloat(TEXT("User.SpawnBurst"), 90.0f);
+
+	TWeakObjectPtr<UNiagaraComponent> FirePillarPtr(FirePillar);
+	FTimerHandle FirePillarTimerHandle;
+	GetWorldTimerManager().SetTimer(
+		FirePillarTimerHandle,
+		[FirePillarPtr]()
+		{
+			if (FirePillarPtr.IsValid())
+			{
+				FirePillarPtr->Deactivate();
+			}
+		},
+		BasicAttackFirePillarDuration,
+		false
+	);
 }
 
 UAnimMontage* ASage::GetDetectedMontage() const

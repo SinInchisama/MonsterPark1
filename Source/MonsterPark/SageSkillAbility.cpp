@@ -72,8 +72,10 @@ void USageSkillAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 		return;
 	}
 
-	Sage->ExecuteSkill();
-	LastActivationTime = World->GetTimeSeconds();
+	if (Sage->ExecuteSkill())
+	{
+		LastActivationTime = World->GetTimeSeconds();
+	}
 	Sage->ClearSkillRequest();
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
