@@ -12,9 +12,9 @@
 #include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
 #include "MassCommonFragments.h"
 #include "Animation/AnimInstance.h"
-#include "NiagaraComponent.h"
-#include "NiagaraFunctionLibrary.h"
-#include "NiagaraSystem.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
 // Extra Mass entity checks for dead or dying monsters.
@@ -28,10 +28,10 @@ ASage::ASage()
 	SkillAbilityClass = USageSkillAbility::StaticClass();
 	MeteorClass = ASageMeteorProjectile::StaticClass();
 
-	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> FirePillarAsset(TEXT("/Game/Hero/Sage/Effect/NS_Sage_BasicAttack_FirePillar.NS_Sage_BasicAttack_FirePillar"));
-	if (FirePillarAsset.Succeeded())
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> FireStormAsset(TEXT("/Game/FXVarietyPack/Particles/P_ky_fireStorm.P_ky_fireStorm"));
+	if (FireStormAsset.Succeeded())
 	{
-		BasicAttackFirePillarTemplate = FirePillarAsset.Object;
+		BasicAttackFireStormTemplate = FireStormAsset.Object;
 	}
 }
 
@@ -424,42 +424,35 @@ ASageMeteorProjectile* ASage::GetAvailableMeteor()
 
 void ASage::SpawnBasicAttackFirePillar(const FVector& TargetLocation)
 {
-	if (!BasicAttackFirePillarTemplate || !GetWorld())
+	if (!BasicAttackFireStormTemplate || !GetWorld())
 	{
 		return;
 	}
 
 	const FVector SpawnLocation = TargetLocation + FVector(0.0f, 0.0f, BasicAttackFirePillarZOffset);
-	UNiagaraComponent* FirePillar = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+	UParticleSystemComponent* FireStorm = UGameplayStatics::SpawnEmitterAtLocation(
 		GetWorld(),
-		BasicAttackFirePillarTemplate,
+		BasicAttackFireStormTemplate,
 		SpawnLocation,
 		FRotator::ZeroRotator,
-		FVector(1.15f),
-		true,
+		FVector(1.0f),
 		true
 	);
 
-	if (!FirePillar)
+	if (!FireStorm)
 	{
 		return;
 	}
 
-	FirePillar->SetVariableFloat(TEXT("User.PillarHeight"), 520.0f);
-	FirePillar->SetVariableFloat(TEXT("User.PillarRadius"), SplashRadius);
-	FirePillar->SetVariableFloat(TEXT("User.Lifetime"), BasicAttackFirePillarDuration);
-	FirePillar->SetVariableFloat(TEXT("User.DamageRadius"), SplashRadius);
-	FirePillar->SetVariableFloat(TEXT("User.SpawnBurst"), 90.0f);
-
-	TWeakObjectPtr<UNiagaraComponent> FirePillarPtr(FirePillar);
-	FTimerHandle FirePillarTimerHandle;
+	TWeakObjectPtr<UParticleSystemComponent> FireStormPtr(FireStorm);
+	FTimerHandle FireStormTimerHandle;
 	GetWorldTimerManager().SetTimer(
-		FirePillarTimerHandle,
-		[FirePillarPtr]()
+		FireStormTimerHandle,
+		[FireStormPtr]()
 		{
-			if (FirePillarPtr.IsValid())
+			if (FireStormPtr.IsValid())
 			{
-				FirePillarPtr->Deactivate();
+				FireStormPtr->DeactivateSystem();
 			}
 		},
 		BasicAttackFirePillarDuration,

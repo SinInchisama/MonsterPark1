@@ -3,8 +3,12 @@
 #include "SageMeteorProjectile.h"
 #include "MassCommonFragments.h"
 #include "MassEntityManager.h"
+#include "MassExecutionContext.h"
 #include "MassEntitySubsystem.h"
 #include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
+#include "MonsterPark/Monster/Tag/KilledTag.h"
+#include "MonsterPark/Monster/Tag/MonsterDyingTag.h"
+#include "MonsterPark/Monster/Tag/FMonsterTag.h"
 #include "Components/PointLightComponent.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -58,6 +62,17 @@ void ASageMeteorProjectile::BeginPlay()
 	Super::BeginPlay();
 
 	MassEntitySubsystem = GetWorld()->GetSubsystem<UMassEntitySubsystem>();
+	if (MassEntitySubsystem)
+	{
+		FMassEntityManager& EntityManager = MassEntitySubsystem->GetMutableEntityManager();
+		ImpactQuery = FMassEntityQuery(EntityManager.AsShared());
+		ImpactQuery.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadWrite);
+		ImpactQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
+		ImpactQuery.AddTagRequirement<FMonsterTag>(EMassFragmentPresence::All);
+		ImpactQuery.AddTagRequirement<FKilledTag>(EMassFragmentPresence::None);
+		ImpactQuery.AddTagRequirement<FMonsterDyingTag>(EMassFragmentPresence::None);
+		ImpactQuery.CacheArchetypes();
+	}
 	DeactivateProjectile();
 }
 
@@ -140,13 +155,23 @@ void ASageMeteorProjectile::Tick(float DeltaTime)
 
 	if (Alpha >= 1.0f)
 	{
-		if (EntityManager.IsEntityValid(TargetEntity))
-		{
-			if (FMonsterStatusFragment* Status = EntityManager.GetFragmentDataPtr<FMonsterStatusFragment>(TargetEntity))
+		const float ImpactRadiusSq = FMath::Square(ImpactRadius);
+		FMassExecutionContext ExecContext(EntityManager, 0.0f);
+		ImpactQuery.ForEachEntityChunk(ExecContext, [this, ImpactRadiusSq](FMassExecutionContext& Context)
 			{
-				Status->PendingAoEDamage += DamageToApply;
-			}
-		}
+				const int32 NumEntities = Context.GetNumEntities();
+				TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
+				TArrayView<FMonsterStatusFragment> Statuses = Context.GetMutableFragmentView<FMonsterStatusFragment>();
+
+				for (int32 i = 0; i < NumEntities; ++i)
+				{
+					const FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
+					if (FVector::DistSquared(ImpactLocation, EnemyLoc) <= ImpactRadiusSq)
+					{
+						Statuses[i].PendingAoEDamage += DamageToApply;
+					}
+				}
+			});
 
 		UE_LOG(LogTemp, Warning, TEXT("SageMeteor Impact: Location=%s Damage=%.1f"), *MeteorLocation.ToString(), DamageToApply);
 		if (GEngine)

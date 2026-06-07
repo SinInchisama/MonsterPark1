@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "MassEntityQuery.h"
 #include "MassEntityTypes.h"
 #include "SageMeteorProjectile.generated.h"
 
@@ -40,13 +41,16 @@ protected:
 	UPointLightComponent* MeteorGlow;
 
 	UPROPERTY(EditAnywhere, Category = "Skill")
-	float FallDuration = 3.0f;
+	float FallDuration = 1.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Skill")
 	float MeteorStartHeight = 450.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Skill")
 	float ImpactHeight = 0.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	float ImpactRadius = 300.0f;
 
 private:
 	FMassEntityHandle TargetEntity;
@@ -57,4 +61,6 @@ private:
 
 	UPROPERTY()
 	UMassEntitySubsystem* MassEntitySubsystem = nullptr;
+
+	FMassEntityQuery ImpactQuery;
 };

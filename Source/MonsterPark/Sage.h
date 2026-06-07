@@ -7,7 +7,7 @@
 #include "Sage.generated.h"
 
 class ASageMeteorProjectile;
-class UNiagaraSystem;
+class UParticleSystem;
 
 /**
  * 
@@ -41,10 +41,10 @@ protected:
 	float SplashRadius = 250.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat|VFX")
-	UNiagaraSystem* BasicAttackFirePillarTemplate = nullptr;
+	UParticleSystem* BasicAttackFireStormTemplate = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Combat|VFX")
-	float BasicAttackFirePillarDuration = 0.5f;
+	float BasicAttackFirePillarDuration = 0.05f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat|VFX")
 	float BasicAttackFirePillarZOffset = 20.0f;
