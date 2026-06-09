@@ -57,7 +57,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Upgrade")
-	void ToggleUpgradePanel();
+	void ToggleUpgradePanel(bool bIsOpen);
 
 	UFUNCTION(BlueprintCallable, Category = "Upgrade")
 	bool ProcessHeroUpgrade(FText HeroUpgradeName);

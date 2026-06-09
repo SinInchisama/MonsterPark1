@@ -12,6 +12,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLifeChanged, int32, NewLife);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMixtureHero, int32, HeroCost);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUnitSelectedSignature, ACharacterBase*, SelectedUnit, bool, Select);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnNexusToggledSignature, bool, bIsOpen);
 
 UCLASS()
 class MONSTERPARK_API AMyBasicCharacter : public ACharacter
@@ -66,6 +67,7 @@ public:
 	FVector2D EndMousePosition;
 
 	void OpenMenu();
+
 protected:
 	FTimerHandle TH_Attack_End;
 
@@ -87,6 +89,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnUnitSelectedSignature OnUnitSelected;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnNexusToggledSignature OnNexusToggled;
 
 	FHeroChanceRow CurrentLevelChance;
 

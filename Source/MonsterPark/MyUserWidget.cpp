@@ -67,7 +67,8 @@ void UMyUserWidget::NativeConstruct()
 	if (MyChar)
 	{
 		MyChar->OnLifeChanged.AddDynamic(this, &UMyUserWidget::UpdateLife);
-		MyChar->OnUnitSelected.AddDynamic(this,&UMyUserWidget::OnUnitSelected);
+		MyChar->OnUnitSelected.AddDynamic(this,&UMyUserWidget::OnUnitSelected); 
+		MyChar->OnNexusToggled.AddDynamic(this, &UMyUserWidget::ToggleUpgradePanel);
 		UpdateLife(MyChar->Get_PlayerLife());
 	}
 
@@ -93,7 +94,7 @@ void UMyUserWidget::NativeConstruct()
 
 	if (Panel_UpgradeStore)
 	{
-		//Panel_UpgradeStore->SetVisibility(ESlateVisibility::Hidden);
+		Panel_UpgradeStore->SetVisibility(ESlateVisibility::Hidden);
 	}
 
 	this->SetVisibility(ESlateVisibility::Visible);
@@ -454,12 +455,11 @@ void UMyUserWidget::ReFreshExpAndLevel()
 }
 
 
-void UMyUserWidget::ToggleUpgradePanel()
+void UMyUserWidget::ToggleUpgradePanel(bool bIsOpen)
 {
 	if (Panel_UpgradeStore)
 	{
-		bool bIsHidden = (Panel_UpgradeStore->GetVisibility() == ESlateVisibility::Hidden);
-		Panel_UpgradeStore->SetVisibility(bIsHidden ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+		Panel_UpgradeStore->SetVisibility(bIsOpen ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 	}
 }
 bool UMyUserWidget::ProcessHeroUpgrade(FText HeroUpgradeName)

@@ -9,6 +9,9 @@
 #include "BasicGameMode.h"
 #include "InputCoreTypes.h"
 #include "Game_HUD.h"
+#include "MonsterPark/Map/Nexus.h"
+#include "MyUserWidget.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 // Sets default values
 AMyBasicCharacter::AMyBasicCharacter()
@@ -228,31 +231,45 @@ void AMyBasicCharacter::OnLeftClickReleased()
     float DragDistance = FVector2D::Distance(StartMousePosition, EndMousePosition);
     const float DragThreshold = 15.0f;
 
-    if (DragDistance < DragThreshold)
+    if (DragDistance < DragThreshold) 
     {
         FHitResult HitResult;
-        if (PC->GetHitResultUnderCursor(ECC_Pawn, false, HitResult))
+
+        if (PC->GetHitResultUnderCursor(ECC_Visibility, false, HitResult))
         {
-            ACharacterBase* TouchedHero = Cast<ACharacterBase>(HitResult.GetActor());
-            if (TouchedHero)
+            AActor* HitActor = HitResult.GetActor();
+
+            if (ACharacterBase* TouchedHero = Cast<ACharacterBase>(HitActor))
             {
                 SelectHero = TouchedHero;
                 SelectHero->SetSelectedHero(true);
                 SelectedHeroes.Add(SelectHero);
+                OnNexusToggled.Broadcast(false);
                 OnUnitSelected.Broadcast(SelectHero, true);
             }
+
+            else if (ANexusActor* TouchedNexus = Cast<ANexusActor>(HitActor))
+            {
+                OnNexusToggled.Broadcast(true);
+                OnUnitSelected.Broadcast(nullptr, false);
+            }
+
             else
             {
+                OnNexusToggled.Broadcast(false);
                 OnUnitSelected.Broadcast(nullptr, false);
             }
         }
         else
         {
+            OnNexusToggled.Broadcast(false);
             OnUnitSelected.Broadcast(nullptr, false);
         }
     }
-    else
+    else 
     {
+        OnNexusToggled.Broadcast(false); 
+
         float MinX = FMath::Min(StartMousePosition.X, EndMousePosition.X);
         float MaxX = FMath::Max(StartMousePosition.X, EndMousePosition.X);
         float MinY = FMath::Min(StartMousePosition.Y, EndMousePosition.Y);
@@ -273,6 +290,7 @@ void AMyBasicCharacter::OnLeftClickReleased()
                 }
             }
         }
+
         if (SelectedHeroes.Num() > 0)
         {
             SelectHero = SelectedHeroes[0];
@@ -379,7 +397,6 @@ void AMyBasicCharacter::OpenMenu()
     ABasicGameMode* GM = Cast<ABasicGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
     if (GM)
     {
-        // ???(Toggle) ??????? ??? ???? ??? ???
         GM->ToggleMenuUI();
     }
 }

@@ -54,7 +54,7 @@ void ANexusActor::TakeMonsterDamage(float DamageAmount, FVector AttackerLocation
 
 FVector ANexusActor::GetTargetLocation(FVector AttackerLocation)
 {
-	return FVector();
+	return GetActorLocation();
 }
 
 void ANexusActor::HandleNexusDestruction()
@@ -62,7 +62,7 @@ void ANexusActor::HandleNexusDestruction()
 	ABasicGameMode* GM = Cast<ABasicGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (GM)
 	{
-		GM->GameOver(false); // 패배했다는 인자를 보냄
+		GM->GameOver(false); 
 	}
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
