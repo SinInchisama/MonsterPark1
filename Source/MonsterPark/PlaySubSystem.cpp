@@ -373,6 +373,16 @@ TArray<FIntVector> UPlaySubSystem::SmoothPath(const TArray<FIntVector>& InPath)
     return SmoothedPath;
 }
 
+int32 UPlaySubSystem::GetHeroUpgradeLevel(FName HeroName) const
+{
+    return GlobalHeroUpgradeLevels.Contains(HeroName) ? GlobalHeroUpgradeLevels[HeroName] : 0;
+}
+
+void UPlaySubSystem::IncreaseHeroUpgradeLevel(FName HeroName)
+{
+    GlobalHeroUpgradeLevels.FindOrAdd(HeroName)++;
+}
+
 void UPlaySubSystem::StartRound(int Round,int Scale)
 {
     if (MainSpawners.Num() == 0) return;

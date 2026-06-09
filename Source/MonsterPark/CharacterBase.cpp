@@ -113,6 +113,20 @@ void ACharacterBase::BeginPlay()
         AnimClass = LoadDefaultAnimClass();
     }
 
+    if (World )
+    {
+        if (PlaySubsystem)
+        {
+            FName SearchName = FName(*UnitName.ToString());
+            int32 CurrentGlobalLevel = PlaySubsystem->GetHeroUpgradeLevel(SearchName);
+
+            if (CurrentGlobalLevel > 0)
+            {
+                ApplyUpgradeStats(CurrentGlobalLevel);
+            }
+        }
+    }
+
     SetMoveAnimClassIfNeeded();
 }
 
@@ -283,14 +297,12 @@ void ACharacterBase::FindEnemiesInArea()
             });
     }
     else {
-        // [경우 B] 성벽 바깥쪽: 최적화된 격자 탐색 (개선된 로직)
         int64 MyKey = PlaySubsystem->GetGridKey(MyLocation);
         int32 CenterX = (int32)(MyKey >> 32);
         int32 CenterY = (int32)(MyKey & 0xFFFFFFFF);
 
         bool bFoundInGrid = false;
 
-        // 주변 3x3 격자 순회
         for (int32 x = -1; x <= 1; ++x)
         {
             if (bFoundInGrid) break;
@@ -608,4 +620,16 @@ void ACharacterBase::GrantDefaultAbilities()
         AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(SkillAbilityClass, 1, 1, this));
     }
 
+}
+
+void ACharacterBase::ApplyUpgradeStats(int32 NewLevel)
+{
+    DefaultAttackPower = DefaultAttackPower + (DefaultUpgradeAttack * NewLevel);
+
+
+    if (AbilitySystemComponent)
+    {
+        AbilitySystemComponent->SetNumericAttributeBase(UMonsterAttributeSet::GetAttackPowerAttribute(), DefaultAttackPower);
+
+    }
 }

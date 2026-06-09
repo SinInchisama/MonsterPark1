@@ -53,6 +53,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit|Stats")
 	float DefaultCost = 1.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit|Stats")
+	float DefaultUpgradeAttack = 75.f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
 	UNiagaraSystem* HitEffectTemplate;
 
@@ -96,6 +99,8 @@ public:
 	void SetSelectedHero(bool bIsSelected);
 
 	void CommandMoveToLocation(FVector TargetLocation);
+
+	void ApplyUpgradeStats(int32 NewLevel);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 	TSubclassOf<UMyAnimInstance> AnimClass;

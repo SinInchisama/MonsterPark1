@@ -8,6 +8,7 @@
 #include "Runtime/UMG/Public/Components/TextBlock.h"
 #include "CharacterBase.h"
 #include "Components/Image.h"
+#include "Components/CanvasPanel.h"
 #include "MyUserWidget.generated.h"
 
 /**
@@ -53,6 +54,16 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent, Category = "Selection")
 	void UpdateMultiSelectUI(bool bIsMultiSelect, const TArray<ACharacterBase*>& SelectedList);
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "Upgrade")
+	void ToggleUpgradePanel();
+
+	UFUNCTION(BlueprintCallable, Category = "Upgrade")
+	bool ProcessHeroUpgrade(FText HeroUpgradeName);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Upgrade")
+	int32 GetHeroUpgradeLevel(FText HeroUpgradeName);
 protected:
 	UPROPERTY()
 	class ABasicGameMode* CachedGM;
@@ -165,6 +176,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Exp_Text;
+
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
+	UCanvasPanel* Panel_UpgradeStore;
 
 	void ReFreshExpAndLevel();
 };

@@ -90,4 +90,13 @@ public:
 	TArray<FIntVector> FindPath(const FIntVector& StartGrid, const FIntVector& TargetGrid);
 	bool HasLineOfSight(const FIntVector& Start, const FIntVector& End) const;
 	TArray<FIntVector> SmoothPath(const TArray<FIntVector>& InPath);
+
+	UPROPERTY()
+	TMap<FName, int32> GlobalHeroUpgradeLevels;
+
+	UFUNCTION(BlueprintCallable, Category = "Upgrade")
+	int32 GetHeroUpgradeLevel(FName HeroName) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Upgrade")
+	void IncreaseHeroUpgradeLevel(FName HeroName);
 };

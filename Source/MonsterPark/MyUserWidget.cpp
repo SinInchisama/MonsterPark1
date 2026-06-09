@@ -91,6 +91,11 @@ void UMyUserWidget::NativeConstruct()
 	ReFreshMoney();
 	ReFreshExpAndLevel();
 
+	if (Panel_UpgradeStore)
+	{
+		//Panel_UpgradeStore->SetVisibility(ESlateVisibility::Hidden);
+	}
+
 	this->SetVisibility(ESlateVisibility::Visible);
 }
 
@@ -148,7 +153,6 @@ FReply UMyUserWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const F
 		{
 			FGeometry MinimapGeometry = Img_Minimap->GetCachedGeometry();
 
-            // 마우스를 뗄 때도 미니맵 위라면, 이벤트를 Handled 처리하여 게임으로 넘기지 않음
 			if (MinimapGeometry.IsUnderLocation(InMouseEvent.GetScreenSpacePosition()))
 			{
 				return FReply::Handled();
@@ -450,3 +454,60 @@ void UMyUserWidget::ReFreshExpAndLevel()
 }
 
 
+void UMyUserWidget::ToggleUpgradePanel()
+{
+	if (Panel_UpgradeStore)
+	{
+		bool bIsHidden = (Panel_UpgradeStore->GetVisibility() == ESlateVisibility::Hidden);
+		Panel_UpgradeStore->SetVisibility(bIsHidden ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	}
+}
+bool UMyUserWidget::ProcessHeroUpgrade(FText HeroUpgradeName)
+{
+	UWorld* World = GetWorld();
+	APlayerController* PC = GetOwningPlayer();
+	if (!World || !PC) return false;
+
+	UPlaySubSystem* Subsystem = World->GetSubsystem<UPlaySubSystem>();
+	AMyBasicCharacter* MyPlayer = Cast<AMyBasicCharacter>(PC->GetPawn());
+
+	if (!Subsystem || !MyPlayer) return false;
+
+	FString UpgradeNameStr = HeroUpgradeName.ToString();
+	FName HeroNameForSystem = FName(*UpgradeNameStr);
+
+	int32 Cost = 5;
+
+	if (MyPlayer->Get_PlayerMoney() < Cost)
+	{
+		return false;
+	}
+
+	MyPlayer->Set_PlayerMoney(-Cost);
+	ReFreshMoney();
+
+	Subsystem->IncreaseHeroUpgradeLevel(HeroNameForSystem);
+
+	for (ACharacterBase* Hero : MyPlayer->MySummonedHero)
+	{
+		if (IsValid(Hero) && Hero->UnitName.ToString() == UpgradeNameStr)
+		{
+			Hero->ApplyUpgradeStats(1);
+		}
+	}
+
+	return true;
+}
+
+int32 UMyUserWidget::GetHeroUpgradeLevel(FText HeroUpgradeName)
+{
+	FName TargetHeroName = FName(*HeroUpgradeName.ToString());
+	if (UWorld* World = GetWorld())
+	{
+		if (UPlaySubSystem* Subsystem = World->GetSubsystem<UPlaySubSystem>())
+		{
+			return Subsystem->GetHeroUpgradeLevel(TargetHeroName);
+		}
+	}
+	return 0;
+}
