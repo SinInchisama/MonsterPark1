@@ -15,14 +15,21 @@ AAttackVisualActor::AAttackVisualActor()
 
 void AAttackVisualActor::PlayAttackAnimation()
 {
-    if (AttackMontage && MeshComponent)
-    {
-        UAnimInstance* AnimInstance = MeshComponent->GetAnimInstance();
-        if (AnimInstance && !AnimInstance->Montage_IsPlaying(AttackMontage))
-        {
-            AnimInstance->Montage_Play(AttackMontage);
-        }
-    }
+	if (MeshComponent)
+	{
+		UAnimInstance* AnimInstance = MeshComponent->GetAnimInstance();
+
+		if (AnimInstance && RandomAttackMontages.Num() > 0)
+		{
+			int32 RandomIndex = FMath::RandHelper(RandomAttackMontages.Num());
+			UAnimMontage* SelectedMontage = RandomAttackMontages[RandomIndex];
+
+			if (SelectedMontage && !AnimInstance->Montage_IsPlaying(SelectedMontage))
+			{
+				AnimInstance->Montage_Play(SelectedMontage);
+			}
+		}
+	}
 }
 
 void AAttackVisualActor::PlayDeathAnimation()
