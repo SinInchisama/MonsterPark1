@@ -18,13 +18,11 @@ public:
 void PlayAttackAnimation();
 void PlayDeathAnimation();
 protected:
-    // 애니메이션을 위해 SkeletalMesh를 사용합니다.
     UPROPERTY(VisibleAnywhere, Category = "Components")
     class USkeletalMeshComponent* MeshComponent;
 
-    // 에디터에서 공격 동작(몽타주)을 할당합니다.
-    UPROPERTY(EditAnywhere, Category = "Animation")
-    class UAnimMontage* AttackMontage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+	TArray<class UAnimMontage*> RandomAttackMontages;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
     class UAnimMontage* DeathMontage;
