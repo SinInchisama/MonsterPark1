@@ -41,9 +41,6 @@ protected:
 	float SplashRadius = 250.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat|VFX")
-	UParticleSystem* BasicAttackFireStormTemplate = nullptr;
-
-	UPROPERTY(EditAnywhere, Category = "Combat|VFX")
 	float BasicAttackFirePillarDuration = 0.05f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat|VFX")
@@ -69,6 +66,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Skill")
 	int32 MeteorPoolSize = 5;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Skill")
+	class UNiagaraSystem* BasicAttackFireStormTemplate;
 
 	bool bHasPlayedPassive = false;
 	bool bSkillRequested = false;

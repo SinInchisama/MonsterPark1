@@ -279,6 +279,11 @@ void AMyBasicCharacter::OnLeftClickReleased()
         {
             if (!IsValid(Hero)) continue;
 
+            if (SelectedHeroes.Num() >= 8)
+            {
+                break;
+            }
+
             FVector2D ScreenPosition;
             if (PC->ProjectWorldLocationToScreen(Hero->GetActorLocation(), ScreenPosition))
             {

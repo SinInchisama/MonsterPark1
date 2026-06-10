@@ -17,6 +17,9 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "UObject/ConstructorHelpers.h"
 
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
+
 // Extra Mass entity checks for dead or dying monsters.
 #include "MassEntityView.h"
 #include "MonsterPark/Monster/Tag/KilledTag.h"
@@ -28,11 +31,6 @@ ASage::ASage()
 	SkillAbilityClass = USageSkillAbility::StaticClass();
 	MeteorClass = ASageMeteorProjectile::StaticClass();
 
-	static ConstructorHelpers::FObjectFinder<UParticleSystem> FireStormAsset(TEXT("/Game/FXVarietyPack/Particles/P_ky_fireStorm.P_ky_fireStorm"));
-	if (FireStormAsset.Succeeded())
-	{
-		BasicAttackFireStormTemplate = FireStormAsset.Object;
-	}
 }
 
 void ASage::BeginPlay()
@@ -430,7 +428,8 @@ void ASage::SpawnBasicAttackFirePillar(const FVector& TargetLocation)
 	}
 
 	const FVector SpawnLocation = TargetLocation + FVector(0.0f, 0.0f, BasicAttackFirePillarZOffset);
-	UParticleSystemComponent* FireStorm = UGameplayStatics::SpawnEmitterAtLocation(
+
+	UNiagaraComponent* FireStorm = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 		GetWorld(),
 		BasicAttackFireStormTemplate,
 		SpawnLocation,
@@ -444,18 +443,19 @@ void ASage::SpawnBasicAttackFirePillar(const FVector& TargetLocation)
 		return;
 	}
 
-	TWeakObjectPtr<UParticleSystemComponent> FireStormPtr(FireStorm);
+	TWeakObjectPtr<UNiagaraComponent> FireStormPtr(FireStorm);
 	FTimerHandle FireStormTimerHandle;
+
 	GetWorldTimerManager().SetTimer(
 		FireStormTimerHandle,
 		[FireStormPtr]()
 		{
 			if (FireStormPtr.IsValid())
 			{
-				FireStormPtr->DeactivateSystem();
+				FireStormPtr->Deactivate();
 			}
 		},
-		BasicAttackFirePillarDuration,
+		0.5f, 
 		false
 	);
 }
