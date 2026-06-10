@@ -29,7 +29,7 @@ public:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Skill")
-	float CooldownDuration = 20.0f;
+	float CooldownDuration = 15.0f;
 
 private:
 	mutable float LastActivationTime = -FLT_MAX;

@@ -72,8 +72,10 @@ void UDragonKnightSkillAbility::ActivateAbility(const FGameplayAbilitySpecHandle
 		return;
 	}
 
-	DragonKnight->ExecuteSkill();
-	LastActivationTime = World->GetTimeSeconds();
+	if (DragonKnight->ExecuteSkill())
+	{
+		LastActivationTime = World->GetTimeSeconds();
+	}
 	DragonKnight->ClearSkillRequest();
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);

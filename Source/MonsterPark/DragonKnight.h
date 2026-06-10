@@ -6,6 +6,9 @@
 #include "CharacterBase.h"
 #include "DragonKnight.generated.h"
 
+class AActor;
+class UParticleSystem;
+
 /**
  * 
  */
@@ -37,20 +40,47 @@ protected:
 	float SkillDamage = 5000.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Skill")
+	float BurnPercent = 0.01f;
+
+	UPROPERTY(EditAnywhere, Category = "Skill")
 	float BreathDuration = 3.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Skill")
 	float BreathTickInterval = 1.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Skill|VFX")
+	TSubclassOf<AActor> DragonBreathVFXClass;
+
+	UPROPERTY(EditAnywhere, Category = "Skill|VFX")
+	FName DragonBreathSocketName = FName("DragonMouth");
+
+	UPROPERTY(EditAnywhere, Category = "Skill|VFX")
+	FVector DragonBreathFallbackOffset = FVector(250.0f, 0.0f, 180.0f);
+
+	UPROPERTY(EditAnywhere, Category = "Skill|VFX")
+	float DragonBreathVFXLifeTime = 3.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Skill|Effects")
+	UParticleSystem* BasicAttackFireStormTemplate;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Skill|Effects")
+	FVector BasicAttackFireStormOffset = FVector(250.0f, 0.0f, 0.0f);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Skill|Effects")
+	FVector BasicAttackFireStormScale = FVector(1.0f);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Skill|Effects")
+	float BasicAttackFireStormDuration = 3.0f;
+
 	bool bHasPlayedPassive = false;
 	bool bSkillRequested = false;
 
 private:
+	void SpawnDragonBreathVFX();
 	void StartBreathDamage();
 	void ApplyBreathDamageTick();
 
 	FTimerHandle BreathTimerHandle;
 	int32 RemainingBreathTicks = 0;
 	int32 TotalBreathTicks = 0;
-	float BreathDamagePerTick = 0.0f;
 };
