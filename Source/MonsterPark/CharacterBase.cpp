@@ -127,6 +127,8 @@ void ACharacterBase::BeginPlay()
         }
     }
 
+    CurrentHealth = MaxHealth;
+
     SetMoveAnimClassIfNeeded();
 }
 
@@ -519,6 +521,9 @@ TSubclassOf<UAnimInstance> ACharacterBase::GetMoveAnimClass() const
 
 void ACharacterBase::TakeMonsterDamage(float DamageAmount, FVector AttackerLocation)
 {
+    CurrentHealth -= DamageAmount;
+
+
     FVector HeroLoc = GetActorLocation();
     FVector Direction = (AttackerLocation - HeroLoc).GetSafeNormal2D();
     FRotator SpawnRotation = Direction.Rotation();
@@ -527,14 +532,34 @@ void ACharacterBase::TakeMonsterDamage(float DamageAmount, FVector AttackerLocat
         {
             if (HitEffectTemplate)
             {
-                UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-                    GetWorld(),
-                    HitEffectTemplate,
-                    GetActorLocation(),
-                    SpawnRotation
-                );
+                UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), HitEffectTemplate, GetActorLocation(), SpawnRotation);
             }
         });
+
+    if (CurrentHealth <= 0.0f)
+    {
+        CurrentHealth = MaxHealth;
+
+        FVector SpawnLocation(-1500.0f, 1500.0f, 110.0f);
+
+        SetActorLocation(SpawnLocation);
+
+        bEnemyDetected = false;
+        Attacking = true;
+
+       if( PlaySubsystem->GetCurrentRound() <= PlaySubsystem->GetMaxRound())
+       {
+           bIsOutsideWall = false;
+       }
+
+        bIsMovingOnPath = false;
+        PathToFollow.Empty();
+
+        if (PlaySubsystem)
+        {
+            PlaySubsystem->UpdateHeroLocation(this, LastGridKey, SpawnLocation);
+        }
+    }
 }
 
 void ACharacterBase::SetSelectedHero(bool bIsSelected)

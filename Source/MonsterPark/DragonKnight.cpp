@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "DragonKnight.h"
 #include "DragonKnightSkillAbility.h"
 #include "AbilitySystemComponent.h"
@@ -38,6 +37,19 @@ void ADragonKnight::Tick(float DeltaTime)
 
 void ADragonKnight::FindEnemiesInArea()
 {
+	if (bSkillRequested)
+	{
+		return;
+	}
+
+	if (SkillMontage && GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		if (GetMesh()->GetAnimInstance()->Montage_IsPlaying(SkillMontage))
+		{
+			return;
+		}
+	}
+
 	Super::FindEnemiesInArea();
 }
 
@@ -84,6 +96,10 @@ void ADragonKnight::UseSkill()
 			{
 				AnimInst->Montage_Play(SkillMontage);
 				AnimInst->Montage_JumpToSection(FName("Skill"), SkillMontage);
+
+				float DelayTime = 3.f;//SkillMontage->GetTimeAtFrame(35);
+
+				ExecuteSkill();
 			}
 		}
 	}
@@ -97,8 +113,9 @@ bool ADragonKnight::ExecuteSkill()
 		return false;
 	}
 
-	StartBreathDamage();
 	SpawnDragonBreathVFX();
+	StartBreathDamage();
+
 	return true;
 }
 
@@ -119,6 +136,19 @@ UAnimMontage* ADragonKnight::GetDetectedMontage() const
 
 void ADragonKnight::PlayDetectedMontageIfNeeded()
 {
+	if (bSkillRequested)
+	{
+		return;
+	}
+
+	if (SkillMontage && GetMesh() && GetMesh()->GetAnimInstance())
+	{
+		if (GetMesh()->GetAnimInstance()->Montage_IsPlaying(SkillMontage))
+		{
+			return;
+		}
+	}
+
 	PlayDetectedMontageSection(DragonKnightFullMontage, bHasPlayedPassive);
 }
 
@@ -267,7 +297,7 @@ void ADragonKnight::StartBreathDamage()
 	TotalBreathTicks = FMath::Max(1, FMath::CeilToInt(BreathDuration / BreathTickInterval));
 	RemainingBreathTicks = TotalBreathTicks;
 
-	ApplyBreathDamageTick();
+	ApplyBreathDamageTick(); 
 	GetWorldTimerManager().SetTimer(BreathTimerHandle, this, &ADragonKnight::ApplyBreathDamageTick, BreathTickInterval, true);
 }
 
@@ -276,6 +306,7 @@ void ADragonKnight::ApplyBreathDamageTick()
 	if (RemainingBreathTicks <= 0)
 	{
 		GetWorldTimerManager().ClearTimer(BreathTimerHandle);
+		ClearSkillRequest();
 		return;
 	}
 
@@ -286,18 +317,27 @@ void ADragonKnight::ApplyBreathDamageTick()
 		return;
 	}
 
-	const float RangeValue = AbilitySystemComponent
-		? AbilitySystemComponent->GetNumericAttribute(UMonsterAttributeSet::GetRangeAttribute())
-		: DefaultRange;
-
-	FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
-	const FVector DamageCenter = GetActorLocation()
-		+ GetActorForwardVector() * DragonBreathFallbackOffset.X
-		+ GetActorRightVector() * DragonBreathFallbackOffset.Y;
+	const float RangeValue = 1000.0f;
 	const float RangeSq = FMath::Square(RangeValue);
 
+	const float BreathConeAngle = 90.0f;
+	const float HalfAngleRadians = FMath::DegreesToRadians(BreathConeAngle * 0.5f);
+	const float MinDotProduct = FMath::Cos(HalfAngleRadians);
+
+	float ElapsedTime = (TotalBreathTicks - RemainingBreathTicks) * BreathTickInterval;
+
+	float YawOffset = (ElapsedTime < 2.5f) ? 45.0f : -45.0f;
+
+	FVector BaseForward = GetActorForwardVector();
+	FRotator RotationOffset(0.0f, YawOffset, 0.0f);
+	FVector ForwardDir = RotationOffset.RotateVector(BaseForward).GetSafeNormal2D();
+
+	FVector Origin = GetActorLocation();
+
+	FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
 	FMassExecutionContext ExecContext(EntityManager, 0.0f);
-	TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, DamageCenter, RangeSq](FMassExecutionContext& Context)
+
+	TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, Origin, ForwardDir, RangeSq, MinDotProduct](FMassExecutionContext& Context)
 		{
 			const int32 NumEntities = Context.GetNumEntities();
 			TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
@@ -306,14 +346,18 @@ void ADragonKnight::ApplyBreathDamageTick()
 			for (int32 i = 0; i < NumEntities; ++i)
 			{
 				FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
-				if (FVector::DistSquared(DamageCenter, EnemyLoc) <= RangeSq)
+
+				if (FVector::DistSquared(Origin, EnemyLoc) <= RangeSq)
 				{
-					Statuses[i].PendingAoEDamage += SkillDamage;
-					Statuses[i].PendingBleedDamage += Statuses[i].MaxHealt * BurnPercent;
+					FVector DirToEnemy = (EnemyLoc - Origin).GetSafeNormal2D();
+					if (FVector::DotProduct(ForwardDir, DirToEnemy) >= MinDotProduct)
+					{
+						Statuses[i].PendingAoEDamage += SkillDamage;
+						Statuses[i].PendingBleedDamage += Statuses[i].MaxHealt * BurnPercent;
+					}
 				}
 			}
 		});
 
 	--RemainingBreathTicks;
 }
-

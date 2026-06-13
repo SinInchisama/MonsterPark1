@@ -205,15 +205,32 @@ void ABasicGameMode::UpdateMatchState(EMatchState NewState)
 {
 	CurrentState = NewState;
 
-	if (CurrentState == EMatchState::Waiting)
+	if (MonsterSubsystem->GetCurrentRound() >= MonsterSubsystem->GetMaxRound() && CurrentState == EMatchState::Playing)
 	{
-		// 1. ���� ���� ������ �غ� (����ý��� Ȱ��)
+		APlayerController* PC = GetWorld()->GetFirstPlayerController();
+		if (!PC) return;
+
+		AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(PC->GetPawn());
+		if (MyChar)
+		{
+			for (ACharacterBase* Hero : MyChar->MySummonedHero)
+			{
+				if (IsValid(Hero))
+				{
+					Hero->SetIsOutside(true);
+				}
+			}
+		}
+		RoundTimer = 999;
+	}
+
+	else if (CurrentState == EMatchState::Waiting)
+	{
 		RoundTimer = StayTime;
 		MonsterSubsystem->EndRound();
 	}
 	else if (CurrentState == EMatchState::Playing)
 	{
-		// 2. ��� ���� ���͵� �����
 		if (MonsterSubsystem->MainSpawners.Num() > 0)
 		{
 			MonsterSubsystem->StartRound(0,40);

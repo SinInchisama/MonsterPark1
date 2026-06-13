@@ -80,6 +80,7 @@ private:
 	void StartBreathDamage();
 	void ApplyBreathDamageTick();
 
+	FTimerHandle BreathStartTimerHandle;
 	FTimerHandle BreathTimerHandle;
 	int32 RemainingBreathTicks = 0;
 	int32 TotalBreathTicks = 0;

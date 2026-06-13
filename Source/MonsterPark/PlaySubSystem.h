@@ -52,6 +52,9 @@ public:
 	UPROPERTY()
 	int32 CurrentRound;
 
+	int32 GetCurrentRound() const {return CurrentRound;};
+	int32 GetMaxRound()const { return 20; };
+
 	UPROPERTY()
 	TArray<AActor*> ActiveWalls;
 	UPROPERTY()

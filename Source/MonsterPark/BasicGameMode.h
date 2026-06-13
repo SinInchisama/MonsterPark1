@@ -99,14 +99,14 @@ protected:
 	UPlaySubSystem* MonsterSubsystem;
 
 	UPROPERTY()
-	float RoundTimer = 5;
+	float RoundTimer = 10;
 	FTimerHandle TimerHandle; 
 	FTimerHandle SpawnerCheckHandle;
 
 	UPROPERTY()
-	float StayTime = 5;
+	float StayTime = 10;
 	UPROPERTY()
-	float PlayTime = 20;
+	float PlayTime = 40;
 
 
 	UPROPERTY()

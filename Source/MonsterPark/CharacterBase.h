@@ -56,6 +56,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit|Stats")
 	float DefaultUpgradeAttack = 75.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit|Health")
+	float MaxHealth = 10.0f;
+
+	float CurrentHealth;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
 	UNiagaraSystem* HitEffectTemplate;
 
