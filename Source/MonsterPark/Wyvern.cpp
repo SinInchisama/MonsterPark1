@@ -16,6 +16,19 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "UObject/ConstructorHelpers.h"
+
+AWyvern::AWyvern()
+{
+	static ConstructorHelpers::FObjectFinder<UParticleSystem> WyvernBreathFX(TEXT("/Game/M5VFXVOL2/Particles/Fire_for_Dir/Fire_Dir_04.Fire_Dir_04"));
+	if (WyvernBreathFX.Succeeded())
+	{
+		BreathTemplate = WyvernBreathFX.Object;
+	}
+}
 
 void AWyvern::Tick(float DeltaTime)
 {
@@ -168,6 +181,68 @@ void AWyvern::FindEnemiesInArea()
 		{
 			SetActorRotation(Direction.Rotation());
 		}
+
+		SpawnBreathVFX();
+	}
+}
+
+void AWyvern::SpawnBreathVFX()
+{
+	UWorld* World = GetWorld();
+	if (!World || !BreathTemplate)
+	{
+		return;
+	}
+
+	FVector SpawnLocation = GetActorLocation()
+		+ GetActorForwardVector() * BreathFallbackOffset.X
+		+ GetActorRightVector() * BreathFallbackOffset.Y
+		+ FVector(0.0f, 0.0f, BreathFallbackOffset.Z);
+	FRotator SpawnRotation = GetActorRotation();
+
+	if (USkeletalMeshComponent* CharacterMesh = GetMesh())
+	{
+		if (CharacterMesh->DoesSocketExist(BreathSocketName) || CharacterMesh->GetBoneIndex(BreathSocketName) != INDEX_NONE)
+		{
+			SpawnLocation = CharacterMesh->GetSocketLocation(BreathSocketName);
+			SpawnRotation = CharacterMesh->GetSocketRotation(BreathSocketName);
+		}
+	}
+
+	UParticleSystemComponent* Breath = UGameplayStatics::SpawnEmitterAtLocation(
+		World,
+		BreathTemplate,
+		SpawnLocation,
+		SpawnRotation,
+		BreathScale,
+		true
+	);
+
+	if (!Breath)
+	{
+		return;
+	}
+
+	Breath->SetVisibility(true, true);
+	Breath->SetComponentTickEnabled(true);
+	Breath->ActivateSystem(true);
+
+	if (BreathLifeTime > 0.0f)
+	{
+		TWeakObjectPtr<UParticleSystemComponent> BreathPtr(Breath);
+		FTimerHandle BreathTimerHandle;
+		GetWorldTimerManager().SetTimer(
+			BreathTimerHandle,
+			[BreathPtr]()
+			{
+				if (BreathPtr.IsValid())
+				{
+					BreathPtr->DeactivateSystem();
+				}
+			},
+			BreathLifeTime,
+			false
+		);
 	}
 }
 
