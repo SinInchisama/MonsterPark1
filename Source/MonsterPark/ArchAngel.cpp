@@ -7,15 +7,46 @@
 #include "MonsterAttributeSet.h"
 #include "MyBasicCharacter.h"
 #include "Animation/AnimInstance.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
+#include "UObject/ConstructorHelpers.h"
 
- AArchAngel::AArchAngel()
+AArchAngel::AArchAngel()
 {
 	SkillAbilityClass = UArchAngelSkillAbility::StaticClass();
+
+	AuraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("AuraComponent"));
+	if (AuraComponent)
+	{
+		AuraComponent->SetupAttachment(GetRootComponent());
+		AuraComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		AuraComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+		AuraComponent->bAutoActivate = false;
+		AuraComponent->SetRelativeLocation(FVector::ZeroVector);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> AuraTemplateFinder(
+		TEXT("/Game/Hero/Onecoin/Shielder/Effectr/NewNiagaraSystem.NewNiagaraSystem"));
+	if (AuraTemplateFinder.Succeeded())
+	{
+		AuraTemplate = AuraTemplateFinder.Object;
+	}
 }
 
 void AArchAngel::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
+
+void AArchAngel::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (AuraComponent && AuraTemplate)
+	{
+		AuraComponent->SetAsset(AuraTemplate);
+		AuraComponent->Activate(true);
+	}
 }
 
 void AArchAngel::FindEnemiesInArea()
@@ -91,7 +122,7 @@ void AArchAngel::UseSkill()
 
 bool AArchAngel::ExecuteSkill()
 {
-	if (!MinionClass)
+	if (!MinionClass || MinionSpawnCount <= 0)
 	{
 		return false;
 	}
@@ -102,28 +133,45 @@ bool AArchAngel::ExecuteSkill()
 		return false;
 	}
 
-	const FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 100.0f;
 	const FRotator SpawnRotation = GetActorRotation();
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	ACharacterBase* Minion = World->SpawnActor<ACharacterBase>(MinionClass, SpawnLocation, SpawnRotation, SpawnParams);
-	if (!Minion)
+	bool bSpawnedAnyMinion = false;
+	for (int32 MinionIndex = 0; MinionIndex < MinionSpawnCount; ++MinionIndex)
 	{
-		return false;
-	}
+		const float SideOffset = (MinionIndex - (MinionSpawnCount - 1) * 0.5f) * 150.0f;
+		const FVector SpawnLocation = GetActorLocation()
+			- GetActorForwardVector() * 150.0f
+			+ GetActorRightVector() * SideOffset;
 
-	Minion->SetLifeSpan(MinionLifetime);
-
-	if (APlayerController* PC = World->GetFirstPlayerController())
-	{
-		if (AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(PC->GetPawn()))
+		ACharacterBase* Minion = World->SpawnActor<ACharacterBase>(MinionClass, SpawnLocation, SpawnRotation, SpawnParams);
+		if (!Minion)
 		{
-			MyChar->SetSummonedActor(Minion);
+			continue;
 		}
+
+		Minion->SetOwner(this);
+		Minion->DefaultAttackPower = MinionAttackDamage;
+		if (UAbilitySystemComponent* MinionASC = Minion->GetAbilitySystemComponent())
+		{
+			MinionASC->SetNumericAttributeBase(UMonsterAttributeSet::GetAttackPowerAttribute(), MinionAttackDamage);
+		}
+		Minion->SetLifeSpan(MinionLifetime);
+
+		if (APlayerController* PC = World->GetFirstPlayerController())
+		{
+			if (AMyBasicCharacter* MyChar = Cast<AMyBasicCharacter>(PC->GetPawn()))
+			{
+				MyChar->SetSummonedActor(Minion);
+			}
+		}
+
+		bSpawnedAnyMinion = true;
 	}
 
-	return true;
+	return bSpawnedAnyMinion;
 }
 
 bool AArchAngel::IsSkillRequested() const

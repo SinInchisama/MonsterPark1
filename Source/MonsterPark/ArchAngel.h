@@ -6,6 +6,9 @@
 #include "CharacterBase.h"
 #include "ArchAngel.generated.h"
 
+class UNiagaraComponent;
+class UNiagaraSystem;
+
 /**
  * 
  */
@@ -17,6 +20,7 @@ class MONSTERPARK_API AArchAngel : public ACharacterBase
 public:
 	AArchAngel();
 	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
 	virtual void UseSkill() override;
 	bool ExecuteSkill();
 	bool IsSkillRequested() const;
@@ -40,11 +44,23 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Skill")
 	float MinionLifetime = 40.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	int32 MinionSpawnCount = 2;
+
+	UPROPERTY(EditAnywhere, Category = "Skill")
+	float MinionAttackDamage = 300.0f;
+
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float BuffRadius = 600.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float AttackSpeedBuffMultiplier = 1.5f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "VFX")
+	UNiagaraComponent* AuraComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+	UNiagaraSystem* AuraTemplate;
 
 	bool bHasPlayedPassive = false;
 	bool bSkillRequested = false;
