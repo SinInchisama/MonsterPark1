@@ -12,8 +12,7 @@
 #include "MonsterPark/Map/Nexus.h"
 #include "MyUserWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "Kismet/GameplayStatics.h"
-#include "Engine/PostProcessVolume.h"
+
 
 // Sets default values
 AMyBasicCharacter::AMyBasicCharacter()
@@ -36,18 +35,6 @@ AMyBasicCharacter::AMyBasicCharacter()
 
     CurrentLevelChance.Cost1 = 100.0f;
 
-    TArray<AActor*> FoundVolumes;
-    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APostProcessVolume::StaticClass(), FoundVolumes);
-
-    for (AActor* VolumeActor : FoundVolumes)
-    {
-        APostProcessVolume* PPVolume = Cast<APostProcessVolume>(VolumeActor);
-        if (PPVolume)
-        {
-            // bEnabled 값을 반전(토글)시킵니다.
-            PPVolume->bEnabled = !PPVolume->bEnabled;
-        }
-    }
 }
 
 // Called when the game starts or when spawned
