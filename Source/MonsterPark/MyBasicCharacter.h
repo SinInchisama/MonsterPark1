@@ -101,7 +101,7 @@ public:
 public:
 	// ���� �÷��̾� ��, ����ġ, ������, ������ �ִ� �������� ����
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
-	int32 PlayerMoney = 100;
+	int32 PlayerMoney = 20;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerLife = 20;
@@ -110,7 +110,7 @@ public:
 	int32 PlayerExp = 0;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
-	int32 PlayerMaxExp = 8;
+	int32 PlayerMaxExp = 14;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
 	int32 PlayerLevel = 1;
