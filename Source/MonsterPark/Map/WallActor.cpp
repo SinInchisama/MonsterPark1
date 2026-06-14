@@ -53,6 +53,17 @@ void AWallActor::TakeMonsterDamage(float DamageAmount, FVector AttackerLocation)
 
 	if (Health <= 0.f)
 	{
+		FVector ExplosionLocation = AttackZone ? AttackZone->GetComponentLocation() : GetActorLocation();
+
+		if (DestructionEffect)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				GetWorld(),
+				DestructionEffect,
+				ExplosionLocation, 
+				FRotator::ZeroRotator
+			);
+		}
 		Destroy();
 	}
 }

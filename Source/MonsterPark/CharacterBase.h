@@ -125,6 +125,7 @@ public:
 
 	FMassEntityQuery* TargetQueryPtr = nullptr;
 
+	bool bIsOutsideWall;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
 	class UTexture2D* UnitPortrait;
 protected:
@@ -152,7 +153,6 @@ protected:
 	float CurrentForwardInput = 0;
 	float CurrentRightInput = 0;
 
-	bool bIsOutsideWall;
 	UPROPERTY()
 	class UPlaySubSystem* PlaySubsystem;
 

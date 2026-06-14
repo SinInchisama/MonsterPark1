@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "MonsterPark/HitInterface.h"
+#include "NiagaraSystem.h" 
+#include "NiagaraFunctionLibrary.h"
 #include "WallActor.generated.h"
 
 UCLASS()
@@ -34,4 +36,7 @@ public:
 	virtual void TakeMonsterDamage(float DamageAmount, FVector AttackerLocation) override;
 
 	virtual FVector GetTargetLocation(FVector AttackerLocation) override;
+
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	UNiagaraSystem* DestructionEffect;
 };

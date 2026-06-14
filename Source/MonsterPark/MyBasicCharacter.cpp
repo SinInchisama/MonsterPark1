@@ -91,6 +91,7 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction("Cheat_HeroInvincible", IE_Pressed, this, &AMyBasicCharacter::InputCheatHeroInvincible);
     PlayerInputComponent->BindAction("Cheat_AddMoney", IE_Pressed, this, &AMyBasicCharacter::InputCheatAddMoney);
     PlayerInputComponent->BindAction("Cheat_MaxRound", IE_Pressed, this, &AMyBasicCharacter::InputCheatMaxRound);
+    PlayerInputComponent->BindAction("Cheat_ToggleOutsideWall", IE_Pressed, this, &AMyBasicCharacter::InputCheatToggleOutsideWall);
 }
 
 void AMyBasicCharacter::GameraMoveForward(float value)
@@ -525,6 +526,14 @@ void AMyBasicCharacter::InputCheatMaxRound()
 
         PlaySub->OnRoundChanged.Broadcast(PlaySub->CurrentRound);
 
+    }
+}
+
+void AMyBasicCharacter::InputCheatToggleOutsideWall()
+{
+    if (SelectHero)
+    {
+        SelectHero->bIsOutsideWall = !SelectHero->bIsOutsideWall;
     }
 }
 

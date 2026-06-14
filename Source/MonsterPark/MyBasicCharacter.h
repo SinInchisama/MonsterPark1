@@ -84,6 +84,7 @@ public:
 	void InputCheatHeroInvincible();
 	void InputCheatAddMoney();
 	void InputCheatMaxRound();
+	void InputCheatToggleOutsideWall();
 protected:
 	FTimerHandle TH_Attack_End;
 
