@@ -89,6 +89,8 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindAction("Cheat_Invincible", IE_Pressed, this, &AMyBasicCharacter::InputCheatToggleInvincible);
     PlayerInputComponent->BindAction("Cheat_Teleport", IE_Pressed, this, &AMyBasicCharacter::InputCheatTeleportUnit);
     PlayerInputComponent->BindAction("Cheat_HeroInvincible", IE_Pressed, this, &AMyBasicCharacter::InputCheatHeroInvincible);
+    PlayerInputComponent->BindAction("Cheat_AddMoney", IE_Pressed, this, &AMyBasicCharacter::InputCheatAddMoney);
+    PlayerInputComponent->BindAction("Cheat_MaxRound", IE_Pressed, this, &AMyBasicCharacter::InputCheatMaxRound);
 }
 
 void AMyBasicCharacter::GameraMoveForward(float value)
@@ -508,6 +510,22 @@ void AMyBasicCharacter::InputCheatTeleportUnit()
 void AMyBasicCharacter::InputCheatHeroInvincible()
 {
     bIsHeroInvincible = !bIsHeroInvincible;
+}
+
+void AMyBasicCharacter::InputCheatAddMoney()
+{
+    Set_PlayerMoney(100);
+}
+
+void AMyBasicCharacter::InputCheatMaxRound()
+{
+    if (UPlaySubSystem* PlaySub = GetWorld()->GetSubsystem<UPlaySubSystem>())
+    {
+        PlaySub->CurrentRound = PlaySub->GetMaxRound();
+
+        PlaySub->OnRoundChanged.Broadcast(PlaySub->CurrentRound);
+
+    }
 }
 
 

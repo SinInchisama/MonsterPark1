@@ -82,6 +82,8 @@ public:
 	void InputCheatToggleInvincible();
 	void InputCheatTeleportUnit();
 	void InputCheatHeroInvincible();
+	void InputCheatAddMoney();
+	void InputCheatMaxRound();
 protected:
 	FTimerHandle TH_Attack_End;
 

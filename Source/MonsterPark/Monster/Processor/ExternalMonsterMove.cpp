@@ -59,6 +59,8 @@ UExternalMonsterMove::UExternalMonsterMove() : EntityQuery(*this)
 {
 	ProcessingPhase = EMassProcessingPhase::PrePhysics;
 	ExecutionOrder.ExecuteInGroup = UE::Mass::ProcessorGroupNames::Movement;
+
+    bRequiresGameThreadExecution = true;
 }
 
 void UExternalMonsterMove::ConfigureQueries(const TSharedRef<FMassEntityManager>& EntityManager)
@@ -91,7 +93,7 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
             const float DetectRange = 800.0f;
             const float GridCheckDistance = 150.f;
 
-            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 20;
+            const bool bIsFinalRound = PlaySubsystem->CurrentRound >= 15;
 
             FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(MassMonsterTrace), false);
 
@@ -117,12 +119,19 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                 {
                     if (!IsValid(CurrentTarget) || CurrentTarget->IsA(ACharacterBase::StaticClass()))
                     {
-                        if (MoveData.bHasFinishedWall) CurrentTarget = PlaySubsystem->Nexus;
+                        if (MoveData.bHasFinishedWall)
+                        {
+                            CurrentTarget = PlaySubsystem->Nexus;
+                        }
                         else
                         {
                             CurrentTarget = PlaySubsystem->FindFinalRoundTarget(CurrentLocation);
-                            if (CurrentTarget) MoveData.bHasFinishedWall = true;
-                            else CurrentTarget = PlaySubsystem->Nexus;
+
+                            if (!CurrentTarget)
+                            {
+                                CurrentTarget = PlaySubsystem->Nexus;
+                                MoveData.bHasFinishedWall = true;
+                            }
                         }
                         MoveData.TargetHero = CurrentTarget;
                     }
@@ -141,13 +150,23 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     IHitInterface* HitInterface = Cast<IHitInterface>(CurrentTarget);
                     FVector TargetPos = HitInterface ? HitInterface->GetTargetLocation(CurrentLocation) : CurrentTarget->GetActorLocation();
 
-                    float DistSqToTarget = FVector::DistSquared(CurrentLocation, TargetPos);
+                    float DynamicAttackRange = 300.0f; 
+                    if (CurrentTarget == PlaySubsystem->Nexus)
+                    {
+
+                        DynamicAttackRange = 570.0f;
+                    }
+                    float DynamicAttackRangeSq = FMath::Square(DynamicAttackRange);
+
+                    float DistSqToTarget = FVector::DistSquared2D(CurrentLocation, TargetPos);
+
+
                     if (!bIsFinalRound && DistSqToTarget > LoseRangeSq)
                     {
                         MoveData.TargetHero = nullptr;
                         CurrentTarget = nullptr;
                     }
-                    else if (DistSqToTarget <= AttackRangeSq)
+                    else if (DistSqToTarget <= DynamicAttackRangeSq)
                     {
                         bIsAttacking = true;
                         if (MoveData.AttackCooldown <= 0.f && HitInterface)

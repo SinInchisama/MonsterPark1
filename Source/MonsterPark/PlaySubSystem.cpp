@@ -164,7 +164,7 @@ AActor* UPlaySubSystem::FindFinalRoundTarget(FVector MonsterLocation)
         return BestTarget;
     }
 
-    return Nexus;
+    return NULL;
 }
 
 void UPlaySubSystem::OnWallDestroyed(AActor* DestroyedWall)
