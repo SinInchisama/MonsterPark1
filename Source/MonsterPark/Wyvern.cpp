@@ -17,6 +17,9 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "UObject/ConstructorHelpers.h"
@@ -27,6 +30,12 @@ AWyvern::AWyvern()
 	if (WyvernBreathFX.Succeeded())
 	{
 		BreathTemplate = WyvernBreathFX.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> WyvernImpactFX(TEXT("/Game/M5VFXVOL2/Niagara/Explosion/NFire_Exp_00.NFire_Exp_00"));
+	if (WyvernImpactFX.Succeeded())
+	{
+		ImpactTemplate = WyvernImpactFX.Object;
 	}
 }
 
@@ -182,6 +191,7 @@ void AWyvern::FindEnemiesInArea()
 			SetActorRotation(Direction.Rotation());
 		}
 
+		SpawnImpactVFX(TargetLocation);
 		SpawnBreathVFX();
 	}
 }
@@ -244,6 +254,44 @@ void AWyvern::SpawnBreathVFX()
 			false
 		);
 	}
+}
+
+void AWyvern::SpawnImpactVFX(const FVector& TargetLocation)
+{
+	if (!GetWorld() || !ImpactTemplate)
+	{
+		return;
+	}
+
+	UNiagaraComponent* Impact = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+		GetWorld(),
+		ImpactTemplate,
+		TargetLocation,
+		FRotator::ZeroRotator,
+		ImpactScale,
+		true
+	);
+
+	if (!Impact || ImpactLifeTime <= 0.0f)
+	{
+		return;
+	}
+
+	TWeakObjectPtr<UNiagaraComponent> ImpactPtr(Impact);
+	FTimerHandle ImpactTimerHandle;
+	GetWorldTimerManager().SetTimer(
+		ImpactTimerHandle,
+		[ImpactPtr]()
+		{
+			if (ImpactPtr.IsValid())
+			{
+				ImpactPtr->Deactivate();
+				ImpactPtr->DestroyComponent();
+			}
+		},
+		ImpactLifeTime,
+		false
+	);
 }
 
 UAnimMontage* AWyvern::GetDetectedMontage() const
