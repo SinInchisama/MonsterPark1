@@ -68,6 +68,11 @@ public:
 
 	void OpenMenu();
 
+	UPROPERTY(EditAnywhere, Category = "PostProcess")
+	class APostProcessVolume* MyPPVolume;
+
+	void TogglePPVolume();
+	void OnToggleTimerPressed();
 protected:
 	FTimerHandle TH_Attack_End;
 
