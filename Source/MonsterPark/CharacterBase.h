@@ -57,7 +57,7 @@ public:
 	float DefaultUpgradeAttack = 75.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Unit|Health")
-	float MaxHealth = 10.0f;
+	float MaxHealth = 100.0f;
 
 	float CurrentHealth;
 
@@ -136,6 +136,9 @@ protected:
 
 	bool Attacking = true;
 	bool bEnemyDetected = false;
+
+	UPROPERTY()
+	class AMyBasicCharacter* CachedPlayerChar;
 
 	virtual void PlayDetectedMontageIfNeeded();
 	void PlayDetectedMontageSection(UAnimMontage* TargetMontage, bool& bHasPlayedPassive);

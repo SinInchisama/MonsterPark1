@@ -83,6 +83,9 @@ public:
 
 	void ToggleRoundTimer();
 
+	UPROPERTY()
+	float RoundTimer = 10;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -100,8 +103,6 @@ protected:
 
 	UPlaySubSystem* MonsterSubsystem;
 
-	UPROPERTY()
-	float RoundTimer = 10;
 	FTimerHandle TimerHandle; 
 	FTimerHandle SpawnerCheckHandle;
 

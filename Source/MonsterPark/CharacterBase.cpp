@@ -72,6 +72,11 @@ void ACharacterBase::BeginPlay()
 {
     Super::BeginPlay();
 
+    if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+    {
+        CachedPlayerChar = Cast<AMyBasicCharacter>(PC->GetPawn());
+    }
+
     if (AbilitySystemComponent)
     {
         AbilitySystemComponent->InitAbilityActorInfo(this, this);
@@ -521,8 +526,12 @@ TSubclassOf<UAnimInstance> ACharacterBase::GetMoveAnimClass() const
 
 void ACharacterBase::TakeMonsterDamage(float DamageAmount, FVector AttackerLocation)
 {
-    CurrentHealth -= DamageAmount;
+    bool bIsCheatActive = (CachedPlayerChar && CachedPlayerChar->bIsHeroInvincible);
 
+    if (!bIsCheatActive)
+    {
+        CurrentHealth -= DamageAmount;
+    }
 
     FVector HeroLoc = GetActorLocation();
     FVector Direction = (AttackerLocation - HeroLoc).GetSafeNormal2D();

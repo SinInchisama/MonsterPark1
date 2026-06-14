@@ -84,6 +84,11 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
     PlayerInputComponent->BindAction("VolumeOnOff", IE_Pressed, this, &AMyBasicCharacter::TogglePPVolume);
     PlayerInputComponent->BindAction("ToggleTimer", IE_Pressed, this, &AMyBasicCharacter::OnToggleTimerPressed);
+    PlayerInputComponent->BindAction("Cheat_ReduceTimer", IE_Pressed, this, &AMyBasicCharacter::InputCheatReduceTimer);
+    PlayerInputComponent->BindAction("Cheat_PlusTimer", IE_Pressed, this, &AMyBasicCharacter::InputCheatPlusTimer);
+    PlayerInputComponent->BindAction("Cheat_Invincible", IE_Pressed, this, &AMyBasicCharacter::InputCheatToggleInvincible);
+    PlayerInputComponent->BindAction("Cheat_Teleport", IE_Pressed, this, &AMyBasicCharacter::InputCheatTeleportUnit);
+    PlayerInputComponent->BindAction("Cheat_HeroInvincible", IE_Pressed, this, &AMyBasicCharacter::InputCheatHeroInvincible);
 }
 
 void AMyBasicCharacter::GameraMoveForward(float value)
@@ -157,8 +162,20 @@ int32 AMyBasicCharacter::Get_PlayerLife()
 
 void AMyBasicCharacter::Miu_PlayerLife(int32 value)
 {
+    if (bIsInvincible) return;
+
     PlayerLife -= value;
     OnLifeChanged.Broadcast(PlayerLife);
+
+    if (PlayerLife <= 0)
+    {
+        PlayerLife = 0; 
+
+        if (ABasicGameMode* GM = Cast<ABasicGameMode>(GetWorld()->GetAuthGameMode()))
+        {
+            GM->GameOver(false); 
+        }
+    }
 }
 
 int32 AMyBasicCharacter::Get_PlayerExp()
@@ -433,6 +450,64 @@ void AMyBasicCharacter::OnToggleTimerPressed()
     {
         GM->ToggleRoundTimer();
     }
+}
+
+void AMyBasicCharacter::InputCheatReduceTimer()
+{
+    if (ABasicGameMode* GM = Cast<ABasicGameMode>(GetWorld()->GetAuthGameMode()))
+    {
+        GM->RoundTimer -= 5.0f;
+        if (GM->RoundTimer <= 0.0f)
+        {
+            GM->RoundTimer = 1.0f;
+        }
+        GM->OnTimerUpdated.Broadcast(GM->RoundTimer);
+    }
+}
+
+void AMyBasicCharacter::InputCheatPlusTimer()
+{
+    if (ABasicGameMode* GM = Cast<ABasicGameMode>(GetWorld()->GetAuthGameMode()))
+    {
+        GM->RoundTimer += 5.0f;
+
+        GM->OnTimerUpdated.Broadcast(GM->RoundTimer);
+    }
+}
+
+void AMyBasicCharacter::InputCheatToggleInvincible()
+{
+    bIsInvincible = !bIsInvincible;
+}
+
+void AMyBasicCharacter::InputCheatTeleportUnit()
+{
+    if (SelectHero)
+    {
+        APlayerController* PC = Cast<APlayerController>(GetController());
+        if (PC)
+        {
+            FHitResult HitResult;
+            if (PC->GetHitResultUnderCursor(ECC_Visibility, false, HitResult))
+            {
+                FVector TargetLoc = HitResult.ImpactPoint;
+
+                TargetLoc.Z += 100.0f;
+
+                SelectHero->SetActorLocation(TargetLoc, false, nullptr, ETeleportType::TeleportPhysics);
+
+                if (UPlaySubSystem* PlaySub = GetWorld()->GetSubsystem<UPlaySubSystem>())
+                {
+                    PlaySub->UpdateHeroLocation(SelectHero, SelectHero->LastGridKey, TargetLoc);
+                }
+            }
+        }
+    }
+}
+
+void AMyBasicCharacter::InputCheatHeroInvincible()
+{
+    bIsHeroInvincible = !bIsHeroInvincible;
 }
 
 

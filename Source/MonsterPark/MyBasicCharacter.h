@@ -71,8 +71,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "PostProcess")
 	class APostProcessVolume* MyPPVolume;
 
+	bool bIsHeroInvincible = false;
+
+	bool bIsInvincible = false;
+
 	void TogglePPVolume();
-	void OnToggleTimerPressed();
+	void OnToggleTimerPressed(); 
+	void InputCheatReduceTimer();
+	void InputCheatPlusTimer();
+	void InputCheatToggleInvincible();
+	void InputCheatTeleportUnit();
+	void InputCheatHeroInvincible();
 protected:
 	FTimerHandle TH_Attack_End;
 
