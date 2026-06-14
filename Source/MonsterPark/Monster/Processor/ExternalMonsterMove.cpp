@@ -107,12 +107,61 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                 FVector CurrentLocation = Transform.GetLocation();
                 bool bIsAttacking = false;
 
-                const float MapMinBound = -12600.0f;
-                const float MapMaxBound = 12600.0f;
-
                 if (MoveData.AttackCooldown > 0.f) MoveData.AttackCooldown -= DeltaTime;
                 AActor* CurrentTarget = MoveData.TargetHero.Get();
 
+                if (bIsFinalRound)
+                {
+                    if (!IsValid(CurrentTarget) || CurrentTarget->IsA(ACharacterBase::StaticClass()))
+                    {
+                        if (MoveData.bHasFinishedWall) CurrentTarget = PlaySubsystem->Nexus;
+                        else
+                        {
+                            CurrentTarget = PlaySubsystem->FindFinalRoundTarget(CurrentLocation);
+                            if (CurrentTarget) MoveData.bHasFinishedWall = true;
+                            else CurrentTarget = PlaySubsystem->Nexus;
+                        }
+                        MoveData.TargetHero = CurrentTarget;
+                    }
+                }
+                else
+                {
+                    if (!IsValid(CurrentTarget))
+                    {
+                        CurrentTarget = PlaySubsystem->FindNearestHeroInGrid(CurrentLocation, DetectRange);
+                        if (CurrentTarget) MoveData.TargetHero = CurrentTarget;
+                    }
+                }
+
+                if (IsValid(CurrentTarget))
+                {
+                    IHitInterface* HitInterface = Cast<IHitInterface>(CurrentTarget);
+                    FVector TargetPos = HitInterface ? HitInterface->GetTargetLocation(CurrentLocation) : CurrentTarget->GetActorLocation();
+
+                    float DistSqToTarget = FVector::DistSquared(CurrentLocation, TargetPos);
+                    if (!bIsFinalRound && DistSqToTarget > LoseRangeSq)
+                    {
+                        MoveData.TargetHero = nullptr;
+                        CurrentTarget = nullptr;
+                    }
+                    else if (DistSqToTarget <= AttackRangeSq)
+                    {
+                        bIsAttacking = true;
+                        if (MoveData.AttackCooldown <= 0.f && HitInterface)
+                        {
+                            AActor* VisualActor = ActorList[i].GetMutable();
+                            AsyncTask(ENamedThreads::GameThread, [HitInterface, CurrentLocation, VisualActor]()
+                                {
+                                    if (AAttackVisualActor* AttackActor = Cast<AAttackVisualActor>(VisualActor))
+                                        AttackActor->PlayAttackAnimation();
+                                    if (HitInterface)
+                                        HitInterface->TakeMonsterDamage(10.0f, CurrentLocation);
+                                });
+                            MoveData.AttackCooldown = 1.0f;
+                        }
+                    }
+                    else MoveData.TargetLocation = TargetPos;
+                }
 
                 if (!IsValid(CurrentTarget))
                 {
@@ -121,12 +170,7 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                         FVector::DistSquared2D(CurrentLocation, MoveData.TargetLocation) < ArrivalThresholdSq)
                     {
                         FVector2D RandomOffset = FMath::RandPointInCircle(MoveData.WanderRadius);
-                        FVector NewTarget = MoveData.OriginLocation + FVector(RandomOffset.X, RandomOffset.Y, 0.0f);
-
-                        NewTarget.X = FMath::Clamp(NewTarget.X, MapMinBound, MapMaxBound);
-                        NewTarget.Y = FMath::Clamp(NewTarget.Y, MapMinBound, MapMaxBound);
-
-                        MoveData.TargetLocation = NewTarget;
+                        MoveData.TargetLocation = MoveData.OriginLocation + FVector(RandomOffset.X, RandomOffset.Y, 0.0f);
                     }
                 }
 
@@ -137,22 +181,20 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                     if (!Direction.IsNearlyZero())
                     {
                         FVector FlatCurrentLocation = FVector(CurrentLocation.X, CurrentLocation.Y, 0.f);
+
                         const float AdaptiveCheckDistance = 120.f;
+
                         FVector SteeredDir = GetGridSteeringDirection(PlaySubsystem, FlatCurrentLocation, Direction, AdaptiveCheckDistance);
 
                         float FinalSpeed = MoveData.Speed;
-                        if (MoveData.SmoothedNormal.Z < 0.8f)
+                        if (MoveData.SmoothedNormal.Z < 0.8f) 
                         {
-                            FinalSpeed *= 1.2f;
+                            FinalSpeed *= 1.2f; 
                         }
 
                         NextLocation = FMath::VInterpConstantTo(CurrentLocation, CurrentLocation + SteeredDir * 50.f, DeltaTime, FinalSpeed);
                     }
                 }
-
- 
-                NextLocation.X = FMath::Clamp(NextLocation.X, MapMinBound, MapMaxBound);
-                NextLocation.Y = FMath::Clamp(NextLocation.Y, MapMinBound, MapMaxBound);
 
                 FHitResult HitResult;
                 FVector StartTrace = NextLocation + FVector(0, 0, 1000.0f);

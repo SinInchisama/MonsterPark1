@@ -180,18 +180,6 @@ void ABasicGameMode::ToggleMenuUI()
 	}
 }
 
-void ABasicGameMode::ToggleRoundTimer()
-{
-	if (GetWorldTimerManager().IsTimerPaused(TimerHandle))
-	{
-		GetWorldTimerManager().UnPauseTimer(TimerHandle);
-	}
-	else
-	{
-		GetWorldTimerManager().PauseTimer(TimerHandle);
-	}
-}
-
 void ABasicGameMode::BeginPlay()
 {
 	Super::BeginPlay();
