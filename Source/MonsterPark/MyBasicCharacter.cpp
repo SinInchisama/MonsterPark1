@@ -35,6 +35,13 @@ AMyBasicCharacter::AMyBasicCharacter()
 
     CurrentLevelChance.Cost1 = 100.0f;
 
+    TArray<AActor*> FoundVolumes;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APostProcessVolume::StaticClass(), FoundVolumes);
+
+    if (FoundVolumes.Num() > 0)
+    {
+        MyPPVolume = Cast<APostProcessVolume>(FoundVolumes[0]);
+    }
 }
 
 // Called when the game starts or when spawned
@@ -74,6 +81,9 @@ void AMyBasicCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
     PlayerInputComponent->BindKey(EKeys::Q, IE_Pressed, this, &AMyBasicCharacter::OnSkillPressed);
 
     PlayerInputComponent->BindAction("Menu", IE_Pressed, this, &AMyBasicCharacter::OpenMenu);
+
+    PlayerInputComponent->BindAction("VolumeOnOff", IE_Pressed, this, &AMyBasicCharacter::TogglePPVolume);
+    PlayerInputComponent->BindAction("ToggleTimer", IE_Pressed, this, &AMyBasicCharacter::OnToggleTimerPressed);
 }
 
 void AMyBasicCharacter::GameraMoveForward(float value)
@@ -340,7 +350,6 @@ void AMyBasicCharacter::SetPrimarySelectedHero(ACharacterBase* NewPrimaryHero)
     {
         SelectHero = NewPrimaryHero;
 
-       // OnUnitSelected.Broadcast(SelectHero, true);
     }
 }
 
@@ -407,4 +416,23 @@ void AMyBasicCharacter::OpenMenu()
         GM->ToggleMenuUI();
     }
 }
+
+void AMyBasicCharacter::TogglePPVolume()
+{
+    if (MyPPVolume)
+    {
+
+        MyPPVolume->bEnabled = !MyPPVolume->bEnabled;
+
+    }
+}
+
+void AMyBasicCharacter::OnToggleTimerPressed()
+{
+    if (ABasicGameMode* GM = Cast<ABasicGameMode>(GetWorld()->GetAuthGameMode()))
+    {
+        GM->ToggleRoundTimer();
+    }
+}
+
 
