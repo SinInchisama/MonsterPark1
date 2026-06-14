@@ -113,6 +113,58 @@ void UExternalMonsterMove::Execute(FMassEntityManager& EntityManager, FMassExecu
                 if (MoveData.AttackCooldown > 0.f) MoveData.AttackCooldown -= DeltaTime;
                 AActor* CurrentTarget = MoveData.TargetHero.Get();
 
+                if (bIsFinalRound)
+                {
+                    if (!IsValid(CurrentTarget) || CurrentTarget->IsA(ACharacterBase::StaticClass()))
+                    {
+                        if (MoveData.bHasFinishedWall) CurrentTarget = PlaySubsystem->Nexus;
+                        else
+                        {
+                            CurrentTarget = PlaySubsystem->FindFinalRoundTarget(CurrentLocation);
+                            if (CurrentTarget) MoveData.bHasFinishedWall = true;
+                            else CurrentTarget = PlaySubsystem->Nexus;
+                        }
+                        MoveData.TargetHero = CurrentTarget;
+                    }
+                }
+                else
+                {
+                    if (!IsValid(CurrentTarget))
+                    {
+                        CurrentTarget = PlaySubsystem->FindNearestHeroInGrid(CurrentLocation, DetectRange);
+                        if (CurrentTarget) MoveData.TargetHero = CurrentTarget;
+                    }
+                }
+
+                if (IsValid(CurrentTarget))
+                {
+                    IHitInterface* HitInterface = Cast<IHitInterface>(CurrentTarget);
+                    FVector TargetPos = HitInterface ? HitInterface->GetTargetLocation(CurrentLocation) : CurrentTarget->GetActorLocation();
+
+                    float DistSqToTarget = FVector::DistSquared(CurrentLocation, TargetPos);
+                    if (!bIsFinalRound && DistSqToTarget > LoseRangeSq)
+                    {
+                        MoveData.TargetHero = nullptr;
+                        CurrentTarget = nullptr;
+                    }
+                    else if (DistSqToTarget <= AttackRangeSq)
+                    {
+                        bIsAttacking = true;
+                        if (MoveData.AttackCooldown <= 0.f && HitInterface)
+                        {
+                            AActor* VisualActor = ActorList[i].GetMutable();
+                            AsyncTask(ENamedThreads::GameThread, [HitInterface, CurrentLocation, VisualActor]()
+                                {
+                                    if (AAttackVisualActor* AttackActor = Cast<AAttackVisualActor>(VisualActor))
+                                        AttackActor->PlayAttackAnimation();
+                                    if (HitInterface)
+                                        HitInterface->TakeMonsterDamage(10.0f, CurrentLocation);
+                                });
+                            MoveData.AttackCooldown = 1.0f;
+                        }
+                    }
+                    else MoveData.TargetLocation = TargetPos;
+                }
 
                 if (!IsValid(CurrentTarget))
                 {
