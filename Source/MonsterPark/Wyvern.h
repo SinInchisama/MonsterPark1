@@ -7,6 +7,7 @@
 #include "Wyvern.generated.h"
 
 class UParticleSystem;
+class UNiagaraSystem;
 
 /**
  * 
@@ -49,8 +50,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Combat|Effects")
 	float BreathLifeTime = 1.5f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Combat|Effects")
+	UNiagaraSystem* ImpactTemplate;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Combat|Effects")
+	FVector ImpactScale = FVector(0.5f);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Combat|Effects")
+	float ImpactLifeTime = 0.5f;
+
 	bool bHasPlayedPassive = false;
 
 private:
 	void SpawnBreathVFX();
+	void SpawnImpactVFX(const FVector& TargetLocation);
 };
