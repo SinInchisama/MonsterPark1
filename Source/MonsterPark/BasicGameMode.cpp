@@ -21,7 +21,7 @@ void ABasicGameMode::SpawnHeroFromShop(TSubclassOf<ACharacterBase> HeroClass, AC
 {
 	if (!HeroClass) return;
 
-	FVector SpawnLocation(-1500.0f,1500.0f, 110.0f);
+	FVector SpawnLocation(-1500.0f,1500.0f, 0.0f);
 	FRotator SpawnRotation = FRotator::ZeroRotator;
 	FActorSpawnParameters SpawnParams;
 
