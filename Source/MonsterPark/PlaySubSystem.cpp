@@ -4,6 +4,7 @@
 #include "PlaySubSystem.h"
 #include "MyBasicCharacter.h"
 #include "Map/WallActor.h"
+#include "Map/Manhole.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/BoxComponent.h"
 #include "Algo/Reverse.h"
@@ -23,10 +24,9 @@ void UPlaySubSystem::OnWorldBeginPlay(UWorld& InWorld)
 	Super::OnWorldBeginPlay(InWorld);
 
     TArray<AActor*> FoundActors;
-
     UGameplayStatics::GetAllActorsOfClass(&InWorld, AMyMassSpawner::StaticClass(), FoundActors);
 
-    MainSpawners.Empty(); // 기존 데이터가 있다면 비워줍니다.
+    MainSpawners.Empty();
     for (AActor* Actor : FoundActors)
     {
         if (AMyMassSpawner* Spawner = Cast<AMyMassSpawner>(Actor))
@@ -34,6 +34,20 @@ void UPlaySubSystem::OnWorldBeginPlay(UWorld& InWorld)
             MainSpawners.Add(Spawner);
         }
     }
+
+    // ?? [추가된 부분] 맵에 배치된 맨홀들을 찾아 배열에 저장합니다.
+    TArray<AActor*> FoundManholes;
+    UGameplayStatics::GetAllActorsOfClass(&InWorld, AManhole::StaticClass(), FoundManholes);
+
+    MapManholes.Empty();
+    for (AActor* Actor : FoundManholes)
+    {
+        if (AManhole* Manhole = Cast<AManhole>(Actor))
+        {
+            MapManholes.Add(Manhole);
+        }
+    }
+
 }
 
 void UPlaySubSystem::UpdateHeroLocation(AActor* Hero, int64& InOutLastKey, FVector NewLocation)
@@ -387,6 +401,14 @@ void UPlaySubSystem::StartRound(int Round,int Scale)
 {
     if (MainSpawners.Num() == 0) return;
 
+    for (AManhole* Manhole : MapManholes)
+    {
+        if (IsValid(Manhole))
+        {
+            Manhole->OpenManhole();
+        }
+    }
+
     FTimerManager& TimerManager = GetWorld()->GetTimerManager();
 
     for (int32 i = 0; i < MainSpawners.Num(); ++i)
@@ -421,6 +443,14 @@ void UPlaySubSystem::StartRound(int Round,int Scale)
 void UPlaySubSystem::EndRound()
 {
     if (MainSpawners.Num() == 0) return;
+
+    for (AManhole* Manhole : MapManholes)
+    {
+        if (IsValid(Manhole))
+        {
+            Manhole->CloseManhole();
+        }
+    }
 
     int32 TotalRemainingMonsters = 0;
 

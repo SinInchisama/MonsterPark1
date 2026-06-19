@@ -39,7 +39,6 @@ void UMonsterSpawnProcessor::Execute(FMassEntityManager& EntityManager, FMassExe
 
             RoundData.NextSpawnTime = CurrentTime;
 
-            // ??? 요청하신 8개의 스폰 좌표 배열
             static const FVector SpawnPoints[8] = {
                 FVector(1900, 1900, 60.f), FVector(-1900, 1900, 60.f),
                 FVector(1900, -1900, 60.f), FVector(-1900, -1900, 60.f),

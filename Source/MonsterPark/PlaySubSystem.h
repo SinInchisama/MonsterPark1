@@ -13,6 +13,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRoundChanged, int32, NewRound);
  * 
  */
 
+class AManhole;
+
 USTRUCT()
 struct FMonsterGridInfo
 {
@@ -48,6 +50,9 @@ protected:
 public:
 	UPROPERTY()
 	TArray<AMyMassSpawner*> MainSpawners;
+
+	UPROPERTY()
+	TArray<AManhole*> MapManholes;
 
 	UPROPERTY()
 	int32 CurrentRound;
