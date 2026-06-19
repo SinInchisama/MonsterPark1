@@ -39,12 +39,17 @@ void UMonsterSpawnProcessor::Execute(FMassEntityManager& EntityManager, FMassExe
 
             RoundData.NextSpawnTime = CurrentTime;
 
+            // ??? 요청하신 8개의 스폰 좌표 배열
+            static const FVector SpawnPoints[8] = {
+                FVector(1900, 1900, 60.f), FVector(-1900, 1900, 60.f),
+                FVector(1900, -1900, 60.f), FVector(-1900, -1900, 60.f),
+                FVector(1900, 0, 60.f), FVector(-1900, 0, 60.f),
+                FVector(0, 1900, 60.f), FVector(0, -1900, 60.f)
+            };
+
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
             {
-
                 FTransform& Transform = Transforms[i].GetMutableTransform();
-                FVector CurrentLocation = Transform.GetLocation();
-
                 auto& Move = SimpleMovementsList[i];
 
                 if (Move.SpawnTime < 0.f)
@@ -52,8 +57,7 @@ void UMonsterSpawnProcessor::Execute(FMassEntityManager& EntityManager, FMassExe
                     float RandomDelay = FMath::FRandRange(0.0f, 20.0f);
                     Move.SpawnTime = RoundData.NextSpawnTime + RandomDelay;
 
-                    Transform.SetLocation(
-                        FVector(0, 0, -100000.f));
+                    Transform.SetLocation(FVector(0, 0, -100000.f));
                     continue;
                 }
 
@@ -63,27 +67,27 @@ void UMonsterSpawnProcessor::Execute(FMassEntityManager& EntityManager, FMassExe
                     {
                         Move.bSpawned = true;
 
-                        Move.MoveLocation = FMath::RandRange(-100, 100);
+                        int32 RandomIndex = FMath::RandRange(0, 7);
+                        FVector SelectedSpawnLoc = SpawnPoints[RandomIndex];
 
-                        Transform.SetLocation(
-                            FVector(-2600 + Move.MoveLocation, 400, 60.f));
+                        Move.MoveLocation = FMath::RandRange(-50, 50);
+                        SelectedSpawnLoc.X += Move.MoveLocation;
+                        SelectedSpawnLoc.Y += Move.MoveLocation;
 
-                        FQuat LeftRotation = FRotator(0.f, 90.f, 0.f).Quaternion();
-                        Transform.SetRotation(LeftRotation);
+                        Transform.SetLocation(SelectedSpawnLoc);
+
+                        FVector DirToCenter = (FVector(0.f, 0.f, 60.f) - SelectedSpawnLoc).GetSafeNormal();
+                        Transform.SetRotation(DirToCenter.Rotation().Quaternion());
 
                         float RandomScale = FMath::RandRange(0.8, 1.5);
                         Transform.SetScale3D(FVector(RandomScale));
 
-                        Move.Target = FVector(-2600 + Move.MoveLocation, 2600+Move.MoveLocation, 60.f); 
+                        Move.Target = SelectedSpawnLoc;
+
                         Context.Defer().AddTag<FMonsterTag>(Context.GetEntity(i));
                         Context.Defer().RemoveTag<FMonsterSpawnTag>(Context.GetEntity(i));
                     }
-                    else
-                    {
-                        continue;
-                    }
                 }
-
             }
         });
 }

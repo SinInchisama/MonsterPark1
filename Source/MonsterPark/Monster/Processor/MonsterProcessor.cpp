@@ -44,44 +44,78 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
             {
                 FTransform& Transform = Transforms[i].GetMutableTransform();
                 FVector CurrentLocation = Transform.GetLocation();
-
                 auto& Move = SimpleMovementsList[i];
 
+                if (Move.CurrentNodeIndex == -1)
+                {
+                    float MinDist = FLT_MAX;
+                    int32 ClosestNode = 0;
+                    for (int32 n = 0; n < 17; ++n)
+                    {
+                        float Dist = FVector::DistSquared(CurrentLocation, NodeLocations[n]);
+                        if (Dist < MinDist)
+                        {
+                            MinDist = Dist;
+                            ClosestNode = n;
+                        }
+                    }
+                    Move.PreviousNodeIndex = ClosestNode; 
+
+                    TArray<int32> ValidNeighbors;
+                    for (int32 j = 0; j < 4; ++j)
+                    {
+                        if (NodeNeighbors[ClosestNode][j] != -1)
+                            ValidNeighbors.Add(NodeNeighbors[ClosestNode][j]);
+                    }
+                    Move.CurrentNodeIndex = ValidNeighbors[FMath::RandRange(0, ValidNeighbors.Num() - 1)];
+                    Move.Target = NodeLocations[Move.CurrentNodeIndex];
+                }
+
                 FVector Dir = Move.Target - CurrentLocation;
+                Dir.Z = 0.f;
                 float DistSq = Dir.SizeSquared();
 
                 if (DistSq < 2500.0f)
                 {
-                    Move.TargetIndex = (Move.TargetIndex + 1) % 4;
+                    int32 NodeToPickFrom = Move.CurrentNodeIndex;
+                    TArray<int32> ValidNeighbors;
 
-                    FVector NextTarget = MonsterTargets[Move.TargetIndex];
+                    for (int32 j = 0; j < 4; ++j)
+                    {
+                        int32 Neighbor = NodeNeighbors[NodeToPickFrom][j];
+                        if (Neighbor != -1 && Neighbor != Move.PreviousNodeIndex)
+                        {
+                            ValidNeighbors.Add(Neighbor);
+                        }
+                    }
 
-                    NextTarget.X += Move.MoveLocation;
-                    NextTarget.Y += Move.MoveLocation;
+                    if (ValidNeighbors.Num() > 0)
+                    {
+                        Move.PreviousNodeIndex = Move.CurrentNodeIndex;
+                        Move.CurrentNodeIndex = ValidNeighbors[FMath::RandRange(0, ValidNeighbors.Num() - 1)];
+                    }
+                    else
+                    {
+                        int32 Temp = Move.CurrentNodeIndex;
+                        Move.CurrentNodeIndex = Move.PreviousNodeIndex;
+                        Move.PreviousNodeIndex = Temp;
+                    }
 
-                    Move.Target = NextTarget;
-
-
-                    FVector NewDir = Move.Target - CurrentLocation;
-                    FVector NormalNewDir = NewDir.GetSafeNormal();
-
-                    Velocities[i].Value = NormalNewDir * StatusList[i].SpeedMultiplier;
-
-                    FRotator NewRot = NormalNewDir.Rotation();
-                    NewRot.Pitch = 0.f;
-                    NewRot.Roll = 0.f;
-                    Transform.SetRotation(NewRot.Quaternion());
+                    Move.Target = NodeLocations[Move.CurrentNodeIndex];
                 }
-                else
+
+                Dir = Move.Target - CurrentLocation;
+                Dir.Z = 0.f;
+
+                if (!Dir.IsNearlyZero())
                 {
                     FVector NormalDir = Dir.GetSafeNormal();
-                    FRotator CurrentRot = NormalDir.Rotation();
+                    Velocities[i].Value = NormalDir * StatusList[i].SpeedMultiplier;
 
+                    FRotator CurrentRot = NormalDir.Rotation();
                     CurrentRot.Pitch = 0.f;
                     CurrentRot.Roll = 0.f;
                     Transform.SetRotation(CurrentRot.Quaternion());
-
-                    Velocities[i].Value = NormalDir * StatusList[i].SpeedMultiplier;
                 }
             }
         });
