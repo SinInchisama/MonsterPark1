@@ -229,7 +229,6 @@ void ADragonKnight::SpawnDragonBreathVFX()
 	AActor* DragonBreathVFX = World->SpawnActor<AActor>(DragonBreathVFXClass, SpawnLocation, SpawnRotation, SpawnParams);
 	if (!DragonBreathVFX)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("DragonBreath VFX spawn failed"));
 		return;
 	}
 
