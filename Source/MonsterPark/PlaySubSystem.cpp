@@ -35,7 +35,6 @@ void UPlaySubSystem::OnWorldBeginPlay(UWorld& InWorld)
         }
     }
 
-    // ?? [추가된 부분] 맵에 배치된 맨홀들을 찾아 배열에 저장합니다.
     TArray<AActor*> FoundManholes;
     UGameplayStatics::GetAllActorsOfClass(&InWorld, AManhole::StaticClass(), FoundManholes);
 
@@ -400,6 +399,8 @@ void UPlaySubSystem::IncreaseHeroUpgradeLevel(FName HeroName)
 void UPlaySubSystem::StartRound(int Round,int Scale)
 {
     if (MainSpawners.Num() == 0) return;
+
+    UE_LOG(LogTemp, Warning, TEXT("Spawners: %d, Manhole: %d"), MainSpawners.Num(), MapManholes.Num());
 
     for (AManhole* Manhole : MapManholes)
     {

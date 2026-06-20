@@ -21,7 +21,7 @@ AManhole::AManhole()
 void AManhole::OpenManhole()
 {
     bIsOpen = true;
-    TargetRotation = FRotator(45.f, 0.f, 0.f);
+    TargetRotation = FRotator(55.f, 0.f, 0.f);
 
     SetActorTickEnabled(true);
 }

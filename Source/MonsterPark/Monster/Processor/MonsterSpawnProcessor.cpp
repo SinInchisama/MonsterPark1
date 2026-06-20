@@ -39,11 +39,9 @@ void UMonsterSpawnProcessor::Execute(FMassEntityManager& EntityManager, FMassExe
 
             RoundData.NextSpawnTime = CurrentTime;
 
-            static const FVector SpawnPoints[8] = {
-                FVector(1900, 1900, 60.f), FVector(-1900, 1900, 60.f),
-                FVector(1900, -1900, 60.f), FVector(-1900, -1900, 60.f),
-                FVector(1900, 0, 60.f), FVector(-1900, 0, 60.f),
-                FVector(0, 1900, 60.f), FVector(0, -1900, 60.f)
+            static const FVector SpawnPoints[4] = {
+                FVector(1900, 1900, 10.f), FVector(-1900, 1900, 10.f),
+                FVector(1900, -1900, 10.f), FVector(-1900, -1900, 10.f),
             };
 
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
@@ -66,7 +64,7 @@ void UMonsterSpawnProcessor::Execute(FMassEntityManager& EntityManager, FMassExe
                     {
                         Move.bSpawned = true;
 
-                        int32 RandomIndex = FMath::RandRange(0, 7);
+                        int32 RandomIndex = FMath::RandRange(0, 3);
                         FVector SelectedSpawnLoc = SpawnPoints[RandomIndex];
 
                         Move.MoveLocation = FMath::RandRange(-50, 50);
