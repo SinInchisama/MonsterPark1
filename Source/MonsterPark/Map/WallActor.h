@@ -19,24 +19,47 @@ public:
 	AWallActor();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-public:	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UStaticMeshComponent* MeshComponent;
+public:
+	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wall")
+	class UStaticMeshComponent* MeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Wall")
 	class UBoxComponent* AttackZone;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
-	float Health = 500.0f;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gate")
+	class UStaticMeshComponent* GateMeshComponent;
 
-	virtual void TakeMonsterDamage(float DamageAmount, FVector AttackerLocation) override;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Gate")
+	class UBoxComponent* GateTriggerZone;
 
-	virtual FVector GetTargetLocation(FVector AttackerLocation) override;
+	UPROPERTY(EditAnywhere, Category = "Gate|Settings")
+	float GateOpenHeight = 300.f;
 
-	UPROPERTY(EditAnywhere, Category = "Effects")
-	UNiagaraSystem* DestructionEffect;
+	UPROPERTY(EditAnywhere, Category = "Gate|Settings")
+	float GateMoveSpeed = 5.f; 
+
+public:
+	void TakeMonsterDamage(float DamageAmount, FVector AttackerLocation);
+	FVector GetTargetLocation(FVector AttackerLocation);
+
+private:
+	bool bIsGateOpen = false;
+	FVector InitialGateLocation;
+	int32 OverlappingHeroCount = 0; 
+
+	UFUNCTION()
+	void OnGateTriggerBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnGateTriggerEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	float Health = 500.f;
+
+	UPROPERTY(EditAnywhere)
+	class UNiagaraSystem* DestructionEffect;
 };
