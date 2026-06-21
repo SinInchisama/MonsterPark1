@@ -30,6 +30,16 @@ ADragonKnight::ADragonKnight()
 	}
 }
 
+void ADragonKnight::BeginPlay()
+{
+	if (!SkillAbilityClass)
+	{
+		SkillAbilityClass = UDragonKnightSkillAbility::StaticClass();
+	}
+
+	Super::BeginPlay();
+}
+
 void ADragonKnight::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
