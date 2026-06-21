@@ -16,5 +16,5 @@ class MONSTERPARK_API IEntityHealthInterface
 
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Health")
-	void UpdateHealthUI(float CurrentHealth);
+	 void UpdateHealthUI(float HealthPercent);
 };

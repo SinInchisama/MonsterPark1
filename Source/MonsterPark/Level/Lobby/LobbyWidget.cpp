@@ -22,7 +22,7 @@ void ULobbyWidget::NativeConstruct()
 
 void ULobbyWidget::OnStartClicked()
 {
-	UGameplayStatics::OpenLevel(GetWorld(), FName("MonsterPARK"));
+	UGameplayStatics::OpenLevel(GetWorld(), FName("LoadingLevel"));
 }
 
 void ULobbyWidget::OnGameOffClicked()

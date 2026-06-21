@@ -37,11 +37,15 @@ void UMonsterDyingObserver::Execute(FMassEntityManager& EntityManager, FMassExec
                 {
                     AActor* VisualActor = ActorList[i].GetMutable();
 
-                    AsyncTask(ENamedThreads::GameThread, [VisualActor]()
+                    AsyncTask(ENamedThreads::GameThread, [VisualActor, StatusList,i]()
                         {
                             if (AAttackVisualActor* AnimActor = Cast<AAttackVisualActor>(VisualActor))
                             {
                                 AnimActor->PlayDeathAnimation();
+                            }
+                            else
+                            {
+                                StatusList[i].DeathDelayTimer = 0.0f;
                             }
                         });
                 }

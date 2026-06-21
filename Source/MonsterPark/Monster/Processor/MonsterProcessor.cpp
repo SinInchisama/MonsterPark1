@@ -11,6 +11,7 @@
 #include "MassMovementFragments.h"
 #include "MonsterPark/Monster/Tag/FMonsterTag.h"
 #include "MassActorSubsystem.h"
+#include "GameFramework/Actor.h"
 
 UMonsterProcessor::UMonsterProcessor() :EntityQuery(*this)
 {
@@ -27,6 +28,8 @@ void UMonsterProcessor::ConfigureQueries(const TSharedRef<FMassEntityManager>& E
     EntityQuery.AddRequirement<FMonsterTargetFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMassVelocityFragment>(EMassFragmentAccess::ReadWrite);
     EntityQuery.AddRequirement<FMonsterStatusFragment>(EMassFragmentAccess::ReadWrite);
+
+    EntityQuery.AddRequirement<FMassActorFragment>(EMassFragmentAccess::ReadWrite, EMassFragmentPresence::Optional);
 }
 
 void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
@@ -40,12 +43,17 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
             const TArrayView<FMonsterTargetFragment> SimpleMovementsList = Context.GetMutableFragmentView<FMonsterTargetFragment>();
             const TArrayView<FMonsterStatusFragment> StatusList = Context.GetMutableFragmentView<FMonsterStatusFragment>();
 
+            // 액터 프래그먼트 리스트 가져오기
+            const TArrayView<FMassActorFragment> ActorList = Context.GetMutableFragmentView<FMassActorFragment>();
+            const bool bHasActorData = ActorList.Num() > 0;
+
             for (int32 i = 0; i < Context.GetNumEntities(); ++i)
             {
                 FTransform& Transform = Transforms[i].GetMutableTransform();
                 FVector CurrentLocation = Transform.GetLocation();
                 auto& Move = SimpleMovementsList[i];
 
+                // 1. 최초 스폰 시 가장 가까운 노드 설정
                 if (Move.CurrentNodeIndex == -1)
                 {
                     float MinDist = FLT_MAX;
@@ -59,7 +67,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                             ClosestNode = n;
                         }
                     }
-                    Move.PreviousNodeIndex = ClosestNode; 
+                    Move.PreviousNodeIndex = ClosestNode;
 
                     TArray<int32> ValidNeighbors;
                     for (int32 j = 0; j < 4; ++j)
@@ -75,7 +83,8 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                 Dir.Z = 0.f;
                 float DistSq = Dir.SizeSquared();
 
-                if (DistSq < 2500.0f)
+                // 2. 목표 노드 도달 판정 및 다음 노드 갱신
+                if (DistSq < 25200.0f)
                 {
                     int32 NodeToPickFrom = Move.CurrentNodeIndex;
                     TArray<int32> ValidNeighbors;
@@ -107,6 +116,7 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                 Dir = Move.Target - CurrentLocation;
                 Dir.Z = 0.f;
 
+                // 3. ?? 기존 속도 및 회전 연산 코드를 그대로 사용
                 if (!Dir.IsNearlyZero())
                 {
                     FVector NormalDir = Dir.GetSafeNormal();
@@ -116,6 +126,26 @@ void UMonsterProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutio
                     CurrentRot.Pitch = 0.f;
                     CurrentRot.Roll = 0.f;
                     Transform.SetRotation(CurrentRot.Quaternion());
+                }
+
+                if (bHasActorData)
+                {
+                    if (AActor* VisualActor = ActorList[i].GetMutable())
+                    {
+                        TWeakObjectPtr<AActor> WeakActor = VisualActor;
+                        FTransform UpdatedTransform = Transform;
+
+                        AsyncTask(ENamedThreads::GameThread, [WeakActor, UpdatedTransform]()
+                            {
+                                if (WeakActor.IsValid())
+                                {
+                                    WeakActor->SetActorLocationAndRotation(
+                                        UpdatedTransform.GetLocation(),
+                                        UpdatedTransform.GetRotation()
+                                    );
+                                }
+                            });
+                    }
                 }
             }
         });
