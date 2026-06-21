@@ -19,6 +19,7 @@ class MONSTERPARK_API ADragonKnight : public ACharacterBase
 
 public:
 	ADragonKnight();
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void UseSkill() override;
 	bool ExecuteSkill();

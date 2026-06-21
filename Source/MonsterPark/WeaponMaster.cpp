@@ -12,6 +12,8 @@
 #include "MassEntityManager.h"
 #include "MonsterPark/Monster/Fragment/FMonsterConditionFragment.h"
 #include "MonsterPark/Monster/Fragment/FMonsterStatusFragment.h"
+#include "MonsterPark/Monster/Tag/KilledTag.h"
+#include "MonsterPark/Monster/Tag/MonsterDyingTag.h"
 #include "MassCommonFragments.h"
 #include "MassEntityView.h"
 #include "AbilitySystemComponent.h"
@@ -178,33 +180,53 @@ bool AWeaponMaster::ExecuteSkill()
 	FMassEntityManager& EntityManager = EntitySubsystem->GetMutableEntityManager();
 	FVector MyLocation = GetActorLocation();
 	const float RadiusSq = FMath::Square(RangeValue);
+	const float SplashRadiusSq = FMath::Square(SplashRadius);
+	FVector TargetLocation = FVector::ZeroVector;
+	float BestTargetDistSq = RadiusSq;
+	bool bFoundTarget = false;
 	bool bApplied = false;
 
 	if (!bIsOutsideWall)
 	{
-		FMassExecutionContext ExecContext(EntityManager, 0.0f);
-		TargetQueryPtr->ForEachEntityChunk(ExecContext, [this, MyLocation, RadiusSq, &bApplied](FMassExecutionContext& Context)
+		FMassExecutionContext SearchContext(EntityManager, 0.0f);
+		TargetQueryPtr->ForEachEntityChunk(SearchContext, [MyLocation, &TargetLocation, &BestTargetDistSq, &bFoundTarget](FMassExecutionContext& Context)
 			{
-				if (bApplied)
-				{
-					return;
-				}
-
 				const int32 NumEntities = Context.GetNumEntities();
 				TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
-				TArrayView<FMonsterConditionFragment> Conditions = Context.GetMutableFragmentView<FMonsterConditionFragment>();
 
 				for (int32 i = 0; i < NumEntities; ++i)
 				{
 					FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
-					if (FVector::DistSquared(MyLocation, EnemyLoc) <= RadiusSq)
+					const float DistSq = FVector::DistSquared(MyLocation, EnemyLoc);
+					if (DistSq <= BestTargetDistSq)
 					{
-						Conditions[i].Damage += SkillDamage;
-						bApplied = true;
-						return;
+						TargetLocation = EnemyLoc;
+						BestTargetDistSq = DistSq;
+						bFoundTarget = true;
 					}
 				}
 			});
+
+		if (bFoundTarget)
+		{
+			FMassExecutionContext DamageContext(EntityManager, 0.0f);
+			TargetQueryPtr->ForEachEntityChunk(DamageContext, [this, TargetLocation, SplashRadiusSq, &bApplied](FMassExecutionContext& Context)
+				{
+					const int32 NumEntities = Context.GetNumEntities();
+					TArrayView<FTransformFragment> Transforms = Context.GetMutableFragmentView<FTransformFragment>();
+					TArrayView<FMonsterStatusFragment> Statuses = Context.GetMutableFragmentView<FMonsterStatusFragment>();
+
+					for (int32 i = 0; i < NumEntities; ++i)
+					{
+						FVector EnemyLoc = Transforms[i].GetTransform().GetLocation();
+						if (FVector::DistSquared(TargetLocation, EnemyLoc) <= SplashRadiusSq)
+						{
+							Statuses[i].PendingAoEDamage += SkillDamage;
+							bApplied = true;
+						}
+					}
+				});
+		}
 	}
 	else
 	{
@@ -217,14 +239,8 @@ bool AWeaponMaster::ExecuteSkill()
 		int32 CenterX = (int32)(MyKey >> 32);
 		int32 CenterY = (int32)(MyKey & 0xFFFFFFFF);
 
-		bool bFoundInGrid = false;
 		for (int32 x = -1; x <= 1; ++x)
 		{
-			if (bFoundInGrid)
-			{
-				break;
-			}
-
 			for (int32 y = -1; y <= 1; ++y)
 			{
 				int64 CheckKey = ((int64)(CenterX + x) << 32) | (uint32)(CenterY + y);
@@ -233,7 +249,8 @@ bool AWeaponMaster::ExecuteSkill()
 				{
 					for (const FMonsterGridInfo& MInfo : Cell->MonsterInfos)
 					{
-						if (FVector::DistSquared(MyLocation, MInfo.Location) <= RadiusSq)
+						const float DistSq = FVector::DistSquared(MyLocation, MInfo.Location);
+						if (DistSq <= BestTargetDistSq)
 						{
 							if (!EntityManager.IsEntityValid(MInfo.MonsterHandle))
 							{
@@ -241,22 +258,70 @@ bool AWeaponMaster::ExecuteSkill()
 							}
 
 							FMassEntityView EntityView(EntityManager, MInfo.MonsterHandle);
-							if (FMonsterConditionFragment* Condition = EntityView.GetFragmentDataPtr<FMonsterConditionFragment>())
+							if (EntityView.HasTag<FKilledTag>() || EntityView.HasTag<FMonsterDyingTag>())
 							{
-								Condition->Damage += SkillDamage;
+								continue;
+							}
+
+							TargetLocation = MInfo.Location;
+							BestTargetDistSq = DistSq;
+							bFoundTarget = true;
+						}
+					}
+				}
+			}
+		}
+
+		if (bFoundTarget)
+		{
+			const int64 TargetKey = PlaySubsystem->GetGridKey(TargetLocation);
+			const int32 TargetCenterX = static_cast<int32>(TargetKey >> 32);
+			const int32 TargetCenterY = static_cast<int32>(TargetKey & 0xFFFFFFFF);
+
+			for (int32 x = -1; x <= 1; ++x)
+			{
+				for (int32 y = -1; y <= 1; ++y)
+				{
+					const int64 CheckKey = (static_cast<int64>(TargetCenterX + x) << 32) | static_cast<uint32>(TargetCenterY + y);
+
+					if (FGridData* Cell = PlaySubsystem->SpatialGrid.Find(CheckKey))
+					{
+						for (const FMonsterGridInfo& MInfo : Cell->MonsterInfos)
+						{
+							if (FVector::DistSquared(TargetLocation, MInfo.Location) > SplashRadiusSq)
+							{
+								continue;
+							}
+
+							if (!EntityManager.IsEntityValid(MInfo.MonsterHandle))
+							{
+								continue;
+							}
+
+							FMassEntityView EntityView(EntityManager, MInfo.MonsterHandle);
+							if (EntityView.HasTag<FKilledTag>() || EntityView.HasTag<FMonsterDyingTag>())
+							{
+								continue;
+							}
+
+							if (FMonsterStatusFragment* Status = EntityView.GetFragmentDataPtr<FMonsterStatusFragment>())
+							{
+								Status->PendingAoEDamage += SkillDamage;
 								bApplied = true;
-								bFoundInGrid = true;
-								break;
 							}
 						}
 					}
 				}
-
-				if (bFoundInGrid)
-				{
-					break;
-				}
 			}
+		}
+	}
+
+	if (bFoundTarget)
+	{
+		const FVector Direction = (TargetLocation - MyLocation).GetSafeNormal2D();
+		if (!Direction.IsNearlyZero())
+		{
+			SetActorRotation(Direction.Rotation());
 		}
 	}
 
