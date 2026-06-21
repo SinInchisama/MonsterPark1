@@ -12,7 +12,7 @@
 #include "MonsterPark/Map/Nexus.h"
 #include "MyUserWidget.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-
+#include "NiagaraFunctionLibrary.h"
 
 // Sets default values
 AMyBasicCharacter::AMyBasicCharacter()
@@ -359,6 +359,17 @@ void AMyBasicCharacter::OnMouseRightClick()
                 {
                     Hero->CommandMoveToLocation(HitResult.Location);
                 }
+            }
+
+            if (PingEffect)
+            {
+                FVector SpawnLocation = HitResult.Location + FVector(0.0f, 0.0f, 20.0f);
+
+                UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+                    GetWorld(),
+                    PingEffect,
+                    SpawnLocation
+                );
             }
         }
     }

@@ -14,6 +14,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMixtureHero, int32, HeroCost);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUnitSelectedSignature, ACharacterBase*, SelectedUnit, bool, Select);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnNexusToggledSignature, bool, bIsOpen);
 
+class UNiagaraSystem;
+
 UCLASS()
 class MONSTERPARK_API AMyBasicCharacter : public ACharacter
 {
@@ -115,6 +117,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TArray<ACharacterBase*> MySummonedHero;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+	UNiagaraSystem* PingEffect;
 public:
 	// ���� �÷��̾� ��, ����ġ, ������, ������ �ִ� �������� ����
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player)
