@@ -26,4 +26,10 @@ protected:
 private:
 	float TargetProgress = 0.0f;
 	float CurrentDisplayProgress = 0.0f;
+
+	float TotalLoadingTime = 2.0f;
+
+	float ElapsedTime = 0.0f;
+
+	bool bLevelTransitionStarted = false;
 };

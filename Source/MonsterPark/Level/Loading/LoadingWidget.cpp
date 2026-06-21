@@ -11,15 +11,20 @@ void ULoadingWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
     Super::NativeTick(MyGeometry, InDeltaTime);
 
-    // 엔진 내부의 비동기 로딩 퍼센트를 가져옵니다 (0 ~ 100)
-    float ActualProgress = GetAsyncLoadPercentage(FName("/Game/Level/MonsterPARK"));
+    if (bLevelTransitionStarted) return;
 
-    if (ActualProgress >= 0.0f)
+    ElapsedTime += InDeltaTime;
+    float CurrentPercent = FMath::Clamp(ElapsedTime / TotalLoadingTime, 0.0f, 1.0f);
+
+    if (LoadingBar)
     {
-        // 0.0 ~ 1.0 범위로 변환
-        float TargetPercent = ActualProgress / 100.0f;
+        LoadingBar->SetPercent(CurrentPercent);
+    }
 
-        // ProgressBar에 부드럽게 반영 (보간)
-        LoadingBar->SetPercent(TargetPercent);
+    if (CurrentPercent >= 1.0f)
+    {
+        bLevelTransitionStarted = true;
+
+        UGameplayStatics::OpenLevel(GetWorld(), FName("MonsterPARK"));
     }
 }

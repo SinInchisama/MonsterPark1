@@ -25,7 +25,6 @@ UDamageCheckProcessor::UDamageCheckProcessor() : DamageCheckQuery(*this)
 	ProcessingPhase = EMassProcessingPhase::PrePhysics;
 	ExecutionOrder.ExecuteInGroup = UE::Mass::ProcessorGroupNames::Tasks;
 
-	// UI 업데이트(AActor 접근)를 위해 메인 스레드 실행 강제
 	bRequiresGameThreadExecution = true;
 }
 
@@ -47,8 +46,6 @@ void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 		{
 			const TArrayView<FMonsterConditionFragment> ConditionList = Context.GetMutableFragmentView<FMonsterConditionFragment>();
 			const TArrayView<FMonsterStatusFragment> StatusList = Context.GetMutableFragmentView<FMonsterStatusFragment>();
-
-			// FMassActorFragment 리스트 가져오기
 			const TArrayView<FMassActorFragment> ActorList = Context.GetMutableFragmentView<FMassActorFragment>();
 
 			const int32 NumEntities = Context.GetNumEntities();
@@ -58,7 +55,6 @@ void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 			{
 				float TotalDamageThisFrame = 0.0f;
 
-				// 1. 대미지 합산 로직
 				if (ConditionList[i].Damage != 0)
 				{
 					TotalDamageThisFrame += ConditionList[i].Damage;
@@ -83,10 +79,15 @@ void UDamageCheckProcessor::Execute(FMassEntityManager& EntityManager, FMassExec
 					if (bHasActorData)
 					{
 						AActor* VisualActor = ActorList[i].GetMutable();
-
 						if (VisualActor != nullptr && VisualActor->Implements<UEntityHealthInterface>())
 						{
-							IEntityHealthInterface::Execute_UpdateHealthUI(VisualActor, StatusList[i].CurrentHealth);
+							float HealthPercent = 0.0f;
+							if (StatusList[i].MaxHealt > 0.0f) 
+							{
+								HealthPercent = FMath::Clamp(StatusList[i].CurrentHealth / StatusList[i].MaxHealt, 0.0f, 1.0f);
+							}
+
+							IEntityHealthInterface::Execute_UpdateHealthUI(VisualActor, HealthPercent);
 						}
 					}
 				}
